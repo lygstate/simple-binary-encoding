@@ -20,7 +20,8 @@ import static uk.co.real_logic.sbe.xml.XmlSchemaParser.parse;
 public class Issue567GroupSizeTest
 {
     public static final String ERR_MSG =
-        "WARNING: at <sbe:message name=\"issue567\"> <group name=\"group\"> \"numInGroup\" should be UINT8 or UINT16";
+        "WARNING: at <sbe:message name=\"issue567\"> <group name=\"group\"> \"numInGroup\" " +
+        "should be UINT8, UINT16 or UINT32";
 
     private final PrintStream mockErr = mock(PrintStream.class);
     private PrintStream err;

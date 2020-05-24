@@ -25,6 +25,8 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -173,9 +175,11 @@ public class CompositeType extends Type
         }
         else
         {
-            if (blockLengthType.primitiveType() != UINT8 && blockLengthType.primitiveType() != UINT16)
+            if (blockLengthType.primitiveType() != UINT8 &&
+                blockLengthType.primitiveType() != UINT16 &&
+                blockLengthType.primitiveType() != UINT32)
             {
-                XmlSchemaParser.handleWarning(node, "\"blockLength\" should be UINT8 or UINT16");
+                XmlSchemaParser.handleWarning(node, "\"blockLength\" should be UINT8, UINT16 or UINT32");
             }
 
             final PrimitiveValue blockLengthTypeMaxValue = blockLengthType.maxValue();
@@ -203,9 +207,11 @@ public class CompositeType extends Type
         }
         else
         {
-            if (numInGroupType.primitiveType() != UINT8 && numInGroupType.primitiveType() != UINT16)
+            if (numInGroupType.primitiveType() != UINT8 &&
+                numInGroupType.primitiveType() != UINT16 &&
+                numInGroupType.primitiveType() != UINT32)
             {
-                XmlSchemaParser.handleWarning(node, "\"numInGroup\" should be UINT8 or UINT16");
+                XmlSchemaParser.handleWarning(node, "\"numInGroup\" should be UINT8, UINT16 or UINT32");
             }
 
             final PrimitiveValue numInGroupMaxValue = numInGroupType.maxValue();
@@ -267,21 +273,34 @@ public class CompositeType extends Type
         }
     }
 
+    private static final BigInteger UNSIGNED_LONG_MASK = BigInteger.ONE.shiftLeft(Long.SIZE).subtract(BigInteger.ONE);
+
     private static void validateGroupMaxValue(
         final Node node, final PrimitiveType primitiveType, final PrimitiveValue value)
     {
         if (null != value)
         {
-            final long longValue = value.longValue();
-            final long allowedValue = primitiveType.maxValue().longValue();
-            if (longValue > allowedValue)
+            final BigInteger longValue = BigInteger.valueOf(value.longValue());
+            BigInteger allowedValue = BigInteger.valueOf(primitiveType.maxValue().longValue());
+            if (primitiveType == UINT64)
+            {
+                allowedValue = allowedValue.and(UNSIGNED_LONG_MASK);
+            }
+            if (longValue.compareTo(allowedValue) > 0)
             {
                 XmlSchemaParser.handleError(node, String.format(
                     "maxValue greater than allowed for type: maxValue=%d allowed=%d", longValue, allowedValue));
             }
-
-            final long maxInt = INT32.maxValue().longValue();
-            if (primitiveType == UINT32 && longValue > maxInt)
+            BigInteger maxInt = null;
+            if (primitiveType == UINT32)
+            {
+                maxInt = BigInteger.valueOf(INT32.maxValue().longValue());
+            }
+            else if (primitiveType == UINT64)
+            {
+                maxInt = BigInteger.valueOf(INT64.maxValue().longValue());
+            }
+            if (maxInt != null && longValue.compareTo(maxInt) > 0)
             {
                 XmlSchemaParser.handleError(node, String.format(
                     "maxValue greater than allowed for type: maxValue=%d allowed=%d", longValue, maxInt));
@@ -292,6 +311,12 @@ public class CompositeType extends Type
             final long maxInt = INT32.maxValue().longValue();
             XmlSchemaParser.handleError(node, String.format(
                 "maxValue must be set for varData UINT32 type: max value allowed=%d", maxInt));
+        }
+        else if (primitiveType == UINT64)
+        {
+            final long maxInt = INT64.maxValue().longValue();
+            XmlSchemaParser.handleError(node, String.format(
+                "maxValue must be set for varData UINT64 type: max value allowed=%d", maxInt));
         }
     }
 
@@ -319,7 +344,6 @@ public class CompositeType extends Type
             XmlSchemaParser.handleError(node, "\"blockLength\" must be unsigned");
         }
 
-        validateHeaderField(node, "blockLength", blockLengthType, UINT16, shouldGenerateInterfaces);
         validateHeaderField(node, "templateId", templateIdType, UINT16, shouldGenerateInterfaces);
         validateHeaderField(node, "schemaId", schemaIdType, UINT16, shouldGenerateInterfaces);
         validateHeaderField(node, "version", versionType, UINT16, shouldGenerateInterfaces);
