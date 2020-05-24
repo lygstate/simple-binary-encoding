@@ -163,17 +163,7 @@ public class CGenerator implements CodeGenerator
     private static void generateGroupStruct(final StringBuilder sb, final String groupName)
     {
         sb.append(String.format("\n" +
-            "struct %s\n" +
-            "{\n" +
-            "    char *buffer;\n" +
-            "    uint64_t buffer_length;\n" +
-            "    uint64_t *position_ptr;\n" +
-            "    uint64_t block_length;\n" +
-            "    uint64_t count;\n" +
-            "    uint64_t index;\n" +
-            "    uint64_t offset;\n" +
-            "    uint64_t acting_version;\n" +
-            "};\n",
+            "typedef struct sbe_group %1$s;\n",
             groupName));
     }
 
@@ -194,13 +184,13 @@ public class CGenerator implements CodeGenerator
 
         sb.append(String.format("\n" +
             "SBE_ONE_DEF uint64_t *%1$s_sbe_position_ptr(\n" +
-            "    struct %1$s *const codec)\n" +
+            "    %1$s *const codec)\n" +
             "{\n" +
             "    return codec->position_ptr;\n" +
             "}\n\n" +
 
-            "SBE_ONE_DEF struct %1$s *%1$s_wrap_for_decode(\n" +
-            "    struct %1$s *const codec,\n" +
+            "SBE_ONE_DEF %1$s *%1$s_wrap_for_decode(\n" +
+            "    %1$s *const codec,\n" +
             "    char *const buffer,\n" +
             "    uint64_t *const pos,\n" +
             "    const uint64_t acting_version,\n" +
@@ -208,7 +198,7 @@ public class CGenerator implements CodeGenerator
             "{\n" +
             "    codec->buffer = buffer;\n" +
             "    codec->buffer_length = buffer_length;\n" +
-            "    struct %2$s dimensions;\n" +
+            "    %2$s dimensions;\n" +
             "    if (!%2$s_wrap(&dimensions, codec->buffer, *pos, acting_version, buffer_length))\n" +
             "    {\n" +
             "        return NULL;\n" +
@@ -227,8 +217,8 @@ public class CGenerator implements CodeGenerator
         final String minCheck = minCount > 0 ? "count < " + minCount + " || " : "";
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF struct %1$s *%1$s_wrap_for_encode(\n" +
-            "    struct %1$s *const codec,\n" +
+            "SBE_ONE_DEF %1$s *%1$s_wrap_for_encode(\n" +
+            "    %1$s *const codec,\n" +
             "    char *const buffer,\n" +
             "    const %4$s count,\n" +
             "    uint64_t *const pos,\n" +
@@ -242,7 +232,7 @@ public class CGenerator implements CodeGenerator
             "    }\n" +
             "    codec->buffer = buffer;\n" +
             "    codec->buffer_length = buffer_length;\n" +
-            "    struct %5$s dimensions;\n" +
+            "    %5$s dimensions;\n" +
             "    if (!%5$s_wrap(&dimensions, codec->buffer, *pos, acting_version, buffer_length))\n" +
             "    {\n" +
             "        return NULL;\n" +
@@ -274,13 +264,13 @@ public class CGenerator implements CodeGenerator
             "}\n\n" +
 
             "SBE_ONE_DEF uint64_t %3$s_sbe_position(\n" +
-            "    const struct %3$s *const codec)\n" +
+            "    const %3$s *const codec)\n" +
             "{\n" +
             "    return *codec->position_ptr;\n" +
             "}\n\n" +
 
             "SBE_ONE_DEF bool %3$s_set_sbe_position(\n" +
-            "    struct %3$s *const codec,\n" +
+            "    %3$s *const codec,\n" +
             "    const uint64_t position)\n" +
             "{\n" +
             "    if (SBE_BOUNDS_CHECK_EXPECT((position > codec->buffer_length), false))\n" +
@@ -293,19 +283,19 @@ public class CGenerator implements CodeGenerator
             "}\n\n" +
 
             "SBE_ONE_DEF uint64_t %3$s_count(\n" +
-            "    const struct %3$s *const codec)\n" +
+            "    const %3$s *const codec)\n" +
             "{\n" +
             "    return codec->count;\n" +
             "}\n\n" +
 
             "SBE_ONE_DEF bool %3$s_has_next(\n" +
-            "    const struct %3$s *const codec)\n" +
+            "    const %3$s *const codec)\n" +
             "{\n" +
             "    return codec->index + 1 < codec->count;\n" +
             "}\n\n" +
 
-            "SBE_ONE_DEF struct %3$s *%3$s_next(\n" +
-            "    struct %3$s *const codec)\n" +
+            "SBE_ONE_DEF %3$s *%3$s_next(\n" +
+            "    %3$s *const codec)\n" +
             "{\n" +
             "    codec->offset = *codec->position_ptr;\n" +
             "    if (SBE_BOUNDS_CHECK_EXPECT(((codec->offset + codec->block_length) " +
@@ -320,9 +310,9 @@ public class CGenerator implements CodeGenerator
             "    return codec;\n" +
             "}\n\n" +
 
-            "SBE_ONE_DEF struct %3$s *%3$s_for_each(\n" +
-            "    struct %3$s *const codec,\n" +
-            "    void (*func)(struct %3$s *, void *),\n" +
+            "SBE_ONE_DEF %3$s *%3$s_for_each(\n" +
+            "    %3$s *const codec,\n" +
+            "    void (*func)(%3$s *, void *),\n" +
             "    void *const context)\n" +
             "{\n" +
             "    while (%3$s_has_next(codec))\n" +
@@ -353,9 +343,9 @@ public class CGenerator implements CodeGenerator
             token.id()));
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF struct %2$s *%1$s_get_%3$s(\n" +
-            "    struct %1$s *const codec,\n" +
-            "    struct %2$s *const property)\n" +
+            "SBE_ONE_DEF %2$s *%1$s_get_%3$s(\n" +
+            "    %1$s *const codec,\n" +
+            "    %2$s *const property)\n" +
             "{\n" +
             "    return %2$s_wrap_for_decode(\n" +
             "        property,\n" +
@@ -369,9 +359,9 @@ public class CGenerator implements CodeGenerator
             propertyName));
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF struct %2$s *%2$s_set_count(\n" +
-            "    struct %1$s *const codec,\n" +
-            "    struct %2$s *const property,\n" +
+            "SBE_ONE_DEF %2$s *%2$s_set_count(\n" +
+            "    %1$s *const codec,\n" +
+            "    %2$s *const property,\n" +
             "    const %3$s count)\n" +
             "{\n" +
             "    return %2$s_wrap_for_encode(\n" +
@@ -393,7 +383,7 @@ public class CGenerator implements CodeGenerator
             "}\n\n" +
 
             "SBE_ONE_DEF bool %2$s_in_acting_version(\n" +
-            "    const struct %1$s *const codec)\n" +
+            "    const %1$s *const codec)\n" +
             "{\n" +
             "    return codec->acting_version >= %2$s_since_version();\n" +
             "}\n",
@@ -434,7 +424,7 @@ public class CGenerator implements CodeGenerator
 
             sb.append(String.format("\n" +
                 "SBE_ONE_DEF const char *%6$s_%1$s(\n" +
-                "    struct %6$s *const codec)\n" +
+                "    %6$s *const codec)\n" +
                 "{\n" +
                 "%2$s" +
                 "    %4$s length_field_value;\n" +
@@ -456,7 +446,7 @@ public class CGenerator implements CodeGenerator
 
             sb.append(String.format("\n" +
                 "SBE_ONE_DEF uint64_t %6$s_get_%1$s(\n" +
-                "    struct %6$s *const codec,\n" +
+                "    %6$s *const codec,\n" +
                 "    char *dst,\n" +
                 "    const uint64_t length)\n" +
                 "{\n" +
@@ -488,7 +478,7 @@ public class CGenerator implements CodeGenerator
 
             sb.append(String.format("\n" +
                 "SBE_ONE_DEF sbe_string_view %5$s_get_%1$s_as_string_view(\n" +
-                "    struct %5$s *const codec)\n" +
+                "    %5$s *const codec)\n" +
                 "{\n" +
                 "    sbe_string_view ret = {NULL, 0};\n" +
                 "%2$s" +
@@ -510,8 +500,8 @@ public class CGenerator implements CodeGenerator
                 outermostStruct));
 
             sb.append(String.format("\n" +
-                "SBE_ONE_DEF struct %5$s *%5$s_put_%1$s(\n" +
-                "    struct %5$s *const codec,\n" +
+                "SBE_ONE_DEF %5$s *%5$s_put_%1$s(\n" +
+                "    %5$s *const codec,\n" +
                 "    const char *src,\n" +
                 "    const uint64_t length)\n" +
                 "{\n" +
@@ -570,7 +560,7 @@ public class CGenerator implements CodeGenerator
             "}\n\n" +
 
             "SBE_ONE_DEF bool %1$s_in_acting_version(\n" +
-            "    const struct %4$s *const codec)\n" +
+            "    const %4$s *const codec)\n" +
             "{\n" +
             "    return codec->acting_version >= %1$s_since_version();\n" +
             "}\n\n" +
@@ -594,7 +584,7 @@ public class CGenerator implements CodeGenerator
 
         sb.append(String.format("\n" +
             "SBE_ONE_DEF uint64_t %1$s_length(\n" +
-            "    const struct %5$s *const codec)\n" +
+            "    const %5$s *const codec)\n" +
             "{\n" +
             "%2$s" +
             "    %4$s length;\n" +
@@ -621,8 +611,8 @@ public class CGenerator implements CodeGenerator
             out.append(generateFixedFlyweightCodeFunctions(bitSetName, bitsetToken.encodedLength()));
 
             out.append(String.format("\n" +
-                "SBE_ONE_DEF struct %1$s *%1$s_clear(\n" +
-                "    struct %1$s *const codec)\n" +
+                "SBE_ONE_DEF %1$s *%1$s_clear(\n" +
+                "    %1$s *const codec)\n" +
                 "{\n" +
                 "    %2$s zero = 0;\n" +
                 "    memcpy(codec->buffer + codec->offset, &zero, sizeof(%2$s));\n\n" +
@@ -633,7 +623,7 @@ public class CGenerator implements CodeGenerator
 
             out.append(String.format("\n" +
                 "SBE_ONE_DEF bool %1$s_is_empty(\n" +
-                "    const struct %1$s *const codec)\n" +
+                "    const %1$s *const codec)\n" +
                 "{\n" +
                 "    %2$s val;\n" +
                 "    memcpy(&val, codec->buffer + codec->offset, sizeof(%2$s));\n\n" +
@@ -730,7 +720,7 @@ public class CGenerator implements CodeGenerator
 
                 sb.append(String.format("\n" +
                     "SBE_ONE_DEF bool %1$s_%2$s(\n" +
-                    "    const struct %1$s *const codec)\n" +
+                    "    const %1$s *const codec)\n" +
                     "{\n" +
                     "%3$s" +
                     "    %5$s val;\n" +
@@ -745,8 +735,8 @@ public class CGenerator implements CodeGenerator
                     choiceBitPosition));
 
                 sb.append(String.format("\n" +
-                    "SBE_ONE_DEF struct %1$s *%1$s_set_%2$s(\n" +
-                    "    struct %1$s *const codec,\n" +
+                    "SBE_ONE_DEF %1$s *%1$s_set_%2$s(\n" +
+                    "    %1$s *const codec,\n" +
                     "    const bool value)\n" +
                     "{\n" +
                     "    %3$s bits;\n" +
@@ -1175,7 +1165,7 @@ public class CGenerator implements CodeGenerator
             token.encoding().applicableNullValue().toString());
         sb.append(String.format("\n" +
             "SBE_ONE_DEF %1$s %5$s_%2$s(\n" +
-            "    const struct %5$s *const codec)\n" +
+            "    const %5$s *const codec)\n" +
             "{\n" +
             "%3$s" +
             "%4$s\n" +
@@ -1190,8 +1180,8 @@ public class CGenerator implements CodeGenerator
             outermostStruct, primitiveType, Integer.toString(offset), token.encoding().byteOrder());
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF struct %1$s *%1$s_set_%2$s(\n" +
-            "    struct %1$s *const codec,\n" +
+            "SBE_ONE_DEF %1$s *%1$s_set_%2$s(\n" +
+            "    %1$s *const codec,\n" +
             "    const %3$s value)\n" +
             "{\n" +
             "%4$s\n" +
@@ -1225,7 +1215,7 @@ public class CGenerator implements CodeGenerator
 
         sb.append(String.format("\n" +
             "SBE_ONE_DEF const char *%1$s_%2$s_buffer(\n" +
-            "    const struct %1$s *const codec)\n" +
+            "    const %1$s *const codec)\n" +
             "{\n" +
             "%3$s" +
             "    return codec->buffer + codec->offset + %4$d;\n" +
@@ -1245,7 +1235,7 @@ public class CGenerator implements CodeGenerator
             token.encoding().applicableNullValue().toString());
         sb.append(String.format("\n" +
             "SBE_ONE_DEF %2$s %1$s_%3$s_unsafe(\n" +
-            "    const struct %1$s *const codec,\n" +
+            "    const %1$s *const codec,\n" +
             "    const uint64_t index)\n" +
             "{\n" +
             "%4$s" +
@@ -1265,7 +1255,7 @@ public class CGenerator implements CodeGenerator
 
         sb.append(String.format("\n" +
             "SBE_ONE_DEF bool %1$s_%3$s(\n" +
-            "    const struct %1$s *const codec,\n" +
+            "    const %1$s *const codec,\n" +
             "    const uint64_t index,\n" +
             "    %2$s *const out)\n" +
             "{\n" +
@@ -1293,8 +1283,8 @@ public class CGenerator implements CodeGenerator
             token.encoding().byteOrder());
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF struct %1$s *%1$s_set_%2$s_unsafe(\n" +
-            "    struct %1$s *const codec,\n" +
+            "SBE_ONE_DEF %1$s *%1$s_set_%2$s_unsafe(\n" +
+            "    %1$s *const codec,\n" +
             "    const uint64_t index,\n" +
             "    const %3$s value)\n" +
             "{\n" +
@@ -1307,8 +1297,8 @@ public class CGenerator implements CodeGenerator
             storeValue));
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF struct %1$s *%1$s_set_%2$s(\n" +
-            "    struct %1$s *const codec,\n" +
+            "SBE_ONE_DEF %1$s *%1$s_set_%2$s(\n" +
+            "    %1$s *const codec,\n" +
             "    const uint64_t index,\n" +
             "    const %3$s value)\n" +
             "{\n" +
@@ -1329,7 +1319,7 @@ public class CGenerator implements CodeGenerator
 
         sb.append(String.format("\n" +
             "SBE_ONE_DEF char *%1$s_get_%2$s(\n" +
-            "    const struct %1$s *const codec,\n" +
+            "    const %1$s *const codec,\n" +
             "    char *dst,\n" +
             "    const uint64_t length)\n" +
             "{\n" +
@@ -1351,8 +1341,8 @@ public class CGenerator implements CodeGenerator
             cTypeName));
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF struct %1$s *%1$s_put_%2$s(\n" +
-            "    struct %1$s *const codec,\n" +
+            "SBE_ONE_DEF %1$s *%1$s_put_%2$s(\n" +
+            "    %1$s *const codec,\n" +
             "    const char *src)\n" +
             "{\n" +
             "    memcpy(codec->buffer + codec->offset + %3$d, src, sizeof(%4$s) * %5$d);\n\n" +
@@ -1433,7 +1423,7 @@ public class CGenerator implements CodeGenerator
 
         sb.append(String.format("\n" +
             "SBE_ONE_DEF uint64_t %4$s_get_%1$s(\n" +
-            "    const struct %4$s *const codec,\n" +
+            "    const %4$s *const codec,\n" +
             "    char *dst,\n" +
             "    const uint64_t length)\n" +
             "{\n" +
@@ -1454,13 +1444,7 @@ public class CGenerator implements CodeGenerator
     private CharSequence generateFixedFlyweightStruct(final String structName)
     {
         return String.format("\n" +
-            "struct %s\n" +
-            "{\n" +
-            "    char *buffer;\n" +
-            "    uint64_t buffer_length;\n" +
-            "    uint64_t offset;\n" +
-            "    uint64_t acting_version;\n" +
-            "};\n",
+            "typedef struct sbe_composite %1$s;\n",
             structName);
     }
 
@@ -1470,8 +1454,8 @@ public class CGenerator implements CodeGenerator
         final String schemaVersionType = cTypeName(ir.headerStructure().schemaVersionType());
 
         return String.format("\n" +
-            "SBE_ONE_DEF struct %1$s *%1$s_reset(\n" +
-            "    struct %1$s *const codec,\n" +
+            "SBE_ONE_DEF %1$s *%1$s_reset(\n" +
+            "    %1$s *const codec,\n" +
             "    char *buffer,\n" +
             "    const uint64_t offset,\n" +
             "    const uint64_t buffer_length,\n" +
@@ -1489,8 +1473,8 @@ public class CGenerator implements CodeGenerator
             "    return codec;\n" +
             "}\n\n" +
 
-            "SBE_ONE_DEF struct %1$s *%1$s_wrap(\n" +
-            "    struct %1$s *const codec,\n" +
+            "SBE_ONE_DEF %1$s *%1$s_wrap(\n" +
+            "    %1$s *const codec,\n" +
             "    char *buffer,\n" +
             "    const uint64_t offset,\n" +
             "    const uint64_t acting_version,\n" +
@@ -1505,25 +1489,25 @@ public class CGenerator implements CodeGenerator
             "}\n\n" +
 
             "SBE_ONE_DEF uint64_t %1$s_offset(\n" +
-            "    const struct %1$s *const codec)\n" +
+            "    const %1$s *const codec)\n" +
             "{\n" +
             "    return codec->offset;\n" +
             "}\n\n" +
 
             "SBE_ONE_DEF const char *%1$s_buffer(\n" +
-            "    const struct %1$s *const codec)\n" +
+            "    const %1$s *const codec)\n" +
             "{\n" +
             "    return codec->buffer;\n" +
             "}\n\n" +
 
             "SBE_ONE_DEF char *%1$s_mut_buffer(\n" +
-            "    struct %1$s *const codec)\n" +
+            "    %1$s *const codec)\n" +
             "{\n" +
             "    return codec->buffer;\n" +
             "}\n\n" +
 
             "SBE_ONE_DEF uint64_t %1$s_buffer_length(\n" +
-            "    const struct %1$s *const codec)\n" +
+            "    const %1$s *const codec)\n" +
             "{\n" +
             "    return codec->buffer_length;\n" +
             "}\n\n" +
@@ -1548,14 +1532,7 @@ public class CGenerator implements CodeGenerator
     private CharSequence generateMessageFlyweightStruct(final String structName)
     {
         return String.format("\n" +
-            "struct %s\n" +
-            "{\n" +
-            "    char *buffer;\n" +
-            "    uint64_t buffer_length;\n" +
-            "    uint64_t offset;\n" +
-            "    uint64_t position;\n" +
-            "    uint64_t acting_version;\n" +
-            "};\n",
+            "typedef struct sbe_message %1$s;\n",
             structName);
     }
 
@@ -1571,13 +1548,13 @@ public class CGenerator implements CodeGenerator
 
         return String.format("\n" +
             "SBE_ONE_DEF uint64_t %10$s_sbe_position(\n" +
-            "    const struct %10$s *const codec)\n" +
+            "    const %10$s *const codec)\n" +
             "{\n" +
             "    return codec->position;\n" +
             "}\n\n" +
 
             "SBE_ONE_DEF bool %10$s_set_sbe_position(\n" +
-            "    struct %10$s *const codec,\n" +
+            "    %10$s *const codec,\n" +
             "    const uint64_t position)\n" +
             "{\n" +
             "    if (SBE_BOUNDS_CHECK_EXPECT((position > codec->buffer_length), false))\n" +
@@ -1590,13 +1567,13 @@ public class CGenerator implements CodeGenerator
             "}\n\n" +
 
             "SBE_ONE_DEF uint64_t *%10$s_sbe_position_ptr(\n" +
-            "    struct %10$s *const codec)\n" +
+            "    %10$s *const codec)\n" +
             "{\n" +
             "    return &codec->position;\n" +
             "}\n\n" +
 
-            "SBE_ONE_DEF struct %10$s *%10$s_reset(\n" +
-            "    struct %10$s *const codec,\n" +
+            "SBE_ONE_DEF %10$s *%10$s_reset(\n" +
+            "    %10$s *const codec,\n" +
             "    char *buffer,\n" +
             "    const uint64_t offset,\n" +
             "    const uint64_t buffer_length,\n" +
@@ -1614,9 +1591,9 @@ public class CGenerator implements CodeGenerator
             "    return codec;\n" +
             "}\n\n" +
 
-            "SBE_ONE_DEF struct %10$s *%10$s_copy(\n" +
-            "    struct %10$s *const codec,\n" +
-            "    const struct %10$s *const other)\n" +
+            "SBE_ONE_DEF %10$s *%10$s_copy(\n" +
+            "    %10$s *const codec,\n" +
+            "    const %10$s *const other)\n" +
             "{\n" +
             "     codec->buffer = other->buffer;\n" +
             "     codec->offset = other->offset;\n" +
@@ -1652,17 +1629,17 @@ public class CGenerator implements CodeGenerator
             "}\n\n" +
 
             "SBE_ONE_DEF uint64_t %10$s_offset(\n" +
-            "    const struct %10$s *const codec)\n" +
+            "    const %10$s *const codec)\n" +
             "{\n" +
             "    return codec->offset;\n" +
             "}\n\n" +
 
-            "SBE_ONE_DEF struct %10$s *%10$s_wrap_and_apply_header(\n" +
-            "    struct %10$s *const codec,\n" +
+            "SBE_ONE_DEF %10$s *%10$s_wrap_and_apply_header(\n" +
+            "    %10$s *const codec,\n" +
             "    char *buffer,\n" +
             "    const uint64_t offset,\n" +
             "    const uint64_t buffer_length,\n" +
-            "    struct %11$s *const hdr)\n" +
+            "    %11$s *const hdr)\n" +
             "{\n" +
             "    %11$s_wrap(\n" +
             "        hdr, buffer + offset, 0, buffer_length, %11$s_sbe_schema_version());\n\n" +
@@ -1682,8 +1659,8 @@ public class CGenerator implements CodeGenerator
             "    return codec;\n" +
             "}\n\n" +
 
-            "SBE_ONE_DEF struct %10$s *%10$s_wrap_for_encode(\n" +
-            "    struct %10$s *const codec,\n" +
+            "SBE_ONE_DEF %10$s *%10$s_wrap_for_encode(\n" +
+            "    %10$s *const codec,\n" +
             "    char *buffer,\n" +
             "    const uint64_t offset,\n" +
             "    const uint64_t buffer_length)\n" +
@@ -1697,8 +1674,8 @@ public class CGenerator implements CodeGenerator
             "        %10$s_sbe_schema_version());\n" +
             "}\n\n" +
 
-            "SBE_ONE_DEF struct %10$s *%10$s_wrap_for_decode(\n" +
-            "    struct %10$s *const codec,\n" +
+            "SBE_ONE_DEF %10$s *%10$s_wrap_for_decode(\n" +
+            "    %10$s *const codec,\n" +
             "    char *buffer,\n" +
             "    const uint64_t offset,\n" +
             "    const uint64_t acting_block_length,\n" +
@@ -1715,31 +1692,31 @@ public class CGenerator implements CodeGenerator
             "}\n\n" +
 
             "SBE_ONE_DEF uint64_t %10$s_encoded_length(\n" +
-            "    const struct %10$s *const codec)\n" +
+            "    const %10$s *const codec)\n" +
             "{\n" +
             "    return %10$s_sbe_position(codec) - codec->offset;\n" +
             "}\n\n" +
 
             "SBE_ONE_DEF const char *%10$s_buffer(\n" +
-            "    const struct %10$s *const codec)\n" +
+            "    const %10$s *const codec)\n" +
             "{\n" +
             "    return codec->buffer;\n" +
             "}\n\n" +
 
             "SBE_ONE_DEF char *%10$s_mut_buffer(\n" +
-            "    struct %10$s *const codec)\n" +
+            "    %10$s *const codec)\n" +
             "{\n" +
             "    return codec->buffer;\n" +
             "}\n\n" +
 
             "SBE_ONE_DEF uint64_t %10$s_buffer_length(\n" +
-            "    const struct %10$s *const codec)\n" +
+            "    const %10$s *const codec)\n" +
             "{\n" +
             "    return codec->buffer_length;\n" +
             "}\n\n" +
 
             "SBE_ONE_DEF uint64_t %10$s_acting_version(\n" +
-            "    const struct %10$s *const codec)\n" +
+            "    const %10$s *const codec)\n" +
             "{\n" +
             "    return codec->acting_version;\n" +
             "}\n",
@@ -1820,7 +1797,7 @@ public class CGenerator implements CodeGenerator
             "}\n\n" +
 
             "SBE_ONE_DEF bool %3$s_%1$s_in_acting_version(\n" +
-            "    const struct %3$s *const codec)\n" +
+            "    const %3$s *const codec)\n" +
             "{\n" +
             "    return codec->acting_version >= %3$s_%1$s_since_version();\n" +
             "}\n",
@@ -1937,7 +1914,7 @@ public class CGenerator implements CodeGenerator
 
             sb.append(String.format("\n" +
                 "SBE_ONE_DEF enum %1$s %5$s_%2$s(\n" +
-                "    const struct %5$s *const codec)\n" +
+                "    const %5$s *const codec)\n" +
                 "{\n" +
                 "%3$s" +
                 "    return %1$s_%4$s;\n" +
@@ -1952,7 +1929,7 @@ public class CGenerator implements CodeGenerator
         {
             sb.append(String.format("\n" +
                 "SBE_ONE_DEF bool %7$s_%2$s(\n" +
-                "    const struct %7$s *const codec,\n" +
+                "    const %7$s *const codec,\n" +
                 "    enum %1$s *const out)\n" +
                 "{\n" +
                 "%3$s" +
@@ -1969,8 +1946,8 @@ public class CGenerator implements CodeGenerator
                 containingStructName));
 
             sb.append(String.format("\n" +
-                "SBE_ONE_DEF struct %1$s *%1$s_set_%2$s(\n" +
-                "    struct %1$s *const codec,\n" +
+                "SBE_ONE_DEF %1$s *%1$s_set_%2$s(\n" +
+                "    %1$s *const codec,\n" +
                 "    const enum %3$s value)\n" +
                 "{\n" +
                 "    %4$s val = %6$s(value);\n" +
@@ -1997,9 +1974,9 @@ public class CGenerator implements CodeGenerator
         final int offset = token.offset();
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF struct %1$s *%4$s_%2$s(\n" +
-            "    struct %4$s *const codec,\n" +
-            "    struct %1$s *const bitset)\n" +
+            "SBE_ONE_DEF %1$s *%4$s_%2$s(\n" +
+            "    %4$s *const codec,\n" +
+            "    %1$s *const bitset)\n" +
             "{\n" +
             "    return %1$s_wrap(\n" +
             "        bitset,\n" +
@@ -2034,9 +2011,9 @@ public class CGenerator implements CodeGenerator
         final int offset = token.offset();
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF struct %1$s *%4$s_%2$s(\n" +
-            "    struct %4$s *const codec,\n" +
-            "    struct %1$s *const composite)\n" +
+            "SBE_ONE_DEF %1$s *%4$s_%2$s(\n" +
+            "    %4$s *const codec,\n" +
+            "    %1$s *const composite)\n" +
             "{\n" +
             "    return %1$s_wrap(\n" +
             "        composite,\n" +
