@@ -1,0 +1,7 @@
+
+#include "sbec.h"
+
+int main()
+{
+	return 0;
+}

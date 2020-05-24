@@ -35,6 +35,7 @@ import java.util.List;
 import static uk.co.real_logic.sbe.generation.Generators.toLowerFirstChar;
 import static uk.co.real_logic.sbe.generation.Generators.toUpperFirstChar;
 import static uk.co.real_logic.sbe.generation.cpp.CppUtil.*;
+import static uk.co.real_logic.sbe.generation.c.CUtil.generateSbecHeader;
 import static uk.co.real_logic.sbe.ir.GenerationUtil.*;
 
 /**
@@ -1071,104 +1072,11 @@ public class CppGenerator implements CodeGenerator
         final List<String> typesToInclude)
     {
         final StringBuilder sb = new StringBuilder();
-
-        sb.append("/* Generated SBE (Simple Binary Encoding) message codec */\n");
+        sb.append(generateSbecHeader());
 
         sb.append(String.format(
             "#ifndef _%1$s_%2$s_H_\n" +
-            "#define _%1$s_%2$s_H_\n\n" +
-
-            "#if defined(SBE_HAVE_CMATH)\n" +
-            "/* cmath needed for std::numeric_limits<double>::quiet_NaN() */\n" +
-            "#  include <cmath>\n" +
-            "#  define SBE_FLOAT_NAN std::numeric_limits<float>::quiet_NaN()\n" +
-            "#  define SBE_DOUBLE_NAN std::numeric_limits<double>::quiet_NaN()\n" +
-            "#else\n" +
-            "/* math.h needed for NAN */\n" +
-            "#  include <math.h>\n" +
-            "#  define SBE_FLOAT_NAN NAN\n" +
-            "#  define SBE_DOUBLE_NAN NAN\n" +
-            "#endif\n\n" +
-
-            "#if __cplusplus >= 201103L\n" +
-            "#  define SBE_CONSTEXPR constexpr\n" +
-            "#  define SBE_NOEXCEPT noexcept\n" +
-            "#else\n" +
-            "#  define SBE_CONSTEXPR\n" +
-            "#  define SBE_NOEXCEPT\n" +
-            "#endif\n\n" +
-
-            "#if __cplusplus >= 201402L\n" +
-            "#  define SBE_CONSTEXPR_14 constexpr\n" +
-            "#else\n" +
-            "#  define SBE_CONSTEXPR_14\n" +
-            "#endif\n\n" +
-
-            "#if __cplusplus >= 201703L\n" +
-            "#  include <string_view>\n" +
-            "#  define SBE_NODISCARD [[nodiscard]]\n" +
-            "#else\n" +
-            "#  define SBE_NODISCARD\n" +
-            "#endif\n\n" +
-
-            "#if !defined(__STDC_LIMIT_MACROS)\n" +
-            "#  define __STDC_LIMIT_MACROS 1\n" +
-            "#endif\n\n" +
-
-            "#include <cstdint>\n" +
-            "#include <cstring>\n" +
-            "#include <iomanip>\n" +
-            "#include <limits>\n" +
-            "#include <ostream>\n" +
-            "#include <stdexcept>\n" +
-            "#include <sstream>\n" +
-            "#include <string>\n" +
-            "#include <vector>\n" +
-            "#include <tuple>\n" +
-            "\n" +
-
-            "#if defined(WIN32) || defined(_WIN32)\n" +
-            "#  define SBE_BIG_ENDIAN_ENCODE_16(v) _byteswap_ushort(v)\n" +
-            "#  define SBE_BIG_ENDIAN_ENCODE_32(v) _byteswap_ulong(v)\n" +
-            "#  define SBE_BIG_ENDIAN_ENCODE_64(v) _byteswap_uint64(v)\n" +
-            "#  define SBE_LITTLE_ENDIAN_ENCODE_16(v) (v)\n" +
-            "#  define SBE_LITTLE_ENDIAN_ENCODE_32(v) (v)\n" +
-            "#  define SBE_LITTLE_ENDIAN_ENCODE_64(v) (v)\n" +
-            "#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__\n" +
-            "#  define SBE_BIG_ENDIAN_ENCODE_16(v) __builtin_bswap16(v)\n" +
-            "#  define SBE_BIG_ENDIAN_ENCODE_32(v) __builtin_bswap32(v)\n" +
-            "#  define SBE_BIG_ENDIAN_ENCODE_64(v) __builtin_bswap64(v)\n" +
-            "#  define SBE_LITTLE_ENDIAN_ENCODE_16(v) (v)\n" +
-            "#  define SBE_LITTLE_ENDIAN_ENCODE_32(v) (v)\n" +
-            "#  define SBE_LITTLE_ENDIAN_ENCODE_64(v) (v)\n" +
-            "#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__\n" +
-            "#  define SBE_LITTLE_ENDIAN_ENCODE_16(v) __builtin_bswap16(v)\n" +
-            "#  define SBE_LITTLE_ENDIAN_ENCODE_32(v) __builtin_bswap32(v)\n" +
-            "#  define SBE_LITTLE_ENDIAN_ENCODE_64(v) __builtin_bswap64(v)\n" +
-            "#  define SBE_BIG_ENDIAN_ENCODE_16(v) (v)\n" +
-            "#  define SBE_BIG_ENDIAN_ENCODE_32(v) (v)\n" +
-            "#  define SBE_BIG_ENDIAN_ENCODE_64(v) (v)\n" +
-            "#else\n" +
-            "#  error \"Byte Ordering of platform not determined. " +
-            "Set __BYTE_ORDER__ manually before including this file.\"\n" +
-            "#endif\n\n" +
-
-            "#if defined(SBE_NO_BOUNDS_CHECK)\n" +
-            "#  define SBE_BOUNDS_CHECK_EXPECT(exp,c) (false)\n" +
-            "#elif defined(_MSC_VER)\n" +
-            "#  define SBE_BOUNDS_CHECK_EXPECT(exp,c) (exp)\n" +
-            "#else\n" +
-            "#  define SBE_BOUNDS_CHECK_EXPECT(exp,c) (__builtin_expect(exp,c))\n" +
-            "#endif\n\n" +
-
-            "#define SBE_NULLVALUE_INT8 (std::numeric_limits<std::int8_t>::min)()\n" +
-            "#define SBE_NULLVALUE_INT16 (std::numeric_limits<std::int16_t>::min)()\n" +
-            "#define SBE_NULLVALUE_INT32 (std::numeric_limits<std::int32_t>::min)()\n" +
-            "#define SBE_NULLVALUE_INT64 (std::numeric_limits<std::int64_t>::min)()\n" +
-            "#define SBE_NULLVALUE_UINT8 (std::numeric_limits<std::uint8_t>::max)()\n" +
-            "#define SBE_NULLVALUE_UINT16 (std::numeric_limits<std::uint16_t>::max)()\n" +
-            "#define SBE_NULLVALUE_UINT32 (std::numeric_limits<std::uint32_t>::max)()\n" +
-            "#define SBE_NULLVALUE_UINT64 (std::numeric_limits<std::uint64_t>::max)()\n\n",
+            "#define _%1$s_%2$s_H_\n\n",
             String.join("_", namespaces).toUpperCase(),
             className.toUpperCase()));
 
