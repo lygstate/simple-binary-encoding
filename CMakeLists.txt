@@ -165,6 +165,7 @@ set(CODEC_EXAMPLES_SCHEMA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sbe-samples/src/main/
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/sbe-tool/src/main/cpp)
 
 if (SBE_TESTS)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/sbe-tool/src/main/resources/c/templates)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/sbe-tool/src/test/c)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/sbe-tool/src/test/cpp)
 endif ()

@@ -131,35 +131,6 @@ public class CGenerator implements CodeGenerator
                 final List<Token> varData = new ArrayList<>();
                 collectVarData(messageBody, i, varData);
                 out.append(generateMessageFlyweightStruct(structName));
-
-                out.append(String.format("\n" +
-                    "enum %1$s_meta_attribute\n" +
-                    "{\n" +
-                    "    %1$s_meta_attribute_EPOCH,\n" +
-                    "    %1$s_meta_attribute_TIME_UNIT,\n" +
-                    "    %1$s_meta_attribute_SEMANTIC_TYPE,\n" +
-                    "    %1$s_meta_attribute_PRESENCE\n" +
-                    "};\n\n" +
-
-                    "union %1$s_float_as_uint\n" +
-                    "{\n" +
-                    "    float fp_value;\n" +
-                    "    uint32_t uint_value;\n" +
-                    "};\n\n" +
-
-                    "union %1$s_double_as_uint\n" +
-                    "{\n" +
-                    "    double fp_value;\n" +
-                    "    uint64_t uint_value;\n" +
-                    "};\n\n" +
-
-                    "struct %1$s_string_view\n" +
-                    "{\n" +
-                    "    const char* data;\n" +
-                    "    size_t length;\n" +
-                    "};\n",
-                    structName));
-
                 out.append(generateMessageFlyweightFunctions(structName, msgToken, ir.namespaces()));
 
                 out.append(generateFieldFunctions(ir.namespaces(), structName, structName, fields));
@@ -542,23 +513,23 @@ public class CGenerator implements CodeGenerator
                 structName));
 
             sb.append(String.format("\n" +
-                "SBE_ONE_DEF struct %6$s_string_view %5$s_get_%1$s_as_string_view(\n" +
+                "SBE_ONE_DEF sbe_string_view %5$s_get_%1$s_as_string_view(\n" +
                 "    struct %5$s *const codec)\n" +
                 "{\n" +
+                "    sbe_string_view ret = {NULL, 0};\n" +
                 "%2$s" +
                 "    %4$s length_field_value = %5$s_%1$s_length(codec);\n" +
-                "    const char *field_ptr = codec->buffer + %5$s_sbe_position(codec) + %3$d;\n" +
-                "    if (!%5$s_set_sbe_position(\n" +
+                "    char *field_ptr = codec->buffer + %5$s_sbe_position(codec) + %3$d;\n" +
+                "    if (%5$s_set_sbe_position(\n" +
                 "        codec, %5$s_sbe_position(codec) + %3$d + length_field_value))\n" +
                 "    {\n" +
-                "        struct %6$s_string_view ret = {NULL, 0};\n" +
-                "        return ret;\n" +
-                "    }\n\n" +
-                "    struct %6$s_string_view ret = {field_ptr, length_field_value};\n\n" +
+                "        ret.data = field_ptr;\n" +
+                "        ret.length = length_field_value;\n" +
+                "    }\n" +
                 "    return ret;\n" +
                 "}\n",
                 propertyName,
-                generateFieldNotPresentCondition(token.version(), "{NULL, 0}"),
+                generateFieldNotPresentCondition(token.version(), "ret"),
                 lengthOfLengthField,
                 lengthCType,
                 structName,
@@ -731,34 +702,6 @@ public class CGenerator implements CodeGenerator
             out.append(generateFileHeader(
                 compositeName, generateTypesToIncludes(tokens.subList(1, tokens.size() - 1))));
             out.append(generateFixedFlyweightStruct(compositeName));
-            out.append(String.format("\n" +
-                "enum %1$s_meta_attribute\n" +
-                "{\n" +
-                "    %1$s_meta_attribute_EPOCH,\n" +
-                "    %1$s_meta_attribute_TIME_UNIT,\n" +
-                "    %1$s_meta_attribute_SEMANTIC_TYPE,\n" +
-                "    %1$s_meta_attribute_PRESENCE\n" +
-                "};\n\n" +
-
-                "union %1$s_float_as_uint\n" +
-                "{\n" +
-                "    float fp_value;\n" +
-                "    uint32_t uint_value;\n" +
-                "};\n\n" +
-
-                "union %1$s_double_as_uint\n" +
-                "{\n" +
-                "    double fp_value;\n" +
-                "    uint64_t uint_value;\n" +
-                "};\n\n" +
-
-                "struct %1$s_string_view\n" +
-                "{\n" +
-                "    const char* data;\n" +
-                "    size_t length;\n" +
-                "};\n",
-                compositeName));
-
             out.append(generateFixedFlyweightCodeFunctions(compositeName, compositeToken.encodedLength()));
             out.append(generateCompositePropertyFunctions(
                 scope, compositeName, tokens.subList(1, tokens.size() - 1)));
@@ -952,24 +895,13 @@ public class CGenerator implements CodeGenerator
     private static CharSequence generateFileHeader(final String structName, final List<String> typesToInclude)
     {
         final StringBuilder sb = new StringBuilder();
+        sb.append(generateSbecHeader());
 
         sb.append("/* Generated SBE (Simple Binary Encoding) message codec */\n");
 
         sb.append(String.format("\n" +
             "#ifndef _%1$s_H_\n" +
-            "#define _%1$s_H_\n\n" +
-
-            "#include <errno.h>\n" +
-            "#if !defined(__STDC_LIMIT_MACROS)\n" +
-            "#define __STDC_LIMIT_MACROS 1\n" +
-            "#endif\n" +
-            "#include <limits.h>\n" +
-            "#define SBE_FLOAT_NAN NAN\n" +
-            "#define SBE_DOUBLE_NAN NAN\n" +
-            "#include <math.h>\n" +
-            "#include <stdbool.h>\n" +
-            "#include <stdint.h>\n" +
-            "#include <string.h>\n",
+            "#define _%1$s_H_\n\n",
             structName.toUpperCase()));
 
         if (typesToInclude != null && typesToInclude.size() != 0)
@@ -980,102 +912,6 @@ public class CGenerator implements CodeGenerator
                 sb.append(String.format("#include \"%1$s.h\"\n", toLowerFirstChar(incName)));
             }
         }
-
-        sb.append("\n" +
-            "#ifdef __cplusplus\n" +
-            "#define SBE_ONE_DEF inline\n" +
-            "#else\n" +
-            "#define SBE_ONE_DEF static inline\n" +
-            "#endif\n\n" +
-
-            "/*\n" +
-            " * Define some byte ordering macros\n" +
-            " */\n" +
-            "#if defined(WIN32) || defined(_WIN32)\n" +
-            "    #define SBE_BIG_ENDIAN_ENCODE_16(v) _byteswap_ushort(v)\n" +
-            "    #define SBE_BIG_ENDIAN_ENCODE_32(v) _byteswap_ulong(v)\n" +
-            "    #define SBE_BIG_ENDIAN_ENCODE_64(v) _byteswap_uint64(v)\n" +
-            "    #define SBE_LITTLE_ENDIAN_ENCODE_16(v) (v)\n" +
-            "    #define SBE_LITTLE_ENDIAN_ENCODE_32(v) (v)\n" +
-            "    #define SBE_LITTLE_ENDIAN_ENCODE_64(v) (v)\n" +
-            "#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__\n" +
-            "    #define SBE_BIG_ENDIAN_ENCODE_16(v) __builtin_bswap16(v)\n" +
-            "    #define SBE_BIG_ENDIAN_ENCODE_32(v) __builtin_bswap32(v)\n" +
-            "    #define SBE_BIG_ENDIAN_ENCODE_64(v) __builtin_bswap64(v)\n" +
-            "    #define SBE_LITTLE_ENDIAN_ENCODE_16(v) (v)\n" +
-            "    #define SBE_BIG_ENDIAN_ENCODE_32(v) __builtin_bswap32(v)\n" +
-            "    #define SBE_BIG_ENDIAN_ENCODE_64(v) __builtin_bswap64(v)\n" +
-            "    #define SBE_LITTLE_ENDIAN_ENCODE_16(v) (v)\n" +
-            "    #define SBE_LITTLE_ENDIAN_ENCODE_32(v) (v)\n" +
-            "    #define SBE_LITTLE_ENDIAN_ENCODE_64(v) (v)\n" +
-            "#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__\n" +
-            "    #define SBE_LITTLE_ENDIAN_ENCODE_16(v) __builtin_bswap16(v)\n" +
-            "    #define SBE_LITTLE_ENDIAN_ENCODE_32(v) __builtin_bswap32(v)\n" +
-            "    #define SBE_LITTLE_ENDIAN_ENCODE_64(v) __builtin_bswap64(v)\n" +
-            "    #define SBE_BIG_ENDIAN_ENCODE_16(v) (v)\n" +
-            "    #define SBE_BIG_ENDIAN_ENCODE_32(v) (v)\n" +
-            "    #define SBE_BIG_ENDIAN_ENCODE_64(v) (v)\n" +
-            "#else\n" +
-            "    #error \"Byte Ordering of platform not determined." +
-            " Set __BYTE_ORDER__ manually before including this file.\"\n" +
-            "#endif\n\n" +
-
-            "#if defined(SBE_NO_BOUNDS_CHECK)\n" +
-            "    #define SBE_BOUNDS_CHECK_EXPECT(exp,c) (false)\n" +
-            "#elif defined(_MSC_VER)\n" +
-            "    #define SBE_BOUNDS_CHECK_EXPECT(exp,c) (exp)\n" +
-            "#else\n" +
-            "    #define SBE_BOUNDS_CHECK_EXPECT(exp,c) (__builtin_expect(exp,c))\n" +
-            "#endif\n\n" +
-
-            "#define SBE_NULLVALUE_INT8 INT8_MIN\n" +
-            "#define SBE_NULLVALUE_INT16 INT16_MIN\n" +
-            "#define SBE_NULLVALUE_INT32 INT32_MIN\n" +
-            "#define SBE_NULLVALUE_INT64 INT64_MIN\n" +
-            "#define SBE_NULLVALUE_UINT8 UINT8_MAX\n" +
-            "#define SBE_NULLVALUE_UINT16 UINT16_MAX\n" +
-            "#define SBE_NULLVALUE_UINT32 UINT32_MAX\n" +
-            "#define SBE_NULLVALUE_UINT64 UINT64_MAX\n\n" +
-
-            "#define E100 -50100 // E_BUF_SHORT\n" +
-            "#define E103 -50103 // VAL_UNKNOWN_ENUM\n" +
-            "#define E104 -50104 // I_OUT_RANGE_NUM\n" +
-            "#define E105 -50105 // I_OUT_RANGE_NUM\n" +
-            "#define E106 -50106 // I_OUT_RANGE_NUM\n" +
-            "#define E107 -50107 // BUF_SHORT_FLYWEIGHT\n" +
-            "#define E108 -50108 // BUF_SHORT_NXT_GRP_IND\n" +
-            "#define E109 -50109 // STR_TOO_LONG_FOR_LEN_TYP\n" +
-            "#define E110 -50110 // CNT_OUT_RANGE\n\n" +
-
-            "#ifndef SBE_STRERROR_DEFINED\n" +
-            "#define SBE_STRERROR_DEFINED\n" +
-            "SBE_ONE_DEF const char *sbe_strerror(const int errnum)\n" +
-            "{\n" +
-            "    switch (errnum)\n" +
-            "    {\n" +
-            "        case E100:\n" +
-            "            return \"buffer too short\";\n" +
-            "        case E103:\n" +
-            "            return \"unknown value for enum\";\n" +
-            "        case E104:\n" +
-            "            return \"index out of range\";\n" +
-            "        case E105:\n" +
-            "            return \"index out of range\";\n" +
-            "        case E106:\n" +
-            "            return \"length too large\";\n" +
-            "        case E107:\n" +
-            "            return \"buffer too short for flyweight\";\n" +
-            "        case E108:\n" +
-            "            return \"buffer too short to support next group index\";\n" +
-            "        case E109:\n" +
-            "            return \"std::string too long for length type\";\n" +
-            "        case E110:\n" +
-            "            return \"count outside of allowed range\";\n" +
-            "        default:\n" +
-            "            return \"unknown error\";\n" +
-            "    }\n" +
-            "}\n" +
-            "#endif\n");
 
         return sb;
     }
@@ -1275,7 +1111,7 @@ public class CGenerator implements CodeGenerator
             final String stackUnion = primitiveType == PrimitiveType.FLOAT ? "float" : "double";
 
             sb.append(String.format(
-                "    union %1$s_%2$s_as_uint val;\n" +
+                "    union sbe_%2$s_as_uint val;\n" +
                 "    memcpy(&val, codec->buffer + codec->offset + %3$s, sizeof(%4$s));\n" +
                 "    val.uint_value = %5$s(val.uint_value);\n" +
                 "    %6$s val.fp_value;",
@@ -1334,7 +1170,7 @@ public class CGenerator implements CodeGenerator
             final String stackUnion = primitiveType == PrimitiveType.FLOAT ? "float" : "double";
 
             sb.append(String.format(
-                "    union %1$s_%2$s_as_uint val;\n" +
+                "    union sbe_%2$s_as_uint val;\n" +
                 "    val.fp_value = value;\n" +
                 "    val.uint_value = %3$s(val.uint_value);\n" +
                 "    memcpy(codec->buffer + codec->offset + %4$s, &val, sizeof(%5$s));",
@@ -2048,14 +1884,14 @@ public class CGenerator implements CodeGenerator
 
         sb.append(String.format("\n" +
             "SBE_ONE_DEF const char *%6$s_%s_meta_attribute(\n" +
-            "    const enum %7$s_meta_attribute attribute)\n" +
+            "    const enum sbe_meta_attribute attribute)\n" +
             "{\n" +
             "    switch (attribute)\n" +
             "    {\n" +
-            "        case %7$s_meta_attribute_EPOCH: return \"%s\";\n" +
-            "        case %7$s_meta_attribute_TIME_UNIT: return \"%s\";\n" +
-            "        case %7$s_meta_attribute_SEMANTIC_TYPE: return \"%s\";\n" +
-            "        case %7$s_meta_attribute_PRESENCE: return \"%s\";\n" +
+            "        case sbe_meta_attribute_EPOCH: return \"%s\";\n" +
+            "        case sbe_meta_attribute_TIME_UNIT: return \"%s\";\n" +
+            "        case sbe_meta_attribute_SEMANTIC_TYPE: return \"%s\";\n" +
+            "        case sbe_meta_attribute_PRESENCE: return \"%s\";\n" +
             "    }\n\n" +
 
             "    return \"\";\n" +
@@ -2065,8 +1901,8 @@ public class CGenerator implements CodeGenerator
             timeUnit,
             semanticType,
             encoding.presence().toString().toLowerCase(),
-            containingStructName,
-            outermostStruct));
+            containingStructName
+        ));
     }
 
     private static CharSequence generateEnumFieldNotPresentCondition(final int sinceVersion)
