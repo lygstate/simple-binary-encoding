@@ -174,6 +174,7 @@
                 </xs:attribute>
                 <xs:attribute name="characterEncoding" type="xs:string" use="optional"/>
                 <xs:attributeGroup ref="sbe:alignmentAttributes"/>
+                <xs:attributeGroup ref="sbe:byteOrderAttributes"/>
                 <xs:attributeGroup ref="sbe:presenceAttributes"/>
                 <xs:attributeGroup ref="sbe:semanticAttributes"/>
                 <xs:attributeGroup ref="sbe:versionAttributes"/>
@@ -210,6 +211,7 @@
         <xs:attribute name="name" type="sbe:symbolicName_t" use="required"/>
         <xs:attribute name="encodingType" type="sbe:symbolicName_t" use="required"/>
         <xs:attributeGroup ref="sbe:alignmentAttributes"/>
+        <xs:attributeGroup ref="sbe:byteOrderAttributes"/>
         <xs:attributeGroup ref="sbe:semanticAttributes"/>
         <xs:attributeGroup ref="sbe:versionAttributes"/>
     </xs:complexType>
@@ -251,6 +253,7 @@
         <xs:attribute name="name" type="sbe:symbolicName_t" use="required"/>
         <xs:attribute name="encodingType" type="sbe:symbolicName_t" use="required"/>
         <xs:attributeGroup ref="sbe:alignmentAttributes"/>
+        <xs:attributeGroup ref="sbe:byteOrderAttributes"/>
         <xs:attributeGroup ref="sbe:semanticAttributes"/>
         <xs:attributeGroup ref="sbe:versionAttributes"/>
     </xs:complexType>
@@ -337,6 +340,17 @@
                     as a zero-based index.
                 </xs:documentation>
             </xs:annotation>
+        </xs:attribute>
+    </xs:attributeGroup>
+    <xs:attributeGroup name="byteOrderAttributes">
+        <xs:attribute name="byteOrder" default="schemaEndian">
+            <xs:simpleType>
+                <xs:restriction base="xs:token">
+                    <xs:enumeration value="schemaEndian"/>
+                    <xs:enumeration value="bigEndian"/>
+                    <xs:enumeration value="littleEndian"/>
+                </xs:restriction>
+            </xs:simpleType>
         </xs:attribute>
     </xs:attributeGroup>
     <xs:attributeGroup name="presenceAttributes">

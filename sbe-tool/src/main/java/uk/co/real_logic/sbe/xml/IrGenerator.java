@@ -21,6 +21,7 @@ import uk.co.real_logic.sbe.ir.Ir;
 import uk.co.real_logic.sbe.ir.Signal;
 import uk.co.real_logic.sbe.ir.Token;
 
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -256,13 +257,19 @@ public class IrGenerator
         tokenList.add(builder.signal(Signal.END_COMPOSITE).build());
     }
 
+    ByteOrder byteOrderForType(final Type t)
+    {
+        return t.byteOrder() == null ? schema.byteOrder() : t.byteOrder();
+    }
+
     private void add(final EnumType type, final int offset, final Field field)
     {
         final PrimitiveType encodingType = type.encodingType();
+        final ByteOrder byteOrder = byteOrderForType(type);
         final Encoding.Builder encodingBuilder = new Encoding.Builder()
             .primitiveType(encodingType)
             .semanticType(semanticTypeOf(type, field))
-            .byteOrder(schema.byteOrder());
+            .byteOrder(byteOrder);
 
         if (type.presence() == Presence.OPTIONAL)
         {
@@ -289,7 +296,7 @@ public class IrGenerator
 
         for (final EnumType.ValidValue validValue : type.validValues())
         {
-            add(validValue, encodingType);
+            add(validValue, encodingType, byteOrder);
         }
 
         builder.signal(Signal.END_ENUM);
@@ -297,10 +304,13 @@ public class IrGenerator
         tokenList.add(builder.build());
     }
 
-    private void add(final EnumType.ValidValue value, final PrimitiveType encodingType)
+    private void add(
+        final EnumType.ValidValue value,
+        final PrimitiveType encodingType,
+        final ByteOrder byteOrder)
     {
         final Encoding encoding = new Encoding.Builder()
-            .byteOrder(schema.byteOrder())
+            .byteOrder(byteOrder)
             .primitiveType(encodingType)
             .constValue(value.primitiveValue())
             .build();
@@ -319,10 +329,11 @@ public class IrGenerator
     private void add(final SetType type, final int offset, final Field field)
     {
         final PrimitiveType encodingType = type.encodingType();
-
+        final ByteOrder byteOrder = byteOrderForType(type);
         final Encoding encoding = new Encoding.Builder()
             .semanticType(semanticTypeOf(type, field))
             .primitiveType(encodingType)
+            .byteOrder(byteOrder)
             .build();
 
         final Token.Builder builder = new Token.Builder()
@@ -345,7 +356,7 @@ public class IrGenerator
 
         for (final SetType.Choice choice : type.choices())
         {
-            add(choice, encodingType);
+            add(choice, encodingType, byteOrder);
         }
 
         builder.signal(Signal.END_SET);
@@ -353,11 +364,14 @@ public class IrGenerator
         tokenList.add(builder.build());
     }
 
-    private void add(final SetType.Choice value, final PrimitiveType encodingType)
+    private void add(
+        final SetType.Choice value,
+        final PrimitiveType encodingType,
+        final ByteOrder byteOrder)
     {
         final Encoding encoding = new Encoding.Builder()
             .constValue(value.primitiveValue())
-            .byteOrder(schema.byteOrder())
+            .byteOrder(byteOrder)
             .primitiveType(encodingType)
             .build();
 
@@ -376,7 +390,7 @@ public class IrGenerator
     {
         final Encoding.Builder encodingBuilder = new Encoding.Builder()
             .primitiveType(type.primitiveType())
-            .byteOrder(schema.byteOrder())
+            .byteOrder(byteOrderForType(type))
             .characterEncoding(type.characterEncoding());
 
         final Token.Builder tokenBuilder = new Token.Builder()

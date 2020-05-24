@@ -17,6 +17,8 @@ package uk.co.real_logic.sbe.xml;
 
 import org.w3c.dom.Node;
 
+import java.nio.ByteOrder;
+
 import static uk.co.real_logic.sbe.xml.XmlSchemaParser.getAttributeValue;
 import static uk.co.real_logic.sbe.xml.XmlSchemaParser.getAttributeValueOrNull;
 
@@ -34,6 +36,7 @@ public abstract class Type
     private final String referencedName;
 
     private int offsetAttribute;
+    private final ByteOrder byteOrder;
 
     /**
      * Construct a new Type from XML Schema. Called by subclasses to mostly set common fields
@@ -61,6 +64,29 @@ public abstract class Type
         deprecated = Integer.parseInt(getAttributeValue(node, "deprecated", "0"));
         semanticType = getAttributeValueOrNull(node, "semanticType");
         offsetAttribute = Integer.parseInt(getAttributeValue(node, "offset", "-1"));
+        final String nodeName = node.getNodeName();
+        if (nodeName.contentEquals("type") ||
+            nodeName.contentEquals("set") ||
+            nodeName.contentEquals("enum"))
+        {
+            final String byteOrder = getAttributeValue(node, "byteOrder", null);
+            if (byteOrder == null)
+            {
+                this.byteOrder = null;
+            }
+            else if (byteOrder.equals("bigEndian") || byteOrder.equals("littleEndian"))
+            {
+                this.byteOrder = XmlSchemaParser.getByteOrder(byteOrder);
+            }
+            else
+            {
+                this.byteOrder = null;
+            }
+        }
+        else
+        {
+            this.byteOrder = null;
+        }
     }
 
     /**
@@ -89,6 +115,7 @@ public abstract class Type
         this.semanticType = semanticType;
         this.offsetAttribute = -1;
         this.referencedName = null;
+        this.byteOrder = null;
     }
 
     /**
@@ -190,5 +217,15 @@ public abstract class Type
     public void offsetAttribute(final int offsetAttribute)
     {
         this.offsetAttribute = offsetAttribute;
+    }
+
+    /**
+     * Return the byte order specified by the type
+     *
+     * @return {@link ByteOrder} of the message encoding.
+     */
+    public ByteOrder byteOrder()
+    {
+        return byteOrder;
     }
 }
