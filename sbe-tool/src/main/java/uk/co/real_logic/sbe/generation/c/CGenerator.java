@@ -290,18 +290,11 @@ public class CGenerator implements CodeGenerator
             "    const uint64_t acting_version,\n" +
             "    const uint64_t buffer_length)\n" +
             "{\n" +
-            "#if defined(__GNUG__) && !defined(__clang__)\n" +
-            "#pragma GCC diagnostic push\n" +
-            "#pragma GCC diagnostic ignored \"-Wtype-limits\"\n" +
-            "#endif\n" +
             "    if (%7$scount > %8$d)\n" +
             "    {\n" +
             "        errno = E110;\n" +
             "        return NULL;\n" +
             "    }\n" +
-            "#if defined(__GNUG__) && !defined(__clang__)\n" +
-            "#pragma GCC diagnostic pop\n" +
-            "#endif\n" +
             "    codec->buffer = buffer;\n" +
             "    codec->buffer_length = buffer_length;\n" +
             "    struct %5$s dimensions;\n" +
@@ -338,14 +331,7 @@ public class CGenerator implements CodeGenerator
             "SBE_ONE_DEF uint64_t %3$s_sbe_position(\n" +
             "    const struct %3$s *const codec)\n" +
             "{\n" +
-            "#if defined(__GNUG__) && !defined(__clang__)\n" +
-            "#pragma GCC diagnostic push\n" +
-            "#pragma GCC diagnostic ignored \"-Wmaybe-uninitialized\"\n" +
-            "#endif\n" +
             "    return *codec->position_ptr;\n" +
-            "#if defined(__GNUG__) && !defined(__clang__)\n" +
-            "#pragma GCC diagnostic pop\n" +
-            "#endif\n" +
             "}\n\n" +
 
             "SBE_ONE_DEF bool %3$s_set_sbe_position(\n" +
@@ -370,29 +356,15 @@ public class CGenerator implements CodeGenerator
             "SBE_ONE_DEF bool %3$s_has_next(\n" +
             "    const struct %3$s *const codec)\n" +
             "{\n" +
-            "#if defined(__GNUG__) && !defined(__clang__)\n" +
-            "#pragma GCC diagnostic push\n" +
-            "#pragma GCC diagnostic ignored \"-Wmaybe-uninitialized\"\n" +
-            "#endif\n" +
             "    return codec->index + 1 < codec->count;\n" +
-            "#if defined(__GNUG__) && !defined(__clang__)\n" +
-            "#pragma GCC diagnostic pop\n" +
-            "#endif\n" +
             "}\n\n" +
 
             "SBE_ONE_DEF struct %3$s *%3$s_next(\n" +
             "    struct %3$s *const codec)\n" +
             "{\n" +
             "    codec->offset = *codec->position_ptr;\n" +
-            "#if defined(__GNUG__) && !defined(__clang__)\n" +
-            "#pragma GCC diagnostic push\n" +
-            "#pragma GCC diagnostic ignored \"-Wmaybe-uninitialized\"\n" +
-            "#endif\n" +
             "    if (SBE_BOUNDS_CHECK_EXPECT(((codec->offset + codec->block_length) " +
             "> codec->buffer_length), false))\n" +
-            "#if defined(__GNUG__) && !defined(__clang__)\n" +
-            "#pragma GCC diagnostic pop\n" +
-            "#endif\n" +
             "    {\n" +
             "        errno = E108;\n" +
             "        return NULL;\n" +
@@ -478,14 +450,7 @@ public class CGenerator implements CodeGenerator
             "SBE_ONE_DEF bool %2$s_in_acting_version(\n" +
             "    const struct %1$s *const codec)\n" +
             "{\n" +
-            "#if defined(__clang__)\n" +
-            "#pragma clang diagnostic push\n" +
-            "#pragma clang diagnostic ignored \"-Wtautological-compare\"\n" +
-            "#endif\n" +
             "    return codec->acting_version >= %2$s_since_version();\n" +
-            "#if defined(__clang__)\n" +
-            "#pragma clang diagnostic pop\n" +
-            "#endif\n" +
             "}\n",
             outerStruct,
             groupName,
@@ -662,14 +627,7 @@ public class CGenerator implements CodeGenerator
             "SBE_ONE_DEF bool %1$s_in_acting_version(\n" +
             "    const struct %4$s *const codec)\n" +
             "{\n" +
-            "#if defined(__clang__)\n" +
-            "#pragma clang diagnostic push\n" +
-            "#pragma clang diagnostic ignored \"-Wtautological-compare\"\n" +
-            "#endif\n" +
             "    return codec->acting_version >= %1$s_since_version();\n" +
-            "#if defined(__clang__)\n" +
-            "#pragma clang diagnostic pop\n" +
-            "#endif\n" +
             "}\n\n" +
 
             "SBE_ONE_DEF uint16_t %1$s_id(void)\n" +
@@ -1374,14 +1332,7 @@ public class CGenerator implements CodeGenerator
         {
             sb.append(String.format(
                 "    %1$s val;\n" +
-                "#if defined(__GNUG__) && !defined(__clang__)\n" +
-                "#pragma GCC diagnostic push\n" +
-                "#pragma GCC diagnostic ignored \"-Wmaybe-uninitialized\"\n" +
-                "#endif\n" +
                 "    memcpy(&val, codec->buffer + codec->offset + %2$s, sizeof(%1$s));\n" +
-                "#if defined(__GNUG__) && !defined(__clang__)\n" +
-                "#pragma GCC diagnostic pop\n" +
-                "#endif\n" +
                 "    %4$s %3$s(val);",
                 cTypeName,
                 offsetStr,
@@ -1439,14 +1390,7 @@ public class CGenerator implements CodeGenerator
         {
             sb.append(String.format(
                 "    %1$s val = %2$s(value);\n" +
-                "#if defined(__GNUG__) && !defined(__clang__)\n" +
-                "#pragma GCC diagnostic push\n" +
-                "#pragma GCC diagnostic ignored \"-Wmaybe-uninitialized\"\n" +
-                "#endif\n" +
-                "    memcpy(codec->buffer + codec->offset + %3$s, &val, sizeof(%1$s));\n" +
-                "#if defined(__GNUG__) && !defined(__clang__)\n" +
-                "#pragma GCC diagnostic pop\n" +
-                "#endif",
+                "    memcpy(codec->buffer + codec->offset + %3$s, &val, sizeof(%1$s));\n",
                 cTypeName,
                 byteOrderStr,
                 offsetStr));
@@ -2116,14 +2060,7 @@ public class CGenerator implements CodeGenerator
             "SBE_ONE_DEF bool %3$s_%1$s_in_acting_version(\n" +
             "    const struct %3$s *const codec)\n" +
             "{\n" +
-            "#if defined(__clang__)\n" +
-            "#pragma clang diagnostic push\n" +
-            "#pragma clang diagnostic ignored \"-Wtautological-compare\"\n" +
-            "#endif\n" +
             "    return codec->acting_version >= %3$s_%1$s_since_version();\n" +
-            "#if defined(__clang__)\n" +
-            "#pragma clang diagnostic pop\n" +
-            "#endif\n" +
             "}\n",
             propertyName,
             fieldToken.version(),
