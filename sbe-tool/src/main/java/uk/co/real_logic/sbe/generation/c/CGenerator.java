@@ -197,6 +197,7 @@ public class CGenerator implements CodeGenerator
             "{\n" +
             "    codec->buffer = buffer;\n" +
             "    codec->buffer_length = buffer_length;\n" +
+            identBlock(
             "    %2$s dimensions;\n" +
             "    if (!%2$s_wrap(&dimensions, codec->buffer, *pos, acting_version, buffer_length))\n" +
             "    {\n" +
@@ -208,7 +209,7 @@ public class CGenerator implements CodeGenerator
             "    codec->acting_version = acting_version;\n" +
             "    codec->position_ptr = pos;\n" +
             "    *codec->position_ptr = *codec->position_ptr + %3$d;\n\n" +
-            "    return codec;\n" +
+            "    return codec;\n") +
             "}\n",
             groupName, dimensionsStructName, dimensionHeaderLength));
 
@@ -231,6 +232,7 @@ public class CGenerator implements CodeGenerator
             "    }\n" +
             "    codec->buffer = buffer;\n" +
             "    codec->buffer_length = buffer_length;\n" +
+            identBlock(
             "    %5$s dimensions;\n" +
             "    if (!%5$s_wrap(&dimensions, codec->buffer, *pos, acting_version, buffer_length))\n" +
             "    {\n" +
@@ -244,7 +246,7 @@ public class CGenerator implements CodeGenerator
             "    codec->acting_version = acting_version;\n" +
             "    codec->position_ptr = pos;\n" +
             "    *codec->position_ptr = *codec->position_ptr + %6$d;\n\n" +
-            "    return codec;\n" +
+            "    return codec;\n") +
             "}\n",
             groupName, cTypeForBlockLength, blockLength, cTypeForNumInGroup,
             dimensionsStructName, dimensionHeaderLength,
@@ -447,6 +449,7 @@ public class CGenerator implements CodeGenerator
                 "{\n" +
                 "    sbe_string_view ret = {NULL, 0};\n" +
                 "%2$s" +
+                identBlock(
                 "    %4$s length_value;\n" +
                 "    uint64_t length_position = %5$s_sbe_position(codec);\n" +
                 "    memcpy(&length_value, codec->buffer + length_position, sizeof(length_value));\n" +
@@ -455,7 +458,7 @@ public class CGenerator implements CodeGenerator
                 "    {\n" +
                 "        ret.data = codec->buffer + length_position + sizeof(length_value);\n" +
                 "        ret.length = length_value;\n" +
-                "    }\n" +
+                "    }\n") +
                 "    return ret;\n" +
                 "}\n",
                 propertyName,
@@ -567,8 +570,8 @@ public class CGenerator implements CodeGenerator
             "SBE_ONE_DEF %4$s %1$s_length(\n" +
             "    const %5$s *const codec)\n" +
             "{\n" +
-            "%2$s" +
             "    %4$s length;\n" +
+            "%2$s" +
             "    memcpy(&length, codec->buffer + %5$s_sbe_position(codec), sizeof(%4$s));\n\n" +
             "    return %3$s(length);\n" +
             "}\n",
@@ -1083,10 +1086,11 @@ public class CGenerator implements CodeGenerator
             final String stackUnion = primitiveType == PrimitiveType.FLOAT ? "float" : "double";
 
             sb.append(String.format(
+                identBlock(
                 "    union sbe_%2$s_as_uint val;\n" +
                 "    memcpy(&val, codec->buffer + codec->offset + %3$s, sizeof(%4$s));\n" +
                 "    val.uint_value = %5$s(val.uint_value);\n" +
-                "    %6$s val.fp_value;",
+                "    %6$s val.fp_value;\n"),
                 outermostStruct,
                 stackUnion,
                 offsetStr,
@@ -1097,9 +1101,10 @@ public class CGenerator implements CodeGenerator
         else
         {
             sb.append(String.format(
+                identBlock(
                 "    %1$s val;\n" +
                 "    memcpy(&val, codec->buffer + codec->offset + %2$s, sizeof(%1$s));\n" +
-                "    %4$s %3$s(val);",
+                "    %4$s %3$s(val);\n"),
                 cTypeName,
                 offsetStr,
                 byteOrderStr,
@@ -1133,10 +1138,11 @@ public class CGenerator implements CodeGenerator
             final String stackUnion = primitiveType == PrimitiveType.FLOAT ? "float" : "double";
 
             sb.append(String.format(
+                identBlock(
                 "    union sbe_%2$s_as_uint val;\n" +
                 "    val.fp_value = value;\n" +
                 "    val.uint_value = %3$s(val.uint_value);\n" +
-                "    memcpy(codec->buffer + codec->offset + %4$s, &val, sizeof(%5$s));",
+                "    memcpy(codec->buffer + codec->offset + %4$s, &val, sizeof(%5$s));\n"),
                 outermostStruct,
                 stackUnion,
                 byteOrderStr,
@@ -1146,8 +1152,9 @@ public class CGenerator implements CodeGenerator
         else
         {
             sb.append(String.format(
+                identBlock(
                 "    %1$s val = %2$s(value);\n" +
-                "    memcpy(codec->buffer + codec->offset + %3$s, &val, sizeof(%1$s));\n",
+                "    memcpy(codec->buffer + codec->offset + %3$s, &val, sizeof(%1$s));\n"),
                 cTypeName,
                 byteOrderStr,
                 offsetStr));
@@ -1813,10 +1820,11 @@ public class CGenerator implements CodeGenerator
                 "    enum %1$s *const out)\n" +
                 "{\n" +
                 "%3$s" +
+                identBlock(
                 "    %5$s val;\n" +
                 "    memcpy(&val, codec->buffer + codec->offset + %6$d%9$s, sizeof(%5$s));\n\n" +
 
-                "    return %1$s_get(%4$s(val), out);\n" +
+                "    return %1$s_get(%4$s(val), out);\n") +
                 "}\n\n" +
 
                 "SBE_ONE_DEF enum %1$s %7$s_%2$s(\n" +
