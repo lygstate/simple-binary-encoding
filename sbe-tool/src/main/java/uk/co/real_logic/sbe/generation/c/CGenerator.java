@@ -1172,6 +1172,9 @@ public class CGenerator implements CodeGenerator
                     encodingToken,
                     containingStructName);
                 break;
+
+            default:
+                break;
         }
     }
 
