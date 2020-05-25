@@ -20,8 +20,7 @@
 
 #include <gtest/gtest.h>
 
-#include <code_generation_test/car.h>
-#include <code_generation_test/messageHeader.h>
+#include <code_generation_test/code_generation_test.h>
 
 #define CGT(name) code_generation_test_##name
 
