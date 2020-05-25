@@ -16,6 +16,8 @@
 package uk.co.real_logic.sbe.ir;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -119,5 +121,215 @@ public final class GenerationUtil
         }
 
         return -1;
+    }
+
+    public static void getCompositeChildren(
+        final HashMap<String, ArrayList<String>> graph,
+        final HashMap<String, Long> inDegrees,
+        final List<Token> tokens)
+    {
+        final Token firstToken = tokens.get(0);
+        for (int i = 1; i < tokens.size() - 1;)
+        {
+            final Token fieldToken = tokens.get(i);
+            switch (fieldToken.signal())
+            {
+                case BEGIN_COMPOSITE:
+                {
+                    if (inDegrees.containsKey(fieldToken.applicableTypeName()))
+                    {
+                        final long newValue = inDegrees.get(firstToken.applicableTypeName()) + 1;
+                        inDegrees.put(firstToken.applicableTypeName(), newValue);
+                        final ArrayList<String> list = graph.getOrDefault(
+                            fieldToken.applicableTypeName(), new ArrayList<String>());
+                        list.add(firstToken.applicableTypeName());
+                        graph.put(fieldToken.applicableTypeName(), list);
+                    }
+                    else
+                    {
+                        System.out.println(String.format("Can not found key %1$s for %1$s",
+                            fieldToken.applicableTypeName(), firstToken.applicableTypeName()));
+                    }
+                    break;
+                }
+
+                default:
+                    break;
+            }
+
+            i += tokens.get(i).componentTokenCount();
+        }
+    }
+
+    public static ArrayList<List<Token>> sortTypes(final Ir ir)
+    {
+        final HashMap<String, Long> inDegrees = new HashMap<String, Long>();
+        final HashMap<String, ArrayList<String>> graph = new HashMap<String, ArrayList<String>>();
+        final ArrayList<List<Token>> enumTokens = new ArrayList<List<Token>>();
+        final ArrayList<List<Token>> otherTokens = new ArrayList<List<Token>>();
+        final Collection<List<Token>> types = ir.types();
+        for (final List<Token> type : types)
+        {
+            switch (type.get(0).signal())
+            {
+                case BEGIN_COMPOSITE:
+                    inDegrees.putIfAbsent(type.get(0).applicableTypeName(), 0L);
+                    break;
+                default:
+                    break;
+            }
+        }
+        for (final List<Token> type : types)
+        {
+            switch (type.get(0).signal())
+            {
+                case BEGIN_COMPOSITE:
+                    getCompositeChildren(graph, inDegrees, type);
+                    break;
+                case BEGIN_ENUM:
+                    enumTokens.add(type);
+                    break;
+                default:
+                    otherTokens.add(type);
+                    break;
+            }
+        }
+        enumTokens.addAll(otherTokens);
+        // TopologicalSorts
+        while (inDegrees.size() > 0)
+        {
+            final String[] keys = inDegrees.keySet().toArray(new String[inDegrees.size()]);
+            for (final String key : keys)
+            {
+                if (inDegrees.get(key) == 0)
+                {
+                    inDegrees.remove(key);
+                    if (ir.getType(key) == null)
+                    {
+                        System.out.println(String.format("Key not found %1$s", key));
+                    }
+                    else
+                    {
+                        enumTokens.add(ir.getType(key));
+                    }
+                    for (final String edge: graph.getOrDefault(key, new ArrayList<String>()))
+                    {
+                        inDegrees.put(edge, inDegrees.get(edge) - 1);
+                    }
+                }
+            }
+        }
+        return enumTokens;
+    }
+
+    public static class MessageItem
+    {
+        public final MessageItem parent;
+        public final Token rootToken;
+        public final List<Token> tokens;
+        public final List<Token> fields;
+        public final List<Token> varData;
+        public final ArrayList<MessageItem> children;
+        public final ArrayList<String> classPath;
+
+        public MessageItem(
+            final List<Token> fields,
+            final List<Token> varData
+        )
+        {
+            this.rootToken = null;
+            this.parent = null;
+            this.tokens = new ArrayList<>();
+            this.fields = fields;
+            this.varData = varData;
+            this.children = new ArrayList<>();
+            this.classPath = null;
+        }
+
+        public MessageItem(
+            final MessageItem parent,
+            final List<Token> tokens
+        )
+        {
+            this.parent = parent;
+            this.rootToken = tokens.get(0);
+            this.tokens = tokens;
+            fields = new ArrayList<>();
+            varData = new ArrayList<>();
+            children = new ArrayList<>();
+            this.classPath = getClassPath();
+        }
+
+        public ArrayList<String> getClassPath()
+        {
+            MessageItem info = this;
+            final ArrayList<String> names = new ArrayList<String>();
+            while (info != null)
+            {
+                info = info.parent;
+                if (info != null)
+                {
+                    names.add(0, info.rootToken.name());
+                }
+            }
+            return names;
+        }
+
+        public boolean isConst()
+        {
+            return this.children.size() + this.varData.size() == 0;
+        }
+    }
+
+    public static MessageItem getMessageItemList(
+        final ArrayList<MessageItem> infoList,
+        final MessageItem parent,
+        final List<Token> tokens)
+    {
+        final MessageItem info = new MessageItem(parent, tokens);
+
+        int i = 1;
+        if (tokens.get(0).signal() == Signal.BEGIN_GROUP)
+        {
+            final int groupHeaderTokenCount = tokens.get(i).componentTokenCount();
+            i += groupHeaderTokenCount;
+        }
+
+        i = collectFields(tokens, i, info.fields);
+
+        while (i < tokens.size())
+        {
+            if (tokens.get(i).signal() != Signal.BEGIN_GROUP)
+            {
+                break;
+            }
+            final int tokenCount = tokens.get(i).componentTokenCount();
+            final List<Token> groupTokens = tokens.subList(i, i + tokenCount);
+            i += tokenCount;
+            info.children.add(getMessageItemList(infoList, info, groupTokens));
+        }
+
+        i = collectVarData(tokens, i, info.varData);
+
+        if ((i + 1) != tokens.size())
+        {
+            throw new IllegalStateException(
+                String.format(
+                    "tokens must be just handled once fields/groups/varData are handled i:%d size:%d",
+                    i, tokens.size()));
+        }
+        infoList.add(info);
+        return info;
+    }
+
+    /**
+     * Format a scope to a String.
+     *
+     * @param scope to be fromat.
+     * @return the string formatted as a name.
+     */
+    public static String formatScope(final CharSequence[] scope)
+    {
+        return String.join("_", scope).toLowerCase();
     }
 }
