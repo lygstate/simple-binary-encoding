@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Formatter;
 import java.util.List;
 
 import static uk.co.real_logic.sbe.generation.Generators.toLowerFirstChar;
@@ -59,6 +58,53 @@ public class CppGenerator implements CodeGenerator
         this.outputManager = outputManager;
     }
 
+    public static class Formatter
+    {
+        private final StringBuilder sb;
+        private final Writer out;
+
+        Formatter(final StringBuilder sb)
+        {
+            this.sb = sb;
+            this.out = null;
+        }
+
+        Formatter(final Writer out)
+        {
+            this.sb = null;
+            this.out = out;
+        }
+
+        public void format(final String format, final Object... args)
+        {
+            final String formattedString = String.format(format, args);
+            if (this.sb != null)
+            {
+                this.sb.append(formattedString);
+            }
+            if (this.out != null)
+            {
+                try
+                {
+                    this.out.write(formattedString);
+                }
+                catch (final IOException ex)
+                {
+                }
+            }
+        }
+    }
+
+    public static Formatter formatter(final StringBuilder sb)
+    {
+        return new Formatter(sb);
+    }
+
+    public static Formatter formatter(final Writer out)
+    {
+        return new Formatter(out);
+    }
+
     public void generateMessageHeaderStub() throws IOException
     {
         generateComposite(ir.headerStructure().tokens());
@@ -83,6 +129,9 @@ public class CppGenerator implements CodeGenerator
                 case BEGIN_COMPOSITE:
                     generateComposite(tokens);
                     break;
+
+                default:
+                    break;
             }
 
             typesToInclude.add(tokens.get(0).applicableTypeName());
@@ -103,6 +152,8 @@ public class CppGenerator implements CodeGenerator
                 case BEGIN_SET:
                 case BEGIN_COMPOSITE:
                     typesToInclude.add(token.applicableTypeName());
+                    break;
+                default:
                     break;
             }
         }
@@ -1179,6 +1230,9 @@ public class CppGenerator implements CodeGenerator
                 case BEGIN_COMPOSITE:
                     generateCompositeProperty(sb, propertyName, fieldToken, indent);
                     break;
+
+                default:
+                    break;
             }
 
             i += tokens.get(i).componentTokenCount();
@@ -2113,6 +2167,9 @@ public class CppGenerator implements CodeGenerator
                     case BEGIN_COMPOSITE:
                         generateCompositeProperty(sb, propertyName, encodingToken, indent);
                         break;
+
+                    default:
+                        break;
                 }
             }
         }
@@ -2690,6 +2747,9 @@ public class CppGenerator implements CodeGenerator
             case BEGIN_SET:
             case BEGIN_COMPOSITE:
                 sb.append(indent).append("builder << ").append(fieldName).append("();\n");
+                break;
+
+            default:
                 break;
         }
 

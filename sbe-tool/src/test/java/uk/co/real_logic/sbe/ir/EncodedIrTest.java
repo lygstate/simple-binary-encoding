@@ -43,6 +43,7 @@ public class EncodedIrTest
         final IrEncoder irEncoder = new IrEncoder(buffer, ir);
 
         irEncoder.encode();
+        irEncoder.close();
     }
 
     @Test
