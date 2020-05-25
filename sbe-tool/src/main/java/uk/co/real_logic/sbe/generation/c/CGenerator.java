@@ -21,6 +21,7 @@ import uk.co.real_logic.sbe.PrimitiveType;
 import uk.co.real_logic.sbe.generation.CodeGenerator;
 import uk.co.real_logic.sbe.generation.Generators;
 import uk.co.real_logic.sbe.ir.Encoding;
+import uk.co.real_logic.sbe.ir.GenerationUtil;
 import uk.co.real_logic.sbe.ir.Ir;
 import uk.co.real_logic.sbe.ir.Signal;
 import uk.co.real_logic.sbe.ir.Token;
@@ -54,70 +55,43 @@ public class CGenerator implements CodeGenerator
         this.outputManager = outputManager;
     }
 
-    public void generateMessageHeaderStub() throws IOException
+    public void generateTypeStubs(final Writer out, final CharSequence[] scope) throws IOException
     {
-        generateComposite(ir.namespaces(), ir.headerStructure().tokens());
-    }
-
-    public List<String> generateTypeStubs(final CharSequence[] scope) throws IOException
-    {
-        final List<String> typesToInclude = new ArrayList<>();
-
-        for (final List<Token> tokens : ir.types())
+        for (final List<Token> tokens : GenerationUtil.sortTypes(ir))
         {
             switch (tokens.get(0).signal())
             {
                 case BEGIN_ENUM:
-                    generateEnum(scope, tokens);
+                    generateEnum(out, scope, tokens);
                     break;
 
                 case BEGIN_SET:
-                    generateChoiceSet(scope, tokens);
+                    generateChoiceSet(out, scope, tokens);
                     break;
 
                 case BEGIN_COMPOSITE:
-                    generateComposite(scope, tokens);
+                    generateComposite(out, scope, tokens);
                     break;
-            }
 
-            typesToInclude.add(tokens.get(0).applicableTypeName());
-        }
-
-        return typesToInclude;
-    }
-
-    public List<String> generateTypesToIncludes(final List<Token> tokens)
-    {
-        final List<String> typesToInclude = new ArrayList<>();
-
-        for (final Token token : tokens)
-        {
-            switch (token.signal())
-            {
-                case BEGIN_ENUM:
-                case BEGIN_SET:
-                case BEGIN_COMPOSITE:
-                    typesToInclude.add(token.applicableTypeName());
+                default:
                     break;
             }
         }
 
-        return typesToInclude;
     }
 
     public void generate() throws IOException
     {
-        generateMessageHeaderStub();
-        final List<String> typesToInclude = generateTypeStubs(ir.namespaces());
-
-        for (final List<Token> tokens : ir.messages())
+        final String filename = formatScope(ir.namespaces());
+        try (Writer out = outputManager.createOutput(filename))
         {
-            final Token msgToken = tokens.get(0);
-
-            try (Writer out = outputManager.createOutput(formatName(msgToken.name())))
+            out.append(generateFileHeader(filename, null));
+            generateTypeStubs(out, ir.namespaces());
+            for (final List<Token> tokens : ir.messages())
             {
+                final Token msgToken = tokens.get(0);
+
                 final String structName = formatScopedName(ir.namespaces(), msgToken.name());
-                out.append(generateFileHeader(structName, typesToInclude));
 
                 final List<Token> messageBody = tokens.subList(1, tokens.size() - 1);
                 int i = 0;
@@ -139,8 +113,8 @@ public class CGenerator implements CodeGenerator
                 generateGroups(sb, ir.namespaces(), groups, structName, structName);
                 out.append(sb);
                 out.append(generateVarData(structName, structName, varData));
-                out.append("\n#endif\n");
             }
+            out.append("\n#endif\n");
         }
     }
 
@@ -635,14 +609,15 @@ public class CGenerator implements CodeGenerator
             structName));
     }
 
-    private void generateChoiceSet(final CharSequence[] scope, final List<Token> tokens) throws IOException
+    private void generateChoiceSet(
+        final Writer out,
+        final CharSequence[] scope,
+        final List<Token> tokens)
+        throws IOException
     {
         final Token bitsetToken = tokens.get(0);
-
-        try (Writer out = outputManager.createOutput(formatName(bitsetToken.applicableTypeName())))
         {
             final String bitSetName = formatScopedName(scope, bitsetToken.applicableTypeName());
-            out.append(generateFileHeader(bitSetName, null));
             out.append(generateFixedFlyweightStruct(bitSetName));
             out.append(generateFixedFlyweightCodeFunctions(bitSetName, bitsetToken.encodedLength()));
 
@@ -669,44 +644,34 @@ public class CGenerator implements CodeGenerator
                 cTypeName(bitsetToken.encoding().primitiveType())));
 
             out.append(generateChoices(bitSetName, tokens.subList(1, tokens.size() - 1)));
-            out.append("\n#endif\n");
         }
     }
 
-    private void generateEnum(final CharSequence[] scope, final List<Token> tokens) throws IOException
+    private void generateEnum(
+        final Writer out,
+        final CharSequence[] scope, final List<Token> tokens) throws IOException
     {
         final Token enumToken = tokens.get(0);
 
-        try (Writer out = outputManager.createOutput(formatName(enumToken.applicableTypeName())))
         {
-            final String enumName = formatScopedName(scope, enumToken.applicableTypeName());
-
-            out.append(generateFileHeader(enumName, null));
-
             out.append(generateEnumValues(scope, tokens.subList(1, tokens.size() - 1), enumToken));
 
             out.append(generateEnumLookupFunction(scope, tokens.subList(1, tokens.size() - 1), enumToken));
-
-            out.append("\n#endif\n");
         }
     }
 
-    private void generateComposite(final CharSequence[] scope, final List<Token> tokens) throws IOException
+    private void generateComposite(
+        final Writer out,
+        final CharSequence[] scope, final List<Token> tokens) throws IOException
     {
         final Token compositeToken = tokens.get(0);
-
-        try (Writer out = outputManager.createOutput(formatName(compositeToken.applicableTypeName())))
         {
             final String compositeName = formatScopedName(scope, compositeToken.applicableTypeName());
 
-            out.append(generateFileHeader(
-                compositeName, generateTypesToIncludes(tokens.subList(1, tokens.size() - 1))));
             out.append(generateFixedFlyweightStruct(compositeName));
             out.append(generateFixedFlyweightCodeFunctions(compositeName, compositeToken.encodedLength()));
             out.append(generateCompositePropertyFunctions(
                 scope, compositeName, tokens.subList(1, tokens.size() - 1)));
-
-            out.append("\n#endif\n");
         }
     }
 
