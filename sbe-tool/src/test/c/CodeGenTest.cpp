@@ -18,8 +18,7 @@
 
 #include <gtest/gtest.h>
 
-#include <code_generation_test/car.h>
-#include <code_generation_test/messageHeader.h>
+#include <code_generation_test/code_generation_test.h>
 #include <stdexcept>
 #include <cstring>
 
