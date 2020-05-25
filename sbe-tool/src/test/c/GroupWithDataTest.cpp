@@ -19,10 +19,7 @@
 
 #include <gtest/gtest.h>
 
-#include <group_with_data/testMessage1.h>
-#include <group_with_data/testMessage2.h>
-#include <group_with_data/testMessage3.h>
-#include <group_with_data/testMessage4.h>
+#include <group_with_data/group_with_data.h>
 
 #define GWD(name) group_with_data_##name
 
