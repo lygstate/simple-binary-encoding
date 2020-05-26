@@ -785,6 +785,8 @@ public class CGenerator implements CodeGenerator
 
         sb.append("};\n\n");
 
+        sb.append(String.format("typedef enum %1$s %1$s;\n\n", enumName));
+
         return sb;
     }
 
@@ -826,11 +828,11 @@ public class CGenerator implements CodeGenerator
 
             "SBE_ONE_DEF bool %1$s_get(\n" +
             "    const %2$s value,\n" +
-            "    enum %1$s *const out)\n" +
+            "    %1$s *const out)\n" +
             "{\n" +
             "    if (%1$s_is_normal(value) || %1$s_is_null(value))\n" +
             "    {\n" +
-            "        *out = (enum %1$s)value;\n" +
+            "        *out = (%1$s)value;\n" +
             "        return true;\n" +
             "    }\n" +
             "    *out =  %1$s_NULL_VALUE;\n" +
@@ -1703,7 +1705,7 @@ public class CGenerator implements CodeGenerator
 
         sb.append(String.format("\n" +
             "SBE_ONE_DEF const char *%6$s_%s_meta_attribute(\n" +
-            "    const enum sbe_meta_attribute attribute)\n" +
+            "    const sbe_meta_attribute attribute)\n" +
             "{\n" +
             "    switch (attribute)\n" +
             "    {\n" +
@@ -1782,7 +1784,7 @@ public class CGenerator implements CodeGenerator
             final String constValue = signalToken.encoding().constValue().toString();
 
             sb.append(String.format("\n" +
-                "SBE_ONE_DEF enum %1$s %4$s_%2$s_const_value(void)\n" +
+                "SBE_ONE_DEF %1$s %4$s_%2$s_const_value(void)\n" +
                 "{\n" +
                 "    return %1$s_%3$s;\n" +
                 "}\n",
@@ -1792,7 +1794,7 @@ public class CGenerator implements CodeGenerator
                 containingStructName));
 
             sb.append(String.format("\n" +
-                "SBE_ONE_DEF enum %1$s %5$s_%2$s(\n" +
+                "SBE_ONE_DEF %1$s %5$s_%2$s(\n" +
                 "    const %5$s *const codec)\n" +
                 "{\n" +
                 "%3$s" +
@@ -1817,7 +1819,7 @@ public class CGenerator implements CodeGenerator
             sb.append(String.format("\n" +
                 "SBE_ONE_DEF bool %7$s_%2$s_safe(\n" +
                 "    const %7$s *const codec%8$s,\n" +
-                "    enum %1$s *const out)\n" +
+                "    %1$s *const out)\n" +
                 "{\n" +
                 "%3$s" +
                 identBlock(
@@ -1827,18 +1829,18 @@ public class CGenerator implements CodeGenerator
                 "    return %1$s_get(%4$s(val), out);\n") +
                 "}\n\n" +
 
-                "SBE_ONE_DEF enum %1$s %7$s_%2$s(\n" +
+                "SBE_ONE_DEF %1$s %7$s_%2$s(\n" +
                 "    const %7$s *const codec%8$s)\n" +
                 "{\n" +
                 "    %5$s val;\n" +
                 "    memcpy(&val, codec->buffer + codec->offset + %6$d%9$s, sizeof(%5$s));\n\n" +
 
-                "    return (enum %1$s)%4$s(val);\n" +
+                "    return (%1$s)%4$s(val);\n" +
                 "}\n\n" +
 
                 "SBE_ONE_DEF %7$s *%7$s_set_%2$s(\n" +
                 "    %7$s *const codec%8$s,\n" +
-                "    const enum %1$s value)\n" +
+                "    const %1$s value)\n" +
                 "{\n" +
                 "    %5$s val = %4$s(value);\n" +
                 "    memcpy(codec->buffer + codec->offset + %6$d%9$s, &val, sizeof(%5$s));\n\n" +
