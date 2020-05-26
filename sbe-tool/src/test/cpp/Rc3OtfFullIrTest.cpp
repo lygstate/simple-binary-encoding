@@ -1195,7 +1195,7 @@ TEST_P(Rc3OtfFullIrLengthTest, shouldExceptionIfLengthTooShort)
     }, std::runtime_error);
 }
 
-INSTANTIATE_TEST_SUITE_P(
+INSTANTIATE_TEST_CASE_P(
     LengthUpToHdrAndCar,
     Rc3OtfFullIrLengthTest,
-    ::testing::Range(0, static_cast<int>(encodedCarAndHdrLength - MessageHeader::encodedLength()), 1));
+    ::testing::Range(0, static_cast<int>(encodedCarAndHdrLength - MessageHeader::encodedLength()), 1),);

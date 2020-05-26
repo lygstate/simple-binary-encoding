@@ -19,7 +19,7 @@
 build-local.properties
 deps
 */bin
-build
+build*
 .gradle
 target
 GTAGS

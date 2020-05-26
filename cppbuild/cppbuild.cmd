@@ -1,5 +1,6 @@
 @if "%DEBUG%" == "" @echo off
 setlocal EnableDelayedExpansion
+cd "/d %~dp0.."
 
 set SOURCE_DIR=%CD%
 set BUILD_DIR=%CD%\cppbuild\Release
@@ -32,7 +33,7 @@ if EXIST %BUILD_DIR% rd /S /Q %BUILD_DIR%
 md %BUILD_DIR%
 pushd %BUILD_DIR%
 
-cmake %EXTRA_CMAKE_ARGS% %SOURCE_DIR%
+cmake %EXTRA_CMAKE_ARGS% -G "Ninja" %SOURCE_DIR%
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 cmake --build . --clean-first --config Release
