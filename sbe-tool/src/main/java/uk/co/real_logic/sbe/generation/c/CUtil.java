@@ -16,7 +16,6 @@
 package uk.co.real_logic.sbe.generation.c;
 
 import uk.co.real_logic.sbe.PrimitiveType;
-import uk.co.real_logic.sbe.SbeTool;
 import uk.co.real_logic.sbe.util.ValidationUtil;
 
 import java.nio.ByteOrder;
@@ -66,22 +65,8 @@ public class CUtil
      */
     public static String formatPropertyName(final String value)
     {
-        String formattedValue = toLowerFirstChar(value);
-
-        if (ValidationUtil.isCKeyword(formattedValue))
-        {
-            final String keywordAppendToken = System.getProperty(SbeTool.KEYWORD_APPEND_TOKEN);
-            if (null == keywordAppendToken)
-            {
-                throw new IllegalStateException(
-                    "Invalid property name='" + formattedValue +
-                    "' please correct the schema or consider setting system property: " + SbeTool.KEYWORD_APPEND_TOKEN);
-            }
-
-            formattedValue += keywordAppendToken;
-        }
-
-        return formattedValue;
+        final String formattedValue = toLowerFirstChar(value);
+        return ValidationUtil.tryFixInvalidName(formattedValue);
     }
 
     /**

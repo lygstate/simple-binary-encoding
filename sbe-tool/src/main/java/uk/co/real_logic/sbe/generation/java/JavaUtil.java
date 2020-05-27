@@ -140,22 +140,8 @@ public class JavaUtil
      */
     public static String formatPropertyName(final String value)
     {
-        String formattedValue = Generators.toLowerFirstChar(value);
-
-        if (ValidationUtil.isJavaKeyword(formattedValue))
-        {
-            final String keywordAppendToken = System.getProperty(SbeTool.KEYWORD_APPEND_TOKEN);
-            if (null == keywordAppendToken)
-            {
-                throw new IllegalStateException(
-                    "Invalid property name='" + formattedValue +
-                    "' please correct the schema or consider setting system property: " + SbeTool.KEYWORD_APPEND_TOKEN);
-            }
-
-            formattedValue += keywordAppendToken;
-        }
-
-        return formattedValue;
+        final String formattedValue = Generators.toLowerFirstChar(value);
+        return ValidationUtil.tryFixInvalidName(formattedValue);
     }
 
     /**

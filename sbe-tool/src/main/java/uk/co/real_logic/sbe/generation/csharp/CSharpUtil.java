@@ -17,6 +17,7 @@
 package uk.co.real_logic.sbe.generation.csharp;
 
 import uk.co.real_logic.sbe.PrimitiveType;
+import uk.co.real_logic.sbe.util.ValidationUtil;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -67,7 +68,8 @@ public class CSharpUtil
      */
     public static String formatPropertyName(final String str)
     {
-        return toUpperFirstChar(str);
+        final String formattedValue = toUpperFirstChar(str);
+        return ValidationUtil.tryFixInvalidName(formattedValue);
     }
 
     /**

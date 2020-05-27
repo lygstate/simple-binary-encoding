@@ -15,10 +15,14 @@
  */
 package uk.co.real_logic.sbe.util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import uk.co.real_logic.sbe.SbeTool;
 
 /**
  * Various validation utilities used across parser, IR, and generator
@@ -37,6 +41,75 @@ public class ValidationUtil
         "signed", "sizeof", "static", "_Static_assert",
         "struct", "switch", "_Thread_local", "true", "typedef", "union",
         "unsigned", "void", "volatile", "wchar_t", "while"));
+
+    /**
+     * Check name against validity for C, C++, Java, Golang and C# naming. Warning if not valid.
+     *
+     * @param name of the node/attribute name to be checked.
+     * @return the programming language that not valid for name
+     */
+    public static String checkForInvalidLanguageNameList(final String name)
+    {
+        final List<String> names = new ArrayList<String>();
+        if (!ValidationUtil.isSbeCName(name))
+        {
+            names.add("C");
+        }
+
+        if (!ValidationUtil.isSbeCppName(name))
+        {
+            names.add("C++");
+        }
+
+        if (!ValidationUtil.isSbeJavaName(name))
+        {
+            names.add("Java");
+        }
+
+        if (!ValidationUtil.isSbeGolangName(name))
+        {
+            names.add("Golang");
+        }
+
+        if (!ValidationUtil.isSbeCSharpName(name))
+        {
+            names.add("C#");
+        }
+
+        if (names.size() > 0)
+        {
+            final String[] nameArray = names.toArray(new String[ names.size() ]);
+            return String.join(",", nameArray);
+        }
+        return null;
+    }
+
+    /**
+     * Check name against validity for C, C++, Java, Golang and C# naming. if not valid then
+     * append with SbeTool.KEYWORD_APPEND_TOKEN, throw when SbeTool.KEYWORD_APPEND_TOKEN not exist
+     *
+     * @param name of the node/attribute name to be checked.
+     * @return the programming language that not valid for name
+     */
+    public static String tryFixInvalidName(final String name) throws IllegalStateException
+    {
+        final String invalidLanguageNameList = checkForInvalidLanguageNameList(name);
+
+        if (invalidLanguageNameList != null)
+        {
+            final String keywordAppendToken = System.getProperty(SbeTool.KEYWORD_APPEND_TOKEN);
+            if (null == keywordAppendToken)
+            {
+                throw new IllegalStateException(
+                    String.format("Invalid property name='%1$s' for %2$s, " +
+                        "please correct the schema or consider setting system property:%3$s",
+                        name, invalidLanguageNameList, SbeTool.KEYWORD_APPEND_TOKEN));
+            }
+
+            return name + keywordAppendToken;
+        }
+        return name;
+    }
 
     /**
      * Check value for validity of usage as a C identifier. A programmatic variable

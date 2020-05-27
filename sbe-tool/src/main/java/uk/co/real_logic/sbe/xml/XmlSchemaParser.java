@@ -350,31 +350,17 @@ public class XmlSchemaParser
     }
 
     /**
-     * Check name against validity for C++ and Java naming. Warning if not valid.
+     * Check name against validity for different programming language naming. Warning if not valid.
      *
      * @param node to have the name checked.
      * @param name of the node to be checked.
      */
     public static void checkForValidName(final Node node, final String name)
     {
-        if (!ValidationUtil.isSbeCppName(name))
+        final String invalidLanguageNameList = ValidationUtil.checkForInvalidLanguageNameList(name);
+        if (invalidLanguageNameList != null)
         {
-            handleWarning(node, "name is not valid for C++: " + name);
-        }
-
-        if (!ValidationUtil.isSbeJavaName(name))
-        {
-            handleWarning(node, "name is not valid for Java: " + name);
-        }
-
-        if (!ValidationUtil.isSbeGolangName(name))
-        {
-            handleWarning(node, "name is not valid for Golang: " + name);
-        }
-
-        if (!ValidationUtil.isSbeCSharpName(name))
-        {
-            handleWarning(node, "name is not valid for C#: " + name);
+            handleWarning(node, String.format("'%1$s' is not valid for language %2$s", name, invalidLanguageNameList));
         }
     }
 
