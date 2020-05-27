@@ -633,7 +633,7 @@ public class CGenerator implements CodeGenerator
                 bitSetName,
                 cTypeName(bitsetToken.encoding().primitiveType())));
 
-            out.append(generateChoices(bitSetName, tokens.subList(1, tokens.size() - 1)));
+            out.append(generateChoices(bitSetName, bitsetToken, tokens.subList(1, tokens.size() - 1)));
         }
     }
 
@@ -665,22 +665,8 @@ public class CGenerator implements CodeGenerator
         }
     }
 
-    private static CharSequence generateChoiceNotPresentCondition(final int sinceVersion)
-    {
-        if (0 == sinceVersion)
-        {
-            return "";
-        }
-
-        return String.format(
-            "if (codec->acting_version < %1$d)\n" +
-            "{\n" +
-            "    return false;\n" +
-            "}\n\n",
-            sinceVersion);
-    }
-
-    private CharSequence generateChoices(final String bitsetStructName, final List<Token> tokens)
+    private CharSequence generateChoices(
+        final String bitsetStructName, final Token bitsetToken, final List<Token> tokens)
     {
         final StringBuilder sb = new StringBuilder();
 
@@ -690,68 +676,98 @@ public class CGenerator implements CodeGenerator
             .forEach((token) ->
             {
                 final String choiceName = formatPropertyName(token.name());
-                final String typeName = cTypeName(token.encoding().primitiveType());
-                final String choiceBitPosition = token.encoding().constValue().toString();
+                final String bitsetTypeName = cTypeName(bitsetToken.encoding().primitiveType());
+
+                final Encoding encoding = token.encoding();
+
+                final long lsb = encoding.isChoice() ?
+                    encoding.constValue().longValue() : encoding.lsbValue().longValue();
+                final long msb = encoding.isChoice() ?
+                    encoding.constValue().longValue() : encoding.msbValue().longValue();
                 final String byteOrderStr = formatByteOrderEncoding(
-                    token.encoding().byteOrder(), token.encoding().primitiveType());
+                    bitsetToken.encoding().byteOrder(), bitsetToken.encoding().primitiveType());
+                final PrimitiveType bitsetPrimitiveType = bitsetToken.encoding().primitiveType();
 
+                final GenerateLiteralFunction genBitsLiteral = (PrimitiveType a, String b) -> generateLiteral(a, b);
+                CharSequence bitsGetNormal = generateGetBits(
+                    lsb, msb, bitsetPrimitiveType, "bitset", "", genBitsLiteral);
+                CharSequence bitsGetByteOrder = generateGetBits(
+                    lsb, msb, bitsetPrimitiveType, "bitset", byteOrderStr, genBitsLiteral);
+                final CharSequence bitsSetNormal = generateSetBits(
+                    lsb, msb, bitsetPrimitiveType, "bits", "bitset", "", genBitsLiteral);
+                final CharSequence bitsSetByteOrder = generateSetBits(
+                    lsb, msb, bitsetPrimitiveType, "bits", "bitset", byteOrderStr, genBitsLiteral);
+
+                final CharSequence nullReturn;
+                final String choiceTypeName;
+                if (encoding.isChoice())
+                {
+                    nullReturn = "false";
+                    choiceTypeName = "bool";
+                }
+                else
+                {
+                    if (token.referencedName() != null)
+                    {
+                        final String enumName = formatScopedName(ir.namespaces(), token.applicableTypeName());
+                        nullReturn = enumName + "_NULL_VALUE";
+                        choiceTypeName = enumName;
+                    }
+                    else
+                    {
+                        nullReturn = generateLiteral(encoding.primitiveType(),
+                            encoding.applicableNullValue().toString());
+                        choiceTypeName = cTypeName(encoding.primitiveType());
+                    }
+                }
+                bitsGetNormal = String.format("(%1$s)(%2$s)", choiceTypeName, bitsGetNormal);
+                bitsGetByteOrder = String.format("(%1$s)(%2$s)", choiceTypeName, bitsGetByteOrder);
+                final CharSequence notPresent = generateFieldNotPresentCondition(token.version(), nullReturn);
                 sb.append(String.format("\n" +
-                    "SBE_ONE_DEF bool %1$s_check_%2$s_bit(\n" +
-                    "    const %3$s bits)\n" +
+                    "SBE_ONE_DEF %5$s %1$s_%2$s_get(\n" +
+                    "    const %3$s bitset)\n" +
                     "{\n" +
-                    "    return (bits & ((%3$s)1 << %4$s)) != 0;\n" +
-                    "}\n",
-                    bitsetStructName,
-                    choiceName,
-                    typeName,
-                    choiceBitPosition));
+                    "    return %6$s;\n" +
+                    "}\n\n" +
 
-                sb.append(String.format("\n" +
-                    "SBE_ONE_DEF %3$s %1$s_apply_%2$s_bit(\n" +
-                    "    const %3$s bits,\n" +
-                    "    const bool value)\n" +
+                    "SBE_ONE_DEF %3$s %1$s_%2$s_apply(\n" +
+                    "    const %3$s bitset,\n" +
+                    "    const %5$s bits)\n" +
                     "{\n" +
-                    "    return value ?" +
-                    " (bits | ((%3$s)1 << %4$s)) : (bits & ~((%3$s)1 << %4$s));\n" +
-                    "}\n",
-                    bitsetStructName,
-                    choiceName,
-                    typeName,
-                    choiceBitPosition));
+                    "    return %7$s;\n" +
+                    "}\n\n" +
 
-                sb.append(String.format("\n" +
-                    "SBE_ONE_DEF bool %1$s_%2$s(\n" +
+                    "SBE_ONE_DEF %5$s %1$s_%2$s(\n" +
                     "    const %1$s *const codec)\n" +
                     "{\n" +
-                    "%3$s" +
-                    "    %5$s val;\n" +
-                    "    memcpy(&val, codec->buffer + codec->offset, sizeof(%5$s));\n\n" +
-                    "    return (%4$s(val) & ((%5$s)1 << %6$s)) != 0;\n" +
-                    "}\n",
-                    bitsetStructName,
-                    choiceName,
-                    generateChoiceNotPresentCondition(token.version()),
-                    byteOrderStr,
-                    typeName,
-                    choiceBitPosition));
+                    "    %3$s bitset;\n" +
+                    "%4$s" +
+                    "    memcpy(&bitset, codec->buffer + codec->offset, sizeof(%3$s));\n\n" +
 
-                sb.append(String.format("\n" +
-                    "SBE_ONE_DEF %1$s *%1$s_set_%2$s(\n" +
+                    "    return %8$s;\n" +
+                    "}\n\n" +
+
+                    "SBE_ONE_DEF %1$s *%1$s_%2$s_set(\n" +
                     "    %1$s *const codec,\n" +
-                    "    const bool value)\n" +
+                    "    const %5$s bits)\n" +
                     "{\n" +
-                    "    %3$s bits;\n" +
-                    "    memcpy(&bits, codec->buffer + codec->offset, sizeof(%3$s));\n" +
-                    "    bits = %4$s(value ? " +
-                    "(%4$s(bits) | ((%3$s)1 << %5$s)) : (%4$s(bits) & ~((%3$s)1 << %5$s)));\n" +
-                    "    memcpy(codec->buffer + codec->offset, &bits, sizeof(%3$s));\n\n" +
+                    "    %3$s bitset;\n" +
+                    "    memcpy(&bitset, codec->buffer + codec->offset, sizeof(%3$s));\n" +
+                    "    bitset = %9$s;\n" +
+                    "    memcpy(codec->buffer + codec->offset, &bitset, sizeof(%3$s));\n\n" +
+
                     "    return codec;\n" +
                     "}\n",
                     bitsetStructName,
                     choiceName,
-                    typeName,
-                    byteOrderStr,
-                    choiceBitPosition));
+                    bitsetTypeName,
+                    notPresent,
+                    choiceTypeName,
+                    bitsGetNormal,
+                    bitsSetNormal,
+                    bitsGetByteOrder,
+                    bitsSetByteOrder
+                ));
             });
 
         return sb;

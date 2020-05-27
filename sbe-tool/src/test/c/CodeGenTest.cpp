@@ -118,9 +118,9 @@ public:
             throw std::runtime_error(sbe_strerror(errno));
         }
         CGT(optionalExtras_clear)(&extras);
-        CGT(optionalExtras_set_cruiseControl)(&extras, CRUISE_CONTROL);
-        CGT(optionalExtras_set_sportsPack)(&extras, SPORTS_PACK);
-        CGT(optionalExtras_set_sunRoof)(&extras, SUNROOF);
+        CGT(optionalExtras_cruiseControl_set)(&extras, CRUISE_CONTROL);
+        CGT(optionalExtras_sportsPack_set)(&extras, SPORTS_PACK);
+        CGT(optionalExtras_sunRoof_set)(&extras, SUNROOF);
 
         CGT(engine) engine;
         if (!CGT(car_engine)(&car, &engine))
