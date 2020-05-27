@@ -33,8 +33,11 @@ using namespace baseline;
 class ExampleTokenListener
 {
 public:
+    ExampleTokenListener():scope(),compositeLevel(0)
+    {
+    }
     std::vector<std::string> scope;
-    int compositeLevel = 0;
+    int compositeLevel;
 
     void printScope() const
     {
