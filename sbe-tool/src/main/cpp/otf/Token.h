@@ -24,7 +24,7 @@
 namespace sbe { namespace otf {
 
 /// Constants used for holding Token signals
-enum class Signal : int
+enum Signal
 {
     /// Begins a message. Is followed by a number of tokens in the message and terminated by an end message.
         BEGIN_MESSAGE = 1,

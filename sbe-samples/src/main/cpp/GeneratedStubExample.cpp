@@ -17,7 +17,6 @@
 #include <string>
 
 #include <stdio.h>
-#include <inttypes.h>
 #include <iomanip>
 
 #include "baseline/MessageHeader.h"

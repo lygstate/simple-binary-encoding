@@ -745,12 +745,12 @@ TEST_F(CodeGenTest, shouldBeAbleUseOnStackCodecsAndGroupForEach)
 
     ASSERT_TRUE(CGT(car_fuelFigures_for_each)(
         &fuelFigures,
-        [](CGT(car_fuelFigures) *const figures, void *cbs)
+        sbeLambda<CGT(car_fuelFigures)*>([](CGT(car_fuelFigures) *const figures, void *cbs)
         {
             reinterpret_cast<CallbacksForEach*>(cbs)->countOfFuelFigures++;
 
             CGT(car_fuelFigures_usageDescription)(figures);
-        },
+        }),
         &cbs));
 
     CGT(car_performanceFigures) performanceFigures;
@@ -761,9 +761,14 @@ TEST_F(CodeGenTest, shouldBeAbleUseOnStackCodecsAndGroupForEach)
 
     EXPECT_EQ(CGT(car_performanceFigures_count)(&performanceFigures), PERFORMANCE_FIGURES_COUNT);
 
+    static auto callback3 = sbeLambda<CGT(car_performanceFigures_acceleration)*>([](CGT(car_performanceFigures_acceleration) *const, void *cbs)
+    {
+        reinterpret_cast<CallbacksForEach*>(cbs)->countOfAccelerations++;
+    });
+
     ASSERT_TRUE(CGT(car_performanceFigures_for_each)(
         &performanceFigures,
-        [](CGT(car_performanceFigures) *const figures, void *cbs)
+        sbeLambda<CGT(car_performanceFigures)*>([](CGT(car_performanceFigures) *const figures, void *cbs)
         {
             CGT(car_performanceFigures_acceleration) acceleration;
             if (!CGT(car_performanceFigures_get_acceleration(figures, &acceleration)))
@@ -773,13 +778,10 @@ TEST_F(CodeGenTest, shouldBeAbleUseOnStackCodecsAndGroupForEach)
             reinterpret_cast<CallbacksForEach*>(cbs)->countOfPerformanceFigures++;
             ASSERT_TRUE(CGT(car_performanceFigures_acceleration_for_each)(
                 &acceleration,
-                [](CGT(car_performanceFigures_acceleration) *const, void *cbs)
-                {
-                    reinterpret_cast<CallbacksForEach*>(cbs)->countOfAccelerations++;
-                },
+                callback3,
                 cbs
             ));
-        },
+        }),
         &cbs));
 
     EXPECT_EQ(cbs.countOfFuelFigures, FUEL_FIGURES_COUNT);
