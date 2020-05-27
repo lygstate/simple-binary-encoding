@@ -49,7 +49,7 @@ namespace sbe {
 namespace otf {
 
 /// Constants used for representing byte order
-enum class ByteOrder : int
+enum ByteOrder
 {
     /// little endian byte order
         SBE_LITTLE_ENDIAN = 0,
@@ -72,7 +72,7 @@ typedef union sbe_double_as_uint_u
 sbe_double_as_uint_t;
 
 /// Constants used for representing primitive types
-enum class PrimitiveType : int
+enum PrimitiveType
 {
     /// Type is undefined or unknown
         NONE = 0,
@@ -101,7 +101,7 @@ enum class PrimitiveType : int
 };
 
 /// Constants used for representing Presence
-enum class Presence : int
+enum Presence
 {
     /// Field or encoding presence is required
         SBE_REQUIRED = 0,
