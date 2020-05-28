@@ -2418,6 +2418,14 @@ public class CppGenerator implements CodeGenerator
         return literal;
     }
 
+    public static String jsonString(final String token, final String suffix)
+    {
+        /* "\"color\"" */
+        /* "\"color\": " */
+        /* "\"color\", " */
+        return String.format("\"\\\"%1$s\\\"%2$s\"", token, suffix);
+    }
+
     private void generateDisplay(
         final StringBuilder sb,
         final String name,
@@ -2433,8 +2441,8 @@ public class CppGenerator implements CodeGenerator
             "    %1$s writer(_writer.m_buffer, _writer.m_offset,\n" +
             "        _writer.m_bufferLength, _writer.sbeBlockLength(), _writer.m_actingVersion);\n" +
             "    builder << '{';\n" +
-            "    builder << R\"(\"Name\": \"%1$s\", )\";\n" +
-            "    builder << R\"(\"sbeTemplateId\": )\";\n" +
+            "    builder << " + jsonString("Name", ": ") + " << " + jsonString("%1$s", ", ") + ";\n" +
+            "    builder << " + jsonString("sbeTemplateId", ": ") + ";\n" +
             "    builder << writer.sbeTemplateId();\n" +
             "    builder << \", \";\n\n" +
             "%2$s" +
@@ -2514,7 +2522,7 @@ public class CppGenerator implements CodeGenerator
             new Formatter(sb).format(
                 indent + "{\n" +
                 indent + "    bool atLeastOne = false;\n" +
-                indent + "    builder << R\"(\"%3$s\": [)\";\n" +
+                indent + "    builder << " + jsonString("%3$s", ": [") + ";\n" +
                 indent + "    writer.%2$s().forEach([&](%1$s& %2$s)\n" +
                 indent + "    {\n" +
                 indent + "        if (atLeastOne)\n" +
@@ -2548,7 +2556,7 @@ public class CppGenerator implements CodeGenerator
             atLeastOne[0] = true;
 
             final String characterEncoding = varData.get(i + 3).encoding().characterEncoding();
-            sb.append(indent).append("builder << R\"(\"").append(varDataToken.name()).append("\": )\";\n");
+            sb.append(indent).append("builder << " + jsonString(varDataToken.name(), ": ") + ";\n");
 
             if (null == characterEncoding)
             {
@@ -2593,7 +2601,7 @@ public class CppGenerator implements CodeGenerator
             atLeastOne[0] = true;
         }
 
-        sb.append(indent).append("builder << R\"(\"").append(fieldTokenName).append("\": )\";\n");
+        sb.append(indent).append("builder << ").append(jsonString(fieldTokenName, ": ")).append(";\n");
         final String fieldName = "writer." + formatPropertyName(fieldTokenName);
 
         switch (typeToken.signal())
@@ -2702,7 +2710,7 @@ public class CppGenerator implements CodeGenerator
                     indent + "            builder << \",\";\n" +
                     indent + "        }\n");
             }
-            sb.append(indent + "        builder << R\"(\"").append(formatPropertyName(token.name())).append("\")\";\n");
+            sb.append(indent + "        builder << " + jsonString(token.name(), "") + ";\n");
 
             if (i < (size - 1))
             {
