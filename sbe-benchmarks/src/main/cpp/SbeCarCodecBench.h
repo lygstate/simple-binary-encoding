@@ -17,7 +17,7 @@
 #define _SBE_CAR_CODEC_BENCH_HPP
 
 #include "CodecBench.h"
-#include "uk_co_real_logic_sbe_benchmarks/Car.h"
+#include "uk_co_real_logic_sbe_benchmarks/uk_co_real_logic_sbe_benchmarks_cpp.h"
 
 using namespace uk::co::real_logic::sbe::benchmarks;
 

@@ -16,8 +16,7 @@
 #include <iostream>
 
 #include "gtest/gtest.h"
-#include "composite_offsets_test/MessageHeader.h"
-#include "composite_offsets_test/TestMessage1.h"
+#include "composite_offsets_test/composite_offsets_test_cpp.h"
 #include "otf/OtfHeaderDecoder.h"
 #include "otf/OtfMessageDecoder.h"
 #include "otf/IrDecoder.h"
