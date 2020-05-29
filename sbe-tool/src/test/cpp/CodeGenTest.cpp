@@ -427,21 +427,30 @@ TEST_F(CodeGenTest, shouldBeAbleToEncodeCarCorrectly)
 
     EXPECT_EQ(sz, offset);
 
-    std::uint64_t predictedCarSz = Car::computeLength(
-        {
-            FUEL_FIGURES_1_USAGE_DESCRIPTION_LENGTH,
-            FUEL_FIGURES_2_USAGE_DESCRIPTION_LENGTH,
-            FUEL_FIGURES_3_USAGE_DESCRIPTION_LENGTH
-        },
-        {
-            ACCELERATION_COUNT,
-            ACCELERATION_COUNT
-        },
+    const CarGroups::FuelFiguresLengthParam fuelFigures[] = 
+    {
+        { FUEL_FIGURES_1_USAGE_DESCRIPTION_LENGTH },
+        { FUEL_FIGURES_2_USAGE_DESCRIPTION_LENGTH },
+        { FUEL_FIGURES_3_USAGE_DESCRIPTION_LENGTH }
+    };
+
+    const CarGroups::PerformanceFiguresLengthParam performanceFigures[] =
+    {
+        { ACCELERATION_COUNT },
+        { ACCELERATION_COUNT }
+    };
+
+    const CarLengthParam lengthInfo =
+    {
+        sbe_vector_view_make(fuelFigures),
+        sbe_vector_view_make(performanceFigures),
         MANUFACTURER_LENGTH,
         MODEL_LENGTH,
         ACTIVATION_CODE_LENGTH,
         COLOR_LENGTH
-    );
+    };
+
+    std::uint64_t predictedCarSz = Car::computeLength(lengthInfo);
 
     EXPECT_EQ(sz, predictedCarSz);
     EXPECT_EQ(Car::isConstLength(), false);
