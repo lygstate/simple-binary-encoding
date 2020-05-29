@@ -19,8 +19,7 @@
 #include <stdio.h>
 #include <iomanip>
 
-#include "baseline/MessageHeader.h"
-#include "baseline/Car.h"
+#include "baseline/baseline_cpp.h"
 
 using namespace std;
 using namespace baseline;

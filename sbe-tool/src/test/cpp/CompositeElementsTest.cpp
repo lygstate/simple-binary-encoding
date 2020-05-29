@@ -16,8 +16,7 @@
 #include <iostream>
 
 #include "gtest/gtest.h"
-#include "composite_elements/MessageHeader.h"
-#include "composite_elements/Msg.h"
+#include "composite_elements/composite_elements_cpp.h"
 #include "otf/IrDecoder.h"
 #include "otf/OtfHeaderDecoder.h"
 #include "otf/OtfMessageDecoder.h"
