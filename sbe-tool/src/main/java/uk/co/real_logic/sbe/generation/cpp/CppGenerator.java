@@ -2372,9 +2372,7 @@ public class CppGenerator implements CodeGenerator
         final List<Token> varData)
     {
         new Formatter(sb).format("\n" +
-            "template<typename CharT, typename Traits>\n" +
-            "friend std::basic_ostream<CharT, Traits>& operator << (\n" +
-            "    std::basic_ostream<CharT, Traits>& builder, %1$s _writer)\n" +
+            "friend std::ostream& operator << (std::ostream& builder, %1$s _writer)\n" +
             "{\n" +
             "    %1$s writer(_writer.m_buffer, _writer.m_offset,\n" +
             "        _writer.m_bufferLength, _writer.sbeBlockLength(), _writer.m_actingVersion);\n" +
@@ -2399,9 +2397,7 @@ public class CppGenerator implements CodeGenerator
         final String indent)
     {
         return String.format("\n" +
-            indent + "template<typename CharT, typename Traits>\n" +
-            indent + "friend std::basic_ostream<CharT, Traits>& operator << (\n" +
-            indent + "    std::basic_ostream<CharT, Traits>& builder, %1$s writer)\n" +
+            indent + "friend std::ostream& operator << (std::ostream& builder, %1$s writer)\n" +
             indent + "{\n" +
             indent + "    builder << '{';\n" +
             "%2$s" +
@@ -2415,9 +2411,7 @@ public class CppGenerator implements CodeGenerator
     private CharSequence generateCompositeDisplay(final String name, final List<Token> tokens)
     {
         return String.format("\n" +
-            "template<typename CharT, typename Traits>\n" +
-            "friend std::basic_ostream<CharT, Traits>& operator << (\n" +
-            "    std::basic_ostream<CharT, Traits>& builder, %1$s writer)\n" +
+            "friend std::ostream& operator << (std::ostream& builder, %1$s writer)\n" +
             "{\n" +
             "    builder << '{';\n" +
             "%2$s" +
@@ -2622,9 +2616,7 @@ public class CppGenerator implements CodeGenerator
         collect(Signal.CHOICE, tokens, 0, choiceTokens);
 
         new Formatter(sb).format("\n" +
-            indent + "template<typename CharT, typename Traits>\n" +
-            indent + "friend std::basic_ostream<CharT, Traits>& operator << (\n" +
-            indent + "    std::basic_ostream<CharT, Traits>& builder, %1$s writer)\n" +
+            indent + "friend std::ostream& operator << (std::ostream& builder, %1$s writer)\n" +
             indent + "{\n" +
             indent + "    builder << '[';\n",
             name);
@@ -2693,9 +2685,7 @@ public class CppGenerator implements CodeGenerator
             "        throw std::runtime_error(\"unknown value for enum %1$s [E103]:\");\n" +
             "    }\n\n" +
 
-            "    template<typename CharT, typename Traits>\n" +
-            "    friend std::basic_ostream<CharT, Traits>& operator << (\n" +
-            "        std::basic_ostream<CharT, Traits>& os, %1$s::Value m)\n" +
+            "    friend std::ostream& operator << (std::ostream& os, %1$s::Value m)\n" +
             "    {\n" +
             "        return os << %1$s::c_str(m);\n" +
             "    }\n",
