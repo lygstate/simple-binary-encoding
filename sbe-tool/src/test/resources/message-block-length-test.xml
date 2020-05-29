@@ -26,7 +26,7 @@
             <choice name="choice7">7</choice>
         </set>
     </types>
-    <message name="msgName" id="10" blockLength="11" semanticType="M">
+    <message name="MsgName" id="10" blockLength="11" semanticType="M">
         <field name="field1" id="11" type="uint64" offset="0" semanticType="UTCTimestamp"/>
         <field name="field2" id="12" type="eventType" offset="8" semanticType="MultipleCharValue"/>
         <group name="grName" id="20" dimensionType="groupSizeEncoding">
