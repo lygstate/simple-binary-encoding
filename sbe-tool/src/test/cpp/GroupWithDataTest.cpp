@@ -16,10 +16,7 @@
 #include <iostream>
 
 #include "gtest/gtest.h"
-#include "group_with_data/TestMessage1.h"
-#include "group_with_data/TestMessage2.h"
-#include "group_with_data/TestMessage3.h"
-#include "group_with_data/TestMessage4.h"
+#include "group_with_data/group_with_data_cpp.h"
 
 // using namespace std;
 using namespace group::with::data;

@@ -37,8 +37,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "uk_co_real_logic_sbe_ir_generated/TokenCodec.h"
-#include "uk_co_real_logic_sbe_ir_generated/FrameCodec.h"
+#include "uk_co_real_logic_sbe_ir_generated/uk_co_real_logic_sbe_ir_generated_cpp.h"
 #include "Token.h"
 
 using namespace sbe::otf;
