@@ -312,7 +312,18 @@ int main(int argc, const char* argv[])
 
     std::size_t encodeHdrLength = encodeHdr(hdr, car, buffer, 0, sizeof(buffer));
     std::size_t encodeMsgLength = encodeCar(car, buffer, hdr.encodedLength(), sizeof(buffer));
-    std::size_t predictedLength = Car::computeLength({11, 14, 13}, {3, 3}, 5, 9, 8);
+
+    const CarGroups::FuelFiguresLengthParam fuelFigures[] = {{11}, {14}, {13}};
+    const CarGroups::PerformanceFiguresLengthParam performanceFigures[] = {{3}, {3}};
+    const CarLengthParam lengthInfo = {
+        sbe_vector_view_make(fuelFigures),
+        sbe_vector_view_make(performanceFigures),
+        5,
+        9,
+        8
+    };
+
+    std::size_t predictedLength = Car::computeLength(lengthInfo);
 
     cout << "Encoded Lengths are " << encodeHdrLength << " + " << encodeMsgLength << " (" << predictedLength << ")" << endl;
 
