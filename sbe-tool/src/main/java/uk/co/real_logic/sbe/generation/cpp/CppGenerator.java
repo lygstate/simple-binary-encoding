@@ -2153,7 +2153,7 @@ public class CppGenerator implements CodeGenerator
             new Formatter(sb).format("\n" +
                 indent + "    SBE_NODISCARD static SBE_CONSTEXPR %1$s::Value %2$sConstValue() SBE_NOEXCEPT\n" +
                 indent + "    {\n" +
-                indent + "        return %1$s::Value::%3$s;\n" +
+                indent + "        return %1$s::%3$s;\n" +
                 indent + "    }\n",
                 enumName,
                 propertyName,
@@ -2163,7 +2163,7 @@ public class CppGenerator implements CodeGenerator
                 indent + "    SBE_NODISCARD %1$s::Value %2$s() const SBE_NOEXCEPT\n" +
                 indent + "    {\n" +
                 "%3$s" +
-                indent + "        return %1$s::Value::%4$s;\n" +
+                indent + "        return %1$s::%4$s;\n" +
                 indent + "    }\n",
                 enumName,
                 propertyName,
