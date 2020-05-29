@@ -2461,15 +2461,17 @@ public class CppGenerator implements CodeGenerator
                 indent + "{\n" +
                 indent + "    bool atLeastOne = false;\n" +
                 indent + "    builder << " + jsonString("%3$s", ": [") + ";\n" +
-                indent + "    writer.%2$s().forEach([&](%1$s& %2$s)\n" +
+                indent + "    %1$s& %2$s = writer.%2$s();\n" +
+                indent + "    while(%2$s.hasNext())\n" +
                 indent + "    {\n" +
+                indent + "        %2$s.next();\n" +
                 indent + "        if (atLeastOne)\n" +
                 indent + "        {\n" +
                 indent + "            builder << \", \";\n" +
                 indent + "        }\n" +
                 indent + "        atLeastOne = true;\n" +
                 indent + "        builder << %2$s;\n" +
-                indent + "    });\n" +
+                indent + "    };\n" +
                 indent + "    builder << ']';\n" +
                 indent + "}\n\n",
                 formatClassName(groupToken.name()),
@@ -2905,10 +2907,12 @@ public class CppGenerator implements CodeGenerator
             }
 
             new Formatter(sbSkip).format(
-                indent + "    %2$s().forEach([](%1$s e)\n" +
+                indent + "    %1$s& %2$s = this->%2$s();\n" +
+                indent + "    while(%2$s.hasNext())\n" +
                 indent + "    {\n" +
-                indent + "        e.skip();\n" +
-                indent + "    });\n",
+                indent + "        %2$s.next();\n" +
+                indent + "        %2$s.skip();\n" +
+                indent + "    };\n",
                 formatClassName(groupToken.name()),
                 formatPropertyName(groupToken.name()),
                 groupToken.name());
