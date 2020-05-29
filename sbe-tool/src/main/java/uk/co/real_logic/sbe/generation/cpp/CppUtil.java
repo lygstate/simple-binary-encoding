@@ -19,6 +19,7 @@ import uk.co.real_logic.sbe.PrimitiveType;
 import uk.co.real_logic.sbe.util.ValidationUtil;
 
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -106,8 +107,17 @@ public class CppUtil
         }
     }
 
+    public static String openingBraces(final ArrayList<String> namespaces)
+    {
+        if (namespaces.size() == 0)
+        {
+            return "";
+        }
+        return String.format("\nnamespace %1$s {\n\n", String.join(" {\nnamespace ", namespaces));
+    }
+
     public static String closingBraces(final int count)
     {
-        return new String(new char[count]).replace("\0", "}\n");
+        return (new String(new char[count]).replace("\0", "}\n")) + '\n';
     }
 }

@@ -22,6 +22,7 @@ import uk.co.real_logic.sbe.PrimitiveType;
 import uk.co.real_logic.sbe.generation.CodeGenerator;
 import uk.co.real_logic.sbe.generation.Generators;
 import uk.co.real_logic.sbe.ir.Encoding;
+import uk.co.real_logic.sbe.ir.GenerationUtil;
 import uk.co.real_logic.sbe.ir.Ir;
 import uk.co.real_logic.sbe.ir.Signal;
 import uk.co.real_logic.sbe.ir.Token;
@@ -106,151 +107,127 @@ public class CppGenerator implements CodeGenerator
         return new Formatter(out);
     }
 
-    public void generateMessageHeaderStub() throws IOException
+    public void generateTypeStubs(final StringBuilder out)
     {
-        generateComposite(ir.headerStructure().tokens());
-    }
-
-    public List<String> generateTypeStubs() throws IOException
-    {
-        final List<String> typesToInclude = new ArrayList<>();
-
-        for (final List<Token> tokens : ir.types())
+        for (final List<Token> tokens : GenerationUtil.sortTypes(ir))
         {
             switch (tokens.get(0).signal())
             {
                 case BEGIN_ENUM:
-                    generateEnum(tokens);
+                    generateEnum(out, tokens);
                     break;
 
                 case BEGIN_SET:
-                    generateChoiceSet(tokens);
+                    generateChoiceSet(out, tokens);
                     break;
 
                 case BEGIN_COMPOSITE:
-                    generateComposite(tokens);
+                    generateComposite(out, tokens);
                     break;
 
                 default:
                     break;
             }
-
-            typesToInclude.add(tokens.get(0).applicableTypeName());
         }
-
-        return typesToInclude;
-    }
-
-    public List<String> generateTypesToIncludes(final List<Token> tokens)
-    {
-        final List<String> typesToInclude = new ArrayList<>();
-
-        for (final Token token : tokens)
-        {
-            switch (token.signal())
-            {
-                case BEGIN_ENUM:
-                case BEGIN_SET:
-                case BEGIN_COMPOSITE:
-                    typesToInclude.add(token.applicableTypeName());
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        return typesToInclude;
     }
 
     public void generate() throws IOException
     {
-        generateMessageHeaderStub();
-        final List<String> typesToInclude = generateTypeStubs();
-
-        for (final List<Token> tokens : ir.messages())
+        final String filename = formatScope(ir.namespaces()) + "_cpp";
+        try (Writer out = outputManager.createOutput(filename))
         {
-            final Token msgToken = tokens.get(0);
-            final String className = formatClassName(msgToken.name());
+            final StringBuilder sb = new StringBuilder();
+            sb.append(generateFileHeader(ir.namespaces(), filename));
+            generateTypeStubs(sb);
 
-            try (Writer out = outputManager.createOutput(className))
+            for (final List<Token> tokens : ir.messages())
             {
-                out.append(generateFileHeader(ir.namespaces(), className, typesToInclude));
-                out.append(generateClassDeclaration(className));
-                out.append(generateMessageFlyweightCode(className, msgToken));
 
-                final List<Token> messageBody = tokens.subList(1, tokens.size() - 1);
-                int i = 0;
-
-                final List<Token> fields = new ArrayList<>();
-                i = collectFields(messageBody, i, fields);
-
-                final List<Token> groups = new ArrayList<>();
-                i = collectGroups(messageBody, i, groups);
-
-                final List<Token> varData = new ArrayList<>();
-                collectVarData(messageBody, i, varData);
-
-                final StringBuilder sb = new StringBuilder();
-                generateFields(sb, className, fields, BASE_INDENT);
-                generateGroups(sb, groups, BASE_INDENT);
-                generateVarData(sb, className, varData, BASE_INDENT);
-                generateDisplay(sb, msgToken.name(), fields, groups, varData);
-                sb.append(generateMessageLength(groups, varData, BASE_INDENT));
-                sb.append("};\n");
-                sb.append(CppUtil.closingBraces(ir.namespaces().length)).append("#endif\n");
-                out.append(sb);
+                final ArrayList<MessageItem> messageItemList = new ArrayList<MessageItem>();
+                GenerationUtil.getMessageItemList(messageItemList, null, tokens);
+                for (int i = 0; i < messageItemList.size(); i += 1)
+                {
+                    generateMessageItem(sb, messageItemList.get(i), BASE_INDENT);
+                }
             }
+            sb.append(CppUtil.closingBraces(ir.namespaces().length)).append("#endif\n");
+            out.append(sb);
         }
     }
 
-    private void generateGroups(final StringBuilder sb, final List<Token> tokens, final String indent)
+    private void generateMessageItem(final StringBuilder sb, final MessageItem messageItem, final String indent)
     {
-        for (int i = 0, size = tokens.size(); i < size; i++)
+        final Token rootToken = messageItem.rootToken;
+
+        sb.append(CppUtil.openingBraces(generateMessageItemNamespace(messageItem)));
+
+        final StringBuilder sbClassType = new StringBuilder();
+
+        if (rootToken.signal() == Signal.BEGIN_GROUP)
         {
-            final Token groupToken = tokens.get(i);
-            if (groupToken.signal() != Signal.BEGIN_GROUP)
-            {
-                throw new IllegalStateException("tokens must begin with BEGIN_GROUP: token=" + groupToken);
-            }
-
-            final String groupName = groupToken.name();
-            final Token numInGroupToken = Generators.findFirst("numInGroup", tokens, i);
-            final String cppTypeForNumInGroup = cppTypeName(numInGroupToken.encoding().primitiveType());
-
-            generateGroupClassHeader(sb, groupName, tokens, i, indent + INDENT);
-
-            ++i;
-            final int groupHeaderTokenCount = tokens.get(i).componentTokenCount();
-            i += groupHeaderTokenCount;
-
-            final List<Token> fields = new ArrayList<>();
-            i = collectFields(tokens, i, fields);
-            generateFields(sb, formatClassName(groupName), fields, indent + INDENT);
-
-            final List<Token> groups = new ArrayList<>();
-            i = collectGroups(tokens, i, groups);
-            generateGroups(sb, groups, indent + INDENT);
-
-            final List<Token> varData = new ArrayList<>();
-            i = collectVarData(tokens, i, varData);
-            generateVarData(sb, formatClassName(groupName), varData, indent + INDENT);
-
-            sb.append(generateGroupDisplay(groupName, fields, groups, varData, indent + INDENT + INDENT));
-            sb.append(generateMessageLength(groups, varData, indent + INDENT + INDENT));
-
-            sb.append(indent).append("    };\n");
-            generateGroupProperty(sb, groupName, groupToken, cppTypeForNumInGroup, indent);
+            generateGroupClassHeader(sbClassType, messageItem, indent);
         }
+        else
+        {
+            sbClassType.append(generateClassDeclaration(messageItemClassName(messageItem)));
+            sbClassType.append(generateMessageFlyweightCode(messageItemClassName(messageItem), messageItem.rootToken));
+        }
+        final StringBuilder sbLengthType = new StringBuilder();
+
+        formatter(sbLengthType).format(
+            indent + "struct %1$s\n" +
+            indent + "{\n",
+            messageItemClassName(messageItem) + "LengthParam"
+        );
+
+        generateProperties(sbLengthType, sbClassType, messageItem, indent);
+
+        sbLengthType.append(indent).append("};\n\n");
+        sbClassType.append(indent).append("};\n\n");
+
+        if (!messageItem.isConst())
+        {
+            sb.append(sbLengthType);
+        }
+        sb.append(sbClassType);
+
+        sb.append(CppUtil.closingBraces(generateMessageItemNamespace(messageItem).size()));
+    }
+
+    private static String messageItemClassName(final MessageItem messageItem)
+    {
+        final String formattedName = formatClassName(messageItem.rootToken.name());
+        return formattedName;
+    }
+
+
+    private static String messageItemFullClassName(final MessageItem messageItem)
+    {
+        final ArrayList<String> names = generateMessageItemNamespace(messageItem);
+        names.add(messageItemClassName(messageItem));
+        return String.join("::", names);
+    }
+
+    private static ArrayList<String> generateMessageItemNamespace(final MessageItem messageItem)
+    {
+        final ArrayList<String> result = new ArrayList<String>();
+        for (final String name : messageItem.classPath)
+        {
+            result.add(formatClassName(name) + "Groups");
+        }
+        return result;
     }
 
     private static void generateGroupClassHeader(
-        final StringBuilder sb, final String groupName, final List<Token> tokens, final int index, final String indent)
+        final StringBuilder sb,
+        final MessageItem messageItem,
+        final String indent)
     {
-        final String dimensionsClassName = formatClassName(tokens.get(index + 1).name());
-        final int dimensionHeaderLength = tokens.get(index + 1).encodedLength();
-        final int blockLength = tokens.get(index).encodedLength();
-        final Token blockLengthToken = Generators.findFirst("blockLength", tokens, index);
-        final Token numInGroupToken = Generators.findFirst("numInGroup", tokens, index);
+        final String dimensionsClassName = formatClassName(messageItem.tokens.get(1).name());
+        final int dimensionHeaderLength = messageItem.tokens.get(1).encodedLength();
+        final int blockLength = messageItem.rootToken.encodedLength();
+        final Token blockLengthToken = Generators.findFirst("blockLength", messageItem.tokens, 0);
+        final Token numInGroupToken = Generators.findFirst("numInGroup", messageItem.tokens, 0);
         final String cppTypeBlockLength = cppTypeName(blockLengthToken.encoding().primitiveType());
         final String cppTypeNumInGroup = cppTypeName(numInGroupToken.encoding().primitiveType());
 
@@ -274,7 +251,7 @@ public class CppGenerator implements CodeGenerator
             indent + "    }\n\n" +
 
             indent + "public:\n",
-            formatClassName(groupName));
+            messageItemClassName(messageItem));
 
         new Formatter(sb).format(
             indent + "    inline void wrapForDecode(\n" +
@@ -395,7 +372,7 @@ public class CppGenerator implements CodeGenerator
             indent + "    }\n",
             dimensionHeaderLength,
             blockLength,
-            formatClassName(groupName));
+            messageItemFullClassName(messageItem));
 
         sb.append("\n")
             .append(indent).append("    inline std::uint64_t resetCountToIndex() SBE_NOEXCEPT\n")
@@ -433,19 +410,18 @@ public class CppGenerator implements CodeGenerator
 
     private static void generateGroupProperty(
         final StringBuilder sb,
-        final String groupName,
+        final String className,
+        final String propertyName,
         final Token token,
         final String cppTypeForNumInGroup,
         final String indent)
     {
-        final String className = formatClassName(groupName);
-        final String propertyName = formatPropertyName(groupName);
 
         new Formatter(sb).format("\n" +
-            "private:\n" +
+            indent + "private:\n" +
             indent + "    %1$s m_%2$s;\n\n" +
 
-            "public:\n",
+            indent + "public:\n",
             className,
             propertyName);
 
@@ -454,7 +430,7 @@ public class CppGenerator implements CodeGenerator
             indent + "    {\n" +
             indent + "        return %2$d;\n" +
             indent + "    }\n",
-            groupName,
+            propertyName,
             token.id());
 
         new Formatter(sb).format("\n" +
@@ -735,13 +711,11 @@ public class CppGenerator implements CodeGenerator
             lengthCppType);
     }
 
-    private void generateChoiceSet(final List<Token> tokens) throws IOException
+    private void generateChoiceSet(final StringBuilder out, final List<Token> tokens)
     {
         final String bitSetName = formatClassName(tokens.get(0).applicableTypeName());
 
-        try (Writer out = outputManager.createOutput(bitSetName))
         {
-            out.append(generateFileHeader(ir.namespaces(), bitSetName, null));
             out.append(generateClassDeclaration(bitSetName));
             out.append(generateFixedFlyweightCode(bitSetName, tokens.get(0).encodedLength()));
 
@@ -784,19 +758,16 @@ public class CppGenerator implements CodeGenerator
 
             out.append(generateChoices(bitSetName, tokens.subList(1, tokens.size() - 1)));
             out.append(generateChoicesDisplay(bitSetName, tokens.subList(1, tokens.size() - 1)));
-            out.append("};\n");
-            out.append(CppUtil.closingBraces(ir.namespaces().length)).append("#endif\n");
+            out.append("};\n\n");
         }
     }
 
-    private void generateEnum(final List<Token> tokens) throws IOException
+    private void generateEnum(final StringBuilder out, final List<Token> tokens)
     {
         final Token enumToken = tokens.get(0);
         final String enumName = formatClassName(tokens.get(0).applicableTypeName());
 
-        try (Writer out = outputManager.createOutput(enumName))
         {
-            out.append(generateFileHeader(ir.namespaces(), enumName, null));
             out.append(generateEnumDeclaration(enumName));
 
             out.append(generateEnumValues(tokens.subList(1, tokens.size() - 1), enumToken));
@@ -806,18 +777,13 @@ public class CppGenerator implements CodeGenerator
             out.append(generateEnumDisplay(tokens.subList(1, tokens.size() - 1), enumToken));
 
             out.append("};\n\n");
-            out.append(CppUtil.closingBraces(ir.namespaces().length)).append("\n#endif\n");
         }
     }
 
-    private void generateComposite(final List<Token> tokens) throws IOException
+    private void generateComposite(final StringBuilder out, final List<Token> tokens)
     {
         final String compositeName = formatClassName(tokens.get(0).applicableTypeName());
-
-        try (Writer out = outputManager.createOutput(compositeName))
         {
-            out.append(generateFileHeader(ir.namespaces(), compositeName,
-                generateTypesToIncludes(tokens.subList(1, tokens.size() - 1))));
             out.append(generateClassDeclaration(compositeName));
             out.append(generateFixedFlyweightCode(compositeName, tokens.get(0).encodedLength()));
 
@@ -828,7 +794,6 @@ public class CppGenerator implements CodeGenerator
                 tokens.get(0).applicableTypeName(), tokens.subList(1, tokens.size() - 1)));
 
             out.append("};\n\n");
-            out.append(CppUtil.closingBraces(ir.namespaces().length)).append("\n#endif\n");
         }
     }
 
@@ -1054,8 +1019,7 @@ public class CppGenerator implements CodeGenerator
 
     private static CharSequence generateFileHeader(
         final CharSequence[] namespaces,
-        final String className,
-        final List<String> typesToInclude)
+        final String className)
     {
         final StringBuilder sb = new StringBuilder();
         sb.append(generateSbecHeader());
@@ -1065,15 +1029,6 @@ public class CppGenerator implements CodeGenerator
             "#define _%1$s_%2$s_H_\n\n",
             String.join("_", namespaces).toUpperCase(),
             className.toUpperCase()));
-
-        if (typesToInclude != null && typesToInclude.size() != 0)
-        {
-            sb.append("\n");
-            for (final String incName : typesToInclude)
-            {
-                sb.append(String.format("#include \"%1$s.h\"\n", toUpperFirstChar(incName)));
-            }
-        }
 
         sb.append("\nnamespace ");
         sb.append(String.join(" {\nnamespace ", namespaces));
@@ -1331,7 +1286,7 @@ public class CppGenerator implements CodeGenerator
             "%4$s" +
             indent + "        return *this;\n" +
             indent + "    }\n",
-            formatClassName(containingClassName),
+            containingClassName,
             propertyName,
             cppTypeName,
             storeValue);
@@ -2410,37 +2365,33 @@ public class CppGenerator implements CodeGenerator
 
     private void generateDisplay(
         final StringBuilder sb,
-        final String name,
-        final List<Token> fields,
-        final List<Token> groups,
-        final List<Token> varData)
+        final MessageItem messageItem)
     {
         new Formatter(sb).format("\n" +
-            "friend std::ostream& operator << (std::ostream& builder, %1$s _writer)\n" +
-            "{\n" +
-            "    %1$s writer(_writer.m_buffer, _writer.m_offset,\n" +
-            "        _writer.m_bufferLength, _writer.sbeBlockLength(), _writer.m_actingVersion);\n" +
-            "    builder << '{';\n" +
-            "    builder << " + jsonString("Name", ": ") + " << " + jsonString("%1$s", ", ") + ";\n" +
-            "    builder << " + jsonString("sbeTemplateId", ": ") + ";\n" +
-            "    builder << writer.sbeTemplateId();\n" +
-            "    builder << \", \";\n\n" +
-            "%2$s" +
-            "    builder << '}';\n\n" +
-            "    return builder;\n" +
-            "}\n",
-            formatClassName(name),
-            appendDisplay(fields, groups, varData, INDENT));
+            INDENT + "friend std::ostream& operator << (std::ostream& builder, %1$s _writer)\n" +
+            INDENT + "{\n" +
+            INDENT + "    %1$s writer(_writer.m_buffer, _writer.m_offset,\n" +
+            INDENT + "        _writer.m_bufferLength, _writer.sbeBlockLength(), _writer.m_actingVersion);\n" +
+            INDENT + "    builder << '{';\n" +
+            INDENT + "    builder << " + jsonString("Name", ": ") + " << " + jsonString("%2$s", ", ") + ";\n" +
+            INDENT + "    builder << " + jsonString("sbeTemplateId", ": ") + ";\n" +
+            INDENT + "    builder << writer.sbeTemplateId();\n" +
+            INDENT + "    builder << \", \";\n\n" +
+            "%3$s" +
+            INDENT + "    builder << '}';\n\n" +
+            INDENT + "    return builder;\n" +
+            INDENT + "}\n",
+            messageItemFullClassName(messageItem),
+            messageItemClassName(messageItem),
+            appendDisplay(messageItem, INDENT + INDENT));
     }
 
-    private CharSequence generateGroupDisplay(
-        final String name,
-        final List<Token> fields,
-        final List<Token> groups,
-        final List<Token> varData,
+    private void generateGroupDisplay(
+        final StringBuilder sb,
+        final MessageItem messageItem,
         final String indent)
     {
-        return String.format("\n" +
+        formatter(sb).format("\n" +
             indent + "friend std::ostream& operator << (std::ostream& builder, %1$s writer)\n" +
             indent + "{\n" +
             indent + "    builder << '{';\n" +
@@ -2448,8 +2399,8 @@ public class CppGenerator implements CodeGenerator
             indent + "    builder << '}';\n\n" +
             indent + "    return builder;\n" +
             indent + "}\n",
-            formatClassName(name),
-            appendDisplay(fields, groups, varData, indent + INDENT));
+            messageItemFullClassName(messageItem),
+            appendDisplay(messageItem, indent + INDENT));
     }
 
     private CharSequence generateCompositeDisplay(final String name, final List<Token> tokens)
@@ -2463,27 +2414,29 @@ public class CppGenerator implements CodeGenerator
             "    return builder;\n" +
             "}\n\n",
             formatClassName(name),
-            appendDisplay(tokens, new ArrayList<>(), new ArrayList<>(), INDENT));
+            appendDisplay(new MessageItem(tokens, new ArrayList<Token>()), INDENT)
+        );
     }
 
     private CharSequence appendDisplay(
-        final List<Token> fields, final List<Token> groups, final List<Token> varData, final String indent)
+        final MessageItem messageItem, final String indent)
     {
         final StringBuilder sb = new StringBuilder();
         final boolean[] atLeastOne = { false };
 
-        for (int i = 0, size = fields.size(); i < size;)
+        for (int i = 0, size = messageItem.fields.size(); i < size;)
         {
-            final Token fieldToken = fields.get(i);
-            final Token encodingToken = fields.get(fieldToken.signal() == Signal.BEGIN_FIELD ? i + 1 : i);
+            final Token fieldToken = messageItem.fields.get(i);
+            final Token encodingToken = messageItem.fields.get(fieldToken.signal() == Signal.BEGIN_FIELD ? i + 1 : i);
 
             writeTokenDisplay(sb, fieldToken.name(), encodingToken, atLeastOne, indent);
             i += fieldToken.componentTokenCount();
         }
 
-        for (int i = 0, size = groups.size(); i < size; i++)
+        for (int i = 0, size = messageItem.children.size(); i < size; i++)
         {
-            final Token groupToken = groups.get(i);
+            final MessageItem child = messageItem.children.get(i);
+            final Token groupToken = child.rootToken;
             if (groupToken.signal() != Signal.BEGIN_GROUP)
             {
                 throw new IllegalStateException("tokens must begin with BEGIN_GROUP: token=" + groupToken);
@@ -2512,16 +2465,14 @@ public class CppGenerator implements CodeGenerator
                 indent + "    };\n" +
                 indent + "    builder << ']';\n" +
                 indent + "}\n\n",
-                formatClassName(groupToken.name()),
+                messageItemFullClassName(child),
                 formatPropertyName(groupToken.name()),
                 groupToken.name());
-
-            i = findEndSignal(groups, i, Signal.END_GROUP, groupToken.name());
         }
 
-        for (int i = 0, size = varData.size(); i < size;)
+        for (int i = 0, size = messageItem.varData.size(); i < size;)
         {
-            final Token varDataToken = varData.get(i);
+            final Token varDataToken = messageItem.varData.get(i);
             if (varDataToken.signal() != Signal.BEGIN_VAR_DATA)
             {
                 throw new IllegalStateException("tokens must begin with BEGIN_VAR_DATA: token=" + varDataToken);
@@ -2533,7 +2484,7 @@ public class CppGenerator implements CodeGenerator
             }
             atLeastOne[0] = true;
 
-            final String characterEncoding = varData.get(i + 3).encoding().characterEncoding();
+            final String characterEncoding = messageItem.varData.get(i + 3).encoding().characterEncoding();
             sb.append(indent).append("builder << " + jsonString(varDataToken.name(), ": ") + ";\n");
 
             if (null == characterEncoding)
@@ -2738,190 +2689,62 @@ public class CppGenerator implements CodeGenerator
         return sb;
     }
 
-    private Object[] generateMessageLengthArgs(
-        final List<Token> groups,
-        final List<Token> varData,
-        final String indent,
-        final boolean withName)
+    private void generateProperties(
+        final StringBuilder sbLengthType,
+        final StringBuilder sb,
+        final MessageItem messageItem,
+        final String parentIndent)
     {
-        final StringBuilder sb = new StringBuilder();
-        int count = 0;
-
-        for (int i = 0, size = groups.size(); i < size; i++)
-        {
-            final Token groupToken = groups.get(i);
-            if (groupToken.signal() != Signal.BEGIN_GROUP)
-            {
-                throw new IllegalStateException("tokens must begin with BEGIN_GROUP: token=" + groupToken);
-            }
-
-            final int endSignal = findEndSignal(groups, i, Signal.END_GROUP, groupToken.name());
-
-            if (count > 0)
-            {
-                sb.append(",\n").append(indent);
-            }
-
-            final List<Token> thisGroup = groups.subList(i, endSignal + 1);
-
-            if (isMessageConstLength(thisGroup))
-            {
-                sb.append("std::size_t");
-                if (withName)
-                {
-                    sb.append(" ").append(groupToken.name()).append("Length = 0");
-                }
-            }
-            else
-            {
-                final StringBuilder type = new StringBuilder();
-                type.append("std::vector<std::tuple<");
-                type.append(generateMessageLengthArgs(thisGroup, indent + INDENT, false)[0]);
-                type.append("> >");
-                sb.append("const ");
-                sb.append(type);
-                sb.append("&");
-                if (withName)
-                {
-                    sb.append(" ").append(groupToken.name()).append("ItemLengths = ");
-                    sb.append(type);
-                    sb.append("()");
-                }
-            }
-
-            count += 1;
-
-            i = endSignal;
-        }
-
-        for (int i = 0, size = varData.size(); i < size;)
-        {
-            final Token varDataToken = varData.get(i);
-            if (varDataToken.signal() != Signal.BEGIN_VAR_DATA)
-            {
-                throw new IllegalStateException("tokens must begin with BEGIN_VAR_DATA: token=" + varDataToken);
-            }
-
-            if (count > 0)
-            {
-                sb.append(",\n").append(indent);
-            }
-
-            sb.append("std::size_t");
-            if (withName)
-            {
-                sb.append(" ").append(varDataToken.name()).append("Length = 0");
-            }
-
-            count += 1;
-
-            i += varDataToken.componentTokenCount();
-        }
-
-        CharSequence result = sb;
-        if (count > 1)
-        {
-            result = "\n" + indent + result;
-        }
-
-        return new Object[]{ result, count };
-    }
-
-    private Object[] generateMessageLengthArgs(final List<Token> tokens, final String indent, final boolean withName)
-    {
-        int i = 0;
-
-        final Token groupToken = tokens.get(i);
-        if (groupToken.signal() != Signal.BEGIN_GROUP)
-        {
-            throw new IllegalStateException("tokens must begin with BEGIN_GROUP: token=" + groupToken);
-        }
-
-        ++i;
-        final int groupHeaderTokenCount = tokens.get(i).componentTokenCount();
-        i += groupHeaderTokenCount;
-
-        final List<Token> fields = new ArrayList<>();
-        i = collectFields(tokens, i, fields);
-
-        final List<Token> groups = new ArrayList<>();
-        i = collectGroups(tokens, i, groups);
-
-        final List<Token> varData = new ArrayList<>();
-        collectVarData(tokens, i, varData);
-
-        return generateMessageLengthArgs(groups, varData, indent, withName);
-    }
-
-    private boolean isMessageConstLength(final List<Token> tokens)
-    {
-        final Integer count = (Integer)generateMessageLengthArgs(tokens, BASE_INDENT, false)[1];
-
-        return count == 0;
-    }
-
-    private CharSequence generateMessageLengthCallPre17Helper(final List<Token> tokens)
-    {
-        final StringBuilder sb = new StringBuilder();
-        final Integer count = (Integer)generateMessageLengthArgs(tokens, BASE_INDENT, false)[1];
-
-        for (int i = 0; i < count; i++)
-        {
-            if (i > 0)
-            {
-                sb.append(", ");
-            }
-            new Formatter(sb).format("std::get<%1$d>(e)", i);
-        }
-
-        return sb;
-    }
-
-    private CharSequence generateMessageLength(final List<Token> groups, final List<Token> varData, final String indent)
-    {
+        final StringBuilder sbGroupProperties = new StringBuilder();
         final StringBuilder sbEncode = new StringBuilder();
         final StringBuilder sbSkip = new StringBuilder();
+        final String indent = parentIndent + INDENT;
 
-        for (int i = 0, size = groups.size(); i < size; i++)
+        for (int i = 0, size = messageItem.children.size(); i < size; i++)
         {
-            final Token groupToken = groups.get(i);
+            final MessageItem child = messageItem.children.get(i);
+            final Token groupToken = child.rootToken;
+            final String propertyName = formatPropertyName(groupToken.name());
+            final String memberClassName = messageItemFullClassName(child);
 
             if (groupToken.signal() != Signal.BEGIN_GROUP)
             {
                 throw new IllegalStateException("tokens must begin with BEGIN_GROUP: token=" + groupToken);
             }
 
-            final int endSignal = findEndSignal(groups, i, Signal.END_GROUP, groupToken.name());
-            final List<Token> thisGroup = groups.subList(i, endSignal + 1);
-
-            final Token numInGroupToken = Generators.findFirst("numInGroup", groups, i);
+            final Token numInGroupToken = Generators.findFirst("numInGroup", child.tokens, 0);
             final long minCount = numInGroupToken.encoding().applicableMinValue().longValue();
             final long maxCount = numInGroupToken.encoding().applicableMaxValue().longValue();
 
-            final String countName = groupToken.name() +
-                (isMessageConstLength(thisGroup) ? "Length" : "ItemLengths.size()");
+            final String cppTypeForNumInGroup = cppTypeName(numInGroupToken.encoding().primitiveType());
+            generateGroupProperty(
+                sbGroupProperties, memberClassName, propertyName,
+                child.rootToken, cppTypeForNumInGroup, parentIndent);
+
+            final boolean childIsConstant = child.isConst();
+            final String countMember = "lengthInfo." + propertyName;
+            final String countName = childIsConstant ? countMember : countMember + ".size()";
 
             final String minCheck = minCount > 0 ? countName + " < " + minCount + " || " : "";
             final String maxCheck = countName + " > " + maxCount;
 
             new Formatter(sbEncode).format("\n" +
                 indent + "    length += static_cast<std::size_t>(%1$s::sbeHeaderSize());\n",
-                formatClassName(groupToken.name()));
+                memberClassName);
 
-            if (isMessageConstLength(thisGroup))
+            if (childIsConstant)
             {
                 new Formatter(sbEncode).format(
                     indent + "    if (%3$s%4$s)\n" +
                     indent + "    {\n" +
-                    indent + "        sbe_throw_errnum(E110, \"%5$s outside of allowed range [E110]\");\n" +
+                    indent + "        sbe_throw_errnum(E110, \"%1$s outside of allowed range [E110]\");\n" +
                     indent + "        return SIZE_MAX ;\n" +
                     indent + "    }\n" +
-                    indent + "    length += static_cast<std::size_t>(%1$sLength * %2$s::sbeBlockLength());\n",
-                    groupToken.name(),
-                    formatClassName(groupToken.name()),
+                    indent + "    length += static_cast<std::size_t>(%1$s * %2$s::sbeBlockLength());\n",
+                    countName,
+                    memberClassName,
                     minCheck,
-                    maxCheck,
-                    countName);
+                    maxCheck);
             }
             else
             {
@@ -2931,17 +2754,25 @@ public class CppGenerator implements CodeGenerator
                     indent + "        sbe_throw_errnum(E110, \"%5$s outside of allowed range [E110]\");\n" +
                     indent + "        return SIZE_MAX ;\n" +
                     indent + "    }\n" +
-                    indent + "    for (auto ei = %1$sItemLengths.begin(); ei != %1$sItemLengths.end(); ei+= 1)\n" +
+                    indent + "    for (const %2$sLengthParam *ei = %1$s.begin(); ei != %1$s.end(); ei+= 1)\n" +
                     indent + "    {\n" +
-                    indent + "        const auto& e = *ei;\n" +
-                    indent + "        length += %2$s::computeLength(%6$s);\n" +
+                    indent + "        length += %2$s::computeLength(*ei);\n" +
                     indent + "    }\n",
-                    groupToken.name(),
-                    formatClassName(groupToken.name()),
+                    countMember,
+                    memberClassName,
                     minCheck,
                     maxCheck,
-                    countName,
-                    generateMessageLengthCallPre17Helper(thisGroup));
+                    countName);
+            }
+            if (childIsConstant)
+            {
+                formatter(sbLengthType).format(
+                    indent + "size_t %1$s;\n", propertyName);
+            }
+            else
+            {
+                formatter(sbLengthType).format(
+                    indent + "sbe_vector_view<const %1$sLengthParam> %2$s;\n", memberClassName, propertyName);
             }
 
             new Formatter(sbSkip).format(
@@ -2951,16 +2782,22 @@ public class CppGenerator implements CodeGenerator
                 indent + "        %2$s.next();\n" +
                 indent + "        %2$s.skip();\n" +
                 indent + "    };\n",
-                formatClassName(groupToken.name()),
+                memberClassName,
                 formatPropertyName(groupToken.name()),
                 groupToken.name());
-
-            i = endSignal;
         }
 
-        for (int i = 0, size = varData.size(); i < size;)
+        final String className = messageItemFullClassName(messageItem);
+        /* First, fixed size fields */
+        generateFields(sb, className, messageItem.fields, parentIndent);
+        /* Second, var size groups */
+        sb.append(sbGroupProperties);
+        /* Third, var size data */
+        generateVarData(sb, className, messageItem.varData, parentIndent);
+
+        for (int i = 0, size = messageItem.varData.size(); i < size;)
         {
-            final Token varDataToken = varData.get(i);
+            final Token varDataToken = messageItem.varData.get(i);
 
             if (varDataToken.signal() != Signal.BEGIN_VAR_DATA)
             {
@@ -2968,16 +2805,18 @@ public class CppGenerator implements CodeGenerator
             }
 
             final String propertyName = toUpperFirstChar(varDataToken.name());
-            final Token lengthToken = Generators.findFirst("length", varData, i);
+            final Token lengthToken = Generators.findFirst("length", messageItem.varData, i);
+            formatter(sbLengthType).format(
+                indent + "size_t %1$s;\n", varDataToken.name());
 
             new Formatter(sbEncode).format("\n" +
                 indent + "    length += static_cast<std::size_t>(%1$sHeaderLength());\n" +
-                indent + "    if (%1$sLength > %2$d)\n" +
+                indent + "    if (lengthInfo.%1$s > %2$d)\n" +
                 indent + "    {\n" +
-                indent + "        sbe_throw_errnum(E109, \"%1$sLength too long for length type [E109]\");\n" +
+                indent + "        sbe_throw_errnum(E109, \"lengthInfo.%1$s too long for length type [E109]\");\n" +
                 indent + "        return SIZE_MAX ;\n" +
                 indent + "    }\n" +
-                indent + "    length += %1$sLength;\n",
+                indent + "    length += lengthInfo.%1$s;\n",
                 varDataToken.name(),
                 lengthToken.encoding().applicableMaxValue().longValue());
 
@@ -2988,29 +2827,34 @@ public class CppGenerator implements CodeGenerator
             i += varDataToken.componentTokenCount();
         }
 
-        final StringBuilder sb = new StringBuilder();
+        if (messageItem.rootToken.signal() == Signal.BEGIN_GROUP)
+        {
+            generateGroupDisplay(sb, messageItem, indent);
+        }
+        else
+        {
+            generateDisplay(sb, messageItem);
+        }
 
         new Formatter(sb).format("\n" +
             indent + "void skip()\n" +
             indent + "{\n" +
-            "%3$s" +
+            "%1$s" +
             indent + "}\n\n" +
 
             indent + "SBE_NODISCARD static SBE_CONSTEXPR bool isConstLength() SBE_NOEXCEPT\n" +
             indent + "{\n" +
-            indent + "    return " + ((groups.isEmpty() && varData.isEmpty()) ? "true" : "false") + ";\n" +
+            indent + "    return " + (messageItem.isConst() ? "true" : "false") + ";\n" +
             indent + "}\n\n" +
 
-            indent + "SBE_NODISCARD static SBE_CONSTEXPR_14 size_t computeLength(%1$s)\n" +
+            indent + "SBE_NODISCARD static SBE_CONSTEXPR_14 size_t computeLength(%2$s)\n" +
             indent + "{\n" +
             indent + "    size_t length = static_cast<std::size_t>(sbeBlockLength());\n\n" +
-            "%2$s" +
+            "%3$s" +
             indent + "    return length;\n" +
             indent + "}\n",
-            generateMessageLengthArgs(groups, varData, indent + INDENT, true)[0],
-            sbEncode,
-            sbSkip);
-
-        return sb;
+            sbSkip,
+            messageItem.isConst() ? "" : "const " + messageItemFullClassName(messageItem) + "LengthParam &lengthInfo",
+            sbEncode);
     }
 }
