@@ -1246,7 +1246,7 @@ public class CppGenerator implements CodeGenerator
         if (primitiveType == PrimitiveType.FLOAT || primitiveType == PrimitiveType.DOUBLE)
         {
             final String stackUnion =
-                primitiveType == PrimitiveType.FLOAT ? "union sbe_float_as_uint_u" : "union sbe_double_as_uint_u";
+                primitiveType == PrimitiveType.FLOAT ? "union sbe_float_as_uint" : "union sbe_double_as_uint";
 
             new Formatter(sb).format(
                 indent + "        %1$s val;\n" +
@@ -1286,7 +1286,7 @@ public class CppGenerator implements CodeGenerator
         if (primitiveType == PrimitiveType.FLOAT || primitiveType == PrimitiveType.DOUBLE)
         {
             final String stackUnion = primitiveType == PrimitiveType.FLOAT ?
-                "union sbe_float_as_uint_u" : "union sbe_double_as_uint_u";
+                "union sbe_float_as_uint" : "union sbe_double_as_uint";
 
             new Formatter(sb).format(
                 indent + "        %1$s val%2$s;\n" +
@@ -1721,23 +1721,6 @@ public class CppGenerator implements CodeGenerator
             "    std::uint64_t m_actingVersion = 0;\n\n" +
 
             "public:\n" +
-            "    enum MetaAttribute\n" +
-            "    {\n" +
-            "        EPOCH, TIME_UNIT, SEMANTIC_TYPE, PRESENCE\n" +
-            "    };\n\n" +
-
-            "    union sbe_float_as_uint_u\n" +
-            "    {\n" +
-            "        float fp_value;\n" +
-            "        std::uint32_t uint_value;\n" +
-            "    };\n\n" +
-
-            "    union sbe_double_as_uint_u\n" +
-            "    {\n" +
-            "        double fp_value;\n" +
-            "        std::uint64_t uint_value;\n" +
-            "    };\n\n" +
-
             "    %1$s() = default;\n\n" +
 
             "    %1$s(\n" +
@@ -1885,23 +1868,6 @@ public class CppGenerator implements CodeGenerator
             "    }\n\n" +
 
             "public:\n" +
-            "    enum MetaAttribute\n" +
-            "    {\n" +
-            "        EPOCH, TIME_UNIT, SEMANTIC_TYPE, PRESENCE\n" +
-            "    };\n\n" +
-
-            "    union sbe_float_as_uint_u\n" +
-            "    {\n" +
-            "        float fp_value;\n" +
-            "        std::uint32_t uint_value;\n" +
-            "    };\n\n" +
-
-            "    union sbe_double_as_uint_u\n" +
-            "    {\n" +
-            "        double fp_value;\n" +
-            "        std::uint64_t uint_value;\n" +
-            "    };\n\n" +
-
             "    using messageHeader = %12$s;\n\n" +
 
             "%11$s" +
@@ -2137,7 +2103,7 @@ public class CppGenerator implements CodeGenerator
 
         sb.append("\n")
             .append(indent).append("    SBE_NODISCARD static const char * ")
-            .append(token.name()).append("MetaAttribute(const MetaAttribute metaAttribute) SBE_NOEXCEPT\n")
+            .append(token.name()).append("MetaAttribute(const sbe_meta_attribute metaAttribute) SBE_NOEXCEPT\n")
             .append(indent).append("    {\n")
             .append(indent).append("        switch (metaAttribute)\n")
             .append(indent).append("        {\n");
@@ -2145,24 +2111,24 @@ public class CppGenerator implements CodeGenerator
         if (!Strings.isEmpty(epoch))
         {
             sb.append(indent)
-                .append("            case MetaAttribute::EPOCH: return \"").append(epoch).append("\";\n");
+                .append("            case sbe_meta_attribute_EPOCH: return \"").append(epoch).append("\";\n");
         }
 
         if (!Strings.isEmpty(timeUnit))
         {
             sb.append(indent)
-                .append("            case MetaAttribute::TIME_UNIT: return \"").append(timeUnit).append("\";\n");
+                .append("            case sbe_meta_attribute_TIME_UNIT: return \"").append(timeUnit).append("\";\n");
         }
 
         if (!Strings.isEmpty(semanticType))
         {
             sb.append(indent)
-                .append("            case MetaAttribute::SEMANTIC_TYPE: return \"").append(semanticType)
+                .append("            case sbe_meta_attribute_SEMANTIC_TYPE: return \"").append(semanticType)
                 .append("\";\n");
         }
 
         sb
-            .append(indent).append("            case MetaAttribute::PRESENCE: return \"")
+            .append(indent).append("            case sbe_meta_attribute_PRESENCE: return \"")
             .append(encoding.presence().toString().toLowerCase()).append("\";\n")
             .append(indent).append("            default: return \"\";\n")
             .append(indent).append("        }\n")
