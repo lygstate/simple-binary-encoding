@@ -309,7 +309,8 @@ public class CppGenerator implements CodeGenerator
             indent + "    {\n" +
             indent + "        if (%5$scount > %6$d)\n" +
             indent + "        {\n" +
-            indent + "            throw std::runtime_error(\"count outside of allowed range [E110]\");\n" +
+            indent + "            sbe_throw_errnum(E110, \"count outside of allowed range [E110]\");\n" +
+            indent + "            return ;\n" +
             indent + "        }\n" +
             indent + "        m_buffer = buffer;\n" +
             indent + "        m_bufferLength = bufferLength;\n" +
@@ -353,7 +354,8 @@ public class CppGenerator implements CodeGenerator
             indent + "    {\n" +
             indent + "        if (SBE_BOUNDS_CHECK_EXPECT((position > m_bufferLength), false))\n" +
             indent + "        {\n" +
-            indent + "            throw std::runtime_error(\"buffer too short [E100]\");\n" +
+            indent + "            sbe_throw_errnum(E100, \"buffer too short [E100]\");\n" +
+            indent + "            return UINT64_MAX;\n" +
             indent + "        }\n" +
             indent + "        return position;\n" +
             indent + "    }\n\n" +
@@ -377,12 +379,14 @@ public class CppGenerator implements CodeGenerator
             indent + "    {\n" +
             indent + "        if (m_index >= m_count)\n" +
             indent + "        {\n" +
-            indent + "            throw std::runtime_error(\"index >= count [E108]\");\n" +
+            indent + "            sbe_throw_errnum(E108, \"index >= count [E108]\");\n" +
+            indent + "            return *this;\n" +
             indent + "        }\n" +
             indent + "        m_offset = *m_positionPtr;\n" +
             indent + "        if (SBE_BOUNDS_CHECK_EXPECT(((m_offset + m_blockLength) > m_bufferLength), false))\n" +
             indent + "        {\n" +
-            indent + "            throw std::runtime_error(\"buffer too short for next group index [E108]\");\n" +
+            indent + "            sbe_throw_errnum(E108, \"buffer too short for next group index [E108]\");\n" +
+            indent + "            return *this;\n" +
             indent + "        }\n" +
             indent + "        *m_positionPtr = m_offset + m_blockLength;\n" +
             indent + "        ++m_index;\n\n" +
@@ -641,9 +645,10 @@ public class CppGenerator implements CodeGenerator
                 indent + "    {\n" +
                 indent + "        if (str.length() > %4$d)\n" +
                 indent + "        {\n" +
-                indent + "            throw std::runtime_error(\"std::string too long for length type [E109]\");\n" +
+                indent + "            sbe_throw_errnum(E109, \"std::string too long for length type [E109]\");\n" +
+                indent + "            return *this;\n" +
                 indent + "        }\n" +
-                indent + "        return put%2$s(str.data(), static_cast<%3$s>(str.length()));" +
+                indent + "        return put%2$s(str.data(), static_cast<%3$s>(str.length()));\n" +
                 indent + "    }\n",
                 className,
                 propertyName,
@@ -656,9 +661,10 @@ public class CppGenerator implements CodeGenerator
                 indent + "    {\n" +
                 indent + "        if (str.length() > %4$d)\n" +
                 indent + "        {\n" +
-                indent + "            throw std::runtime_error(\"std::string too long for length type [E109]\");\n" +
+                indent + "            sbe_throw_errnum(E109, \"std::string too long for length type [E109]\");\n" +
+                indent + "            return *this;\n" +
                 indent + "        }\n" +
-                indent + "        return put%2$s(str.data(), static_cast<%3$s>(str.length()));" +
+                indent + "        return put%2$s(str.data(), static_cast<%3$s>(str.length()));\n" +
                 indent + "    }\n" +
                 indent + "    #endif\n",
                 className,
@@ -960,7 +966,8 @@ public class CppGenerator implements CodeGenerator
             "            case %1$s: return NULL_VALUE;\n" +
             "        }\n\n" +
 
-            "        throw std::runtime_error(\"unknown value for enum %2$s [E103]\");\n" +
+            "        sbe_throw_errnum(E103, \"unknown value for enum %2$s [E103]\");\n" +
+            "        return NULL_VALUE;\n" +
             "    }\n",
             encodingToken.encoding().applicableNullValue().toString(),
             enumName);
@@ -1382,7 +1389,8 @@ public class CppGenerator implements CodeGenerator
             indent + "    {\n" +
             indent + "        if (index >= %3$d)\n" +
             indent + "        {\n" +
-            indent + "            throw std::runtime_error(\"index out of range for %2$s [E104]\");\n" +
+            indent + "            sbe_throw_errnum(E104, \"index out of range for %2$s [E104]\");\n" +
+            indent + "            return %1$s();\n" +
             indent + "        }\n\n" +
             "%4$s" +
             "%5$s" +
@@ -1405,7 +1413,8 @@ public class CppGenerator implements CodeGenerator
             indent + "    {\n" +
             indent + "        if (index >= %4$d)\n" +
             indent + "        {\n" +
-            indent + "            throw std::runtime_error(\"index out of range for %2$s [E105]\");\n" +
+            indent + "            sbe_throw_errnum(E105, \"index out of range for %2$s [E105]\");\n" +
+            indent + "            return *this;\n" +
             indent + "        }\n\n" +
 
             "%5$s" +
@@ -1422,7 +1431,8 @@ public class CppGenerator implements CodeGenerator
             indent + "    {\n" +
             indent + "        if (length > %2$d)\n" +
             indent + "        {\n" +
-            indent + "            throw std::runtime_error(\"length too large for get%1$s [E106]\");\n" +
+            indent + "            sbe_throw_errnum(E106, \"length too large for get%1$s [E106]\");\n" +
+            indent + "            return UINT64_MAX;\n" +
             indent + "        }\n\n" +
 
             "%3$s" +
@@ -1526,7 +1536,8 @@ public class CppGenerator implements CodeGenerator
                 indent + "        const size_t srcLength = str.length();\n" +
                 indent + "        if (srcLength > %4$d)\n" +
                 indent + "        {\n" +
-                indent + "            throw std::runtime_error(\"string too large for put%2$s [E106]\");\n" +
+                indent + "            sbe_throw_errnum(E106, \"string too large for put%2$s [E106]\");\n" +
+                indent + "            return *this;\n" +
                 indent + "        }\n\n" +
 
                 indent + "        std::memcpy(m_buffer + m_offset + %3$d, str.data(), srcLength);\n" +
@@ -1543,7 +1554,8 @@ public class CppGenerator implements CodeGenerator
                 indent + "        const size_t srcLength = str.length();\n" +
                 indent + "        if (srcLength > %4$d)\n" +
                 indent + "        {\n" +
-                indent + "            throw std::runtime_error(\"string too large for put%2$s [E106]\");\n" +
+                indent + "            sbe_throw_errnum(E106, \"string too large for put%2$s [E106]\");\n" +
+                indent + "            return *this;\n" +
                 indent + "        }\n\n" +
 
                 indent + "        std::memcpy(m_buffer + m_offset + %3$d, str.c_str(), srcLength);\n" +
@@ -1714,7 +1726,8 @@ public class CppGenerator implements CodeGenerator
             "    {\n" +
             "        if (SBE_BOUNDS_CHECK_EXPECT(((m_offset + %2$s) > m_bufferLength), false))\n" +
             "        {\n" +
-            "            throw std::runtime_error(\"buffer too short for flyweight [E107]\");\n" +
+            "            sbe_throw_errnum(E107, \"buffer too short for flyweight [E107]\");\n" +
+            "            return ;\n" +
             "        }\n" +
             "    }\n\n" +
 
@@ -1929,7 +1942,8 @@ public class CppGenerator implements CodeGenerator
             "    {\n" +
             "        if (SBE_BOUNDS_CHECK_EXPECT((position > m_bufferLength), false))\n" +
             "        {\n" +
-            "            throw std::runtime_error(\"buffer too short [E100]\");\n" +
+            "            sbe_throw_errnum(E100, \"buffer too short [E100]\");\n" +
+            "            return UINT64_MAX;\n" +
             "        }\n" +
             "        return position;\n" +
             "    }\n\n" +
@@ -2682,7 +2696,7 @@ public class CppGenerator implements CodeGenerator
         new Formatter(sb).format(
             "            case NULL_VALUE: return \"NULL_VALUE\";\n" +
             "        }\n\n" +
-            "        throw std::runtime_error(\"unknown value for enum %1$s [E103]:\");\n" +
+            "        return sbe_throw_errnum(E103, \"unknown value for enum %1$s [E103]:\");\n" +
             "    }\n\n" +
 
             "    friend std::ostream& operator << (std::ostream& os, %1$s::Value m)\n" +
@@ -2864,7 +2878,8 @@ public class CppGenerator implements CodeGenerator
                 new Formatter(sbEncode).format(
                     indent + "    if (%3$s%4$s)\n" +
                     indent + "    {\n" +
-                    indent + "        throw std::runtime_error(\"%5$s outside of allowed range [E110]\");\n" +
+                    indent + "        sbe_throw_errnum(E110, \"%5$s outside of allowed range [E110]\");\n" +
+                    indent + "        return SIZE_MAX ;\n" +
                     indent + "    }\n" +
                     indent + "    length += static_cast<std::size_t>(%1$sLength * %2$s::sbeBlockLength());\n",
                     groupToken.name(),
@@ -2878,7 +2893,8 @@ public class CppGenerator implements CodeGenerator
                 new Formatter(sbEncode).format(
                     indent + "    if (%3$s%4$s)\n" +
                     indent + "    {\n" +
-                    indent + "        throw std::runtime_error(\"%5$s outside of allowed range [E110]\");\n" +
+                    indent + "        sbe_throw_errnum(E110, \"%5$s outside of allowed range [E110]\");\n" +
+                    indent + "        return SIZE_MAX ;\n" +
                     indent + "    }\n" +
                     indent + "    for (const auto& e: %1$sItemLengths)\n" +
                     indent + "    {\n" +
@@ -2926,7 +2942,8 @@ public class CppGenerator implements CodeGenerator
                 indent + "    length += static_cast<std::size_t>(%1$sHeaderLength());\n" +
                 indent + "    if (%1$sLength > %2$d)\n" +
                 indent + "    {\n" +
-                indent + "        throw std::runtime_error(\"%1$sLength too long for length type [E109]\");\n" +
+                indent + "        sbe_throw_errnum(E109, \"%1$sLength too long for length type [E109]\");\n" +
+                indent + "        return SIZE_MAX ;\n" +
                 indent + "    }\n" +
                 indent + "    length += %1$sLength;\n",
                 varDataToken.name(),
