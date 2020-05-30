@@ -537,12 +537,12 @@ TEST_F(CodeGenTest, shouldBeAbleToEncodeAndDecodeHeaderPlusCarCorrectly)
     EXPECT_EQ(CGT(car_modelYear)(&m_carDecoder), MODEL_YEAR);
     {
         CGT(booleanType) out = CGT(booleanType_NULL_VALUE);
-        ASSERT_TRUE(CGT(car_available)(&m_carDecoder, &out));
+        ASSERT_TRUE(CGT(car_available_safe)(&m_carDecoder, &out));
         EXPECT_EQ(out, AVAILABLE);
     }
     {
         CGT(model) out = CGT(model_NULL_VALUE);
-        ASSERT_TRUE(CGT(car_code)(&m_carDecoder, &out));
+        ASSERT_TRUE(CGT(car_code_safe)(&m_carDecoder, &out));
         EXPECT_EQ(out, CODE);
     }
     EXPECT_EQ(CGT(car_someNumbers_length)(), 5u);

@@ -266,12 +266,12 @@ protected:
         EXPECT_EQ(CGT(car_modelYear)(&m_carDecoder), MODEL_YEAR);
         {
             CGT(booleanType) out;
-            EXPECT_TRUE(CGT(car_available)(&m_carDecoder, &out));
+            EXPECT_TRUE(CGT(car_available_safe)(&m_carDecoder, &out));
             EXPECT_EQ(out, AVAILABLE);
         }
         {
             CGT(model) out;
-            EXPECT_TRUE(CGT(car_code)(&m_carDecoder, &out));
+            EXPECT_TRUE(CGT(car_code_safe)(&m_carDecoder, &out));
             EXPECT_EQ(out, CODE);
         }
 
@@ -310,7 +310,7 @@ protected:
             throw std::runtime_error(sbe_strerror(errno));
         }
         CGT(boostType) out;
-        EXPECT_TRUE(CGT(boosterT_boostType)(&booster, &out));
+        EXPECT_TRUE(CGT(boosterT_boostType_safe)(&booster, &out));
         EXPECT_EQ(out, CGT(boostType_NITROUS));
         EXPECT_EQ(CGT(boosterT_horsePower)(&booster), 200);
 

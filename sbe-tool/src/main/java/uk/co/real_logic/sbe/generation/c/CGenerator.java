@@ -589,7 +589,7 @@ public class CGenerator implements CodeGenerator
         {
             final String bitSetName = formatScopedName(scope, bitsetToken.applicableTypeName());
             out.append(generateFixedFlyweightStruct(bitSetName));
-            out.append(generateFixedFlyweightCodeFunctions(bitSetName, bitsetToken.encodedLength()));
+            out.append(generateFixedFlyweightCodeFunctions(bitSetName, bitsetToken.encodedElementLength()));
 
             out.append(String.format("\n" +
                 "SBE_ONE_DEF %1$s *%1$s_clear(\n" +
@@ -639,7 +639,7 @@ public class CGenerator implements CodeGenerator
             final String compositeName = formatScopedName(scope, compositeToken.applicableTypeName());
 
             out.append(generateFixedFlyweightStruct(compositeName));
-            out.append(generateFixedFlyweightCodeFunctions(compositeName, compositeToken.encodedLength()));
+            out.append(generateFixedFlyweightCodeFunctions(compositeName, compositeToken.encodedElementLength()));
             out.append(generateCompositePropertyFunctions(
                 scope, compositeName, tokens.subList(1, tokens.size() - 1)));
         }
@@ -846,7 +846,7 @@ public class CGenerator implements CodeGenerator
         );
     }
 
-    private CharSequence generateFieldNotPresentCondition(final int sinceVersion, final CharSequence nullReturn)
+    private static CharSequence generateFieldNotPresentCondition(final int sinceVersion, final CharSequence nullReturn)
     {
         if (0 == sinceVersion)
         {
@@ -910,6 +910,7 @@ public class CGenerator implements CodeGenerator
                     sb,
                     scope,
                     containingStructName,
+                    outermostStruct,
                     signalToken,
                     propertyName,
                     encodingToken);
@@ -921,7 +922,8 @@ public class CGenerator implements CodeGenerator
                     scope,
                     propertyName,
                     encodingToken,
-                    containingStructName);
+                    containingStructName,
+                    outermostStruct);
                 break;
 
             case BEGIN_COMPOSITE:
@@ -930,7 +932,8 @@ public class CGenerator implements CodeGenerator
                     scope,
                     propertyName,
                     encodingToken,
-                    containingStructName);
+                    containingStructName,
+                    outermostStruct);
                 break;
 
             default:
@@ -1006,7 +1009,7 @@ public class CGenerator implements CodeGenerator
         }
         else if (arrayLength > 1)
         {
-            return generateArrayProperty(containingStructName, outermostStruct, propertyName, token);
+            return generateArrayProperty(containingStructName, outermostStruct, propertyName, token, true);
         }
 
         return "";
@@ -1201,13 +1204,15 @@ public class CGenerator implements CodeGenerator
         return sb;
     }
 
-    private CharSequence generateArrayProperty(
-        final String containingStructName, final String outermostStruct, final String propertyName, final Token token)
+    private static CharSequence generateArrayProperty(
+        final String containingStructName,
+        final String outermostStruct,
+        final String propertyName,
+        final Token token,
+        final boolean isPrimitiveArray)
     {
         final PrimitiveType primitiveType = token.encoding().primitiveType();
         final CharSequence offset = generateLiteral(PrimitiveType.get("uint64"), "" + token.offset());
-        final String viewTypeName = generateViewName(primitiveType,
-            token.encoding().byteOrder() == ByteOrder.BIG_ENDIAN);
         final StringBuilder sb = new StringBuilder();
 
         sb.append(String.format("\n" +
@@ -1219,9 +1224,15 @@ public class CGenerator implements CodeGenerator
             propertyName,
             token.arrayLength()));
 
-
+        if (primitiveType == null)
+        {
+            return sb;
+        }
+        final String methodSuffix = isPrimitiveArray ? "" : "_view";
+        final String viewTypeName = generateViewName(primitiveType,
+            token.encoding().byteOrder() == ByteOrder.BIG_ENDIAN);
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF %1$s %2$s_%3$s(\n" +
+            "SBE_ONE_DEF %1$s %2$s_%3$s%7$s(\n" +
             "    const %2$s *const codec)\n" +
             "{\n" +
             "    %1$s ret = {NULL, 0};\n" +
@@ -1235,7 +1246,8 @@ public class CGenerator implements CodeGenerator
             propertyName,
             token.arrayLength(),
             generateFieldNotPresentCondition(token.version(), "ret"),
-            offset
+            offset,
+            methodSuffix
         ));
 
         return sb;
@@ -1740,6 +1752,7 @@ public class CGenerator implements CodeGenerator
         final StringBuilder sb,
         final CharSequence[] scope,
         final String containingStructName,
+        final String outermostStruct,
         final Token signalToken,
         final String propertyName,
         final Token token)
@@ -1786,15 +1799,43 @@ public class CGenerator implements CodeGenerator
         }
         else
         {
+            final int arrayCapacity = token.arrayCapacity();
+            final String indexParam = arrayCapacity >= 0 ? ", const uint64_t index" : "";
+            final String indexOffset = arrayCapacity >= 0 ?
+                String.format(" + index * %d", token.encodedElementLength()) : "";
+            if (arrayCapacity >= 0)
+            {
+                sb.append(generateArrayProperty(containingStructName, outermostStruct, propertyName, token, false));
+            }
             sb.append(String.format("\n" +
-                "SBE_ONE_DEF bool %7$s_%2$s(\n" +
-                "    const %7$s *const codec,\n" +
+                "SBE_ONE_DEF bool %7$s_%2$s_safe(\n" +
+                "    const %7$s *const codec%8$s,\n" +
                 "    enum %1$s *const out)\n" +
                 "{\n" +
                 "%3$s" +
                 "    %5$s val;\n" +
-                "    memcpy(&val, codec->buffer + codec->offset + %6$d, sizeof(%5$s));\n\n" +
+                "    memcpy(&val, codec->buffer + codec->offset + %6$d%9$s, sizeof(%5$s));\n\n" +
+
                 "    return %1$s_get(%4$s(val), out);\n" +
+                "}\n\n" +
+
+                "SBE_ONE_DEF enum %1$s %7$s_%2$s(\n" +
+                "    const %7$s *const codec%8$s)\n" +
+                "{\n" +
+                "    %5$s val;\n" +
+                "    memcpy(&val, codec->buffer + codec->offset + %6$d%9$s, sizeof(%5$s));\n\n" +
+
+                "    return (enum %1$s)%4$s(val);\n" +
+                "}\n\n" +
+
+                "SBE_ONE_DEF %7$s *%7$s_set_%2$s(\n" +
+                "    %7$s *const codec%8$s,\n" +
+                "    const enum %1$s value)\n" +
+                "{\n" +
+                "    %5$s val = %4$s(value);\n" +
+                "    memcpy(codec->buffer + codec->offset + %6$d%9$s, &val, sizeof(%5$s));\n\n" +
+
+                "    return codec;\n" +
                 "}\n",
                 enumName,
                 propertyName,
@@ -1802,23 +1843,9 @@ public class CGenerator implements CodeGenerator
                 formatByteOrderEncoding(token.encoding().byteOrder(), token.encoding().primitiveType()),
                 typeName,
                 offset,
-                containingStructName));
-
-            sb.append(String.format("\n" +
-                "SBE_ONE_DEF %1$s *%1$s_set_%2$s(\n" +
-                "    %1$s *const codec,\n" +
-                "    const enum %3$s value)\n" +
-                "{\n" +
-                "    %4$s val = %6$s(value);\n" +
-                "    memcpy(codec->buffer + codec->offset + %5$d, &val, sizeof(%4$s));\n\n" +
-                "    return codec;\n" +
-                "}\n",
                 containingStructName,
-                propertyName,
-                enumName,
-                typeName,
-                offset,
-                formatByteOrderEncoding(token.encoding().byteOrder(), token.encoding().primitiveType())));
+                indexParam,
+                indexOffset));
         }
     }
 
@@ -1827,27 +1854,38 @@ public class CGenerator implements CodeGenerator
         final CharSequence[] scope,
         final String propertyName,
         final Token token,
-        final String containingStructName)
+        final String containingStructName,
+        final String outermostStruct)
     {
         final String bitsetName = formatScopedName(scope, token.applicableTypeName());
         final int offset = token.offset();
 
+        final int arrayCapacity = token.arrayCapacity();
+        final String indexParam = arrayCapacity >= 0 ? ", const uint64_t index" : "";
+        final String indexOffset = arrayCapacity >= 0 ?
+            String.format(" + index * %d", token.encodedElementLength()) : "";
+        if (arrayCapacity >= 0)
+        {
+            sb.append(generateArrayProperty(containingStructName, outermostStruct, propertyName, token, false));
+        }
         sb.append(String.format("\n" +
             "SBE_ONE_DEF %1$s *%4$s_%2$s(\n" +
-            "    %4$s *const codec,\n" +
+            "    %4$s *const codec%5$s,\n" +
             "    %1$s *const bitset)\n" +
             "{\n" +
             "    return %1$s_wrap(\n" +
             "        bitset,\n" +
             "        codec->buffer,\n" +
-            "        codec->offset + %3$d,\n" +
+            "        codec->offset + %3$d%6$s,\n" +
             "        codec->acting_version,\n" +
             "        codec->buffer_length);\n" +
             "}\n",
             bitsetName,
             propertyName,
             offset,
-            containingStructName));
+            containingStructName,
+            indexParam,
+            indexOffset));
 
         sb.append(String.format("\n" +
             "SBE_ONE_DEF uint64_t %s_%s_encoded_length(void)\n" +
@@ -1856,7 +1894,7 @@ public class CGenerator implements CodeGenerator
             "}\n",
             containingStructName,
             propertyName,
-            token.encoding().primitiveType().size()));
+            token.encodedLength()));
     }
 
     private static void generateCompositePropertyFunction(
@@ -1864,27 +1902,43 @@ public class CGenerator implements CodeGenerator
         final CharSequence[] scope,
         final String propertyName,
         final Token token,
-        final String containingStructName)
+        final String containingStructName,
+        final String outermostStruct)
     {
         final String compositeName = formatScopedName(scope, token.applicableTypeName());
         final int offset = token.offset();
-
+        final int arrayCapacity = token.arrayCapacity();
+        final String indexParam = arrayCapacity >= 0 ? ", const uint64_t index" : "";
+        final String indexOffset = arrayCapacity >= 0 ?
+            String.format(" + index * %d", token.encodedElementLength()) : "";
+        if (arrayCapacity >= 0)
+        {
+            sb.append(generateArrayProperty(containingStructName, outermostStruct, propertyName, token, false));
+        }
         sb.append(String.format("\n" +
             "SBE_ONE_DEF %1$s *%4$s_%2$s(\n" +
-            "    %4$s *const codec,\n" +
+            "    %4$s *const codec%5$s,\n" +
             "    %1$s *const composite)\n" +
             "{\n" +
             "    return %1$s_wrap(\n" +
             "        composite,\n" +
             "        codec->buffer,\n" +
-            "        codec->offset + %3$d,\n" +
+            "        codec->offset + %3$d%6$s,\n" +
             "        codec->acting_version,\n" +
             "        codec->buffer_length);\n" +
+            "}\n\n" +
+
+            "SBE_ONE_DEF uint64_t %4$s_%2$s_encoded_length(void)\n" +
+            "{\n" +
+            "    return %7$d;\n" +
             "}\n",
             compositeName,
             propertyName,
             offset,
-            containingStructName));
+            containingStructName,
+            indexParam,
+            indexOffset,
+            token.encodedLength()));
     }
 
     private CharSequence generateNullValueLiteral(final PrimitiveType primitiveType, final Encoding encoding)
