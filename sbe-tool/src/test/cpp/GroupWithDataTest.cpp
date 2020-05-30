@@ -83,7 +83,7 @@ public:
 
         m_msg1.tag1(TAG_1);
 
-        TestMessage1::Entries &entries = m_msg1.entriesCount(ENTRIES_COUNT);
+        TestMessage1Groups::Entries &entries = m_msg1.entriesCount(ENTRIES_COUNT);
 
         entries.next()
             .putTagGroup1(TAG_GROUP_1_IDX_0)
@@ -106,7 +106,7 @@ public:
 
         m_msg2.tag1(TAG_1);
 
-        TestMessage2::Entries &entries = m_msg2.entriesCount(ENTRIES_COUNT);
+        TestMessage2Groups::Entries &entries = m_msg2.entriesCount(ENTRIES_COUNT);
 
         entries.next()
             .putTagGroup1(TAG_GROUP_1_IDX_0)
@@ -131,12 +131,12 @@ public:
 
         m_msg3.tag1(TAG_1);
 
-        TestMessage3::Entries &entries = m_msg3.entriesCount(ENTRIES_COUNT);
+        TestMessage3Groups::Entries &entries = m_msg3.entriesCount(ENTRIES_COUNT);
 
         entries.next()
             .putTagGroup1(TAG_GROUP_1_IDX_0);
 
-        TestMessage3::Entries::NestedEntries &nestedEntries0 = entries.nestedEntriesCount(NESTED_ENTRIES_COUNT);
+        TestMessage3Groups::EntriesGroups::NestedEntries &nestedEntries0 = entries.nestedEntriesCount(NESTED_ENTRIES_COUNT);
 
         nestedEntries0.next()
             .tagGroup2(TAG_GROUP_2_IDX_0);
@@ -158,7 +158,7 @@ public:
         entries.next()
             .putTagGroup1(TAG_GROUP_1_IDX_1);
 
-        TestMessage3::Entries::NestedEntries &nestedEntries1 = entries.nestedEntriesCount(NESTED_ENTRIES_COUNT);
+        TestMessage3Groups::EntriesGroups::NestedEntries &nestedEntries1 = entries.nestedEntriesCount(NESTED_ENTRIES_COUNT);
 
         nestedEntries1.next()
             .tagGroup2(TAG_GROUP_2_IDX_3);
@@ -186,7 +186,7 @@ public:
 
         m_msg4.tag1(TAG_1);
 
-        TestMessage4::Entries &entries = m_msg4.entriesCount(ENTRIES_COUNT);
+        TestMessage4Groups::Entries &entries = m_msg4.entriesCount(ENTRIES_COUNT);
 
         entries.next();
 
@@ -256,7 +256,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage1Correctly)
 
     EXPECT_EQ(msg1Decoder.tag1(), TAG_1);
 
-    TestMessage1::Entries &entries = msg1Decoder.entries();
+    TestMessage1Groups::Entries &entries = msg1Decoder.entries();
     EXPECT_EQ(entries.count(), ENTRIES_COUNT);
 
     ASSERT_TRUE(entries.hasNext());
@@ -337,7 +337,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage2Correctly)
 
     EXPECT_EQ(msg2Decoder.tag1(), TAG_1);
 
-    TestMessage2::Entries &entries = msg2Decoder.entries();
+    TestMessage2Groups::Entries &entries = msg2Decoder.entries();
     EXPECT_EQ(entries.count(), ENTRIES_COUNT);
 
     ASSERT_TRUE(entries.hasNext());
@@ -466,7 +466,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage3Correctly)
 
     EXPECT_EQ(msg3Decoder.tag1(), TAG_1);
 
-    TestMessage3::Entries &entries = msg3Decoder.entries();
+    TestMessage3Groups::Entries &entries = msg3Decoder.entries();
     EXPECT_EQ(entries.count(), ENTRIES_COUNT);
 
     ASSERT_TRUE(entries.hasNext());
@@ -475,7 +475,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage3Correctly)
     EXPECT_EQ(entries.tagGroup1Length(), TAG_GROUP_1_IDX_0_LENGTH);
     EXPECT_EQ(std::string(entries.tagGroup1(), static_cast<std::size_t>(entries.tagGroup1Length())), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
 
-    TestMessage3::Entries::NestedEntries &nestedEntries0 = entries.nestedEntries();
+    TestMessage3Groups::EntriesGroups::NestedEntries &nestedEntries0 = entries.nestedEntries();
     EXPECT_EQ(nestedEntries0.count(), NESTED_ENTRIES_COUNT);
 
     ASSERT_TRUE(nestedEntries0.hasNext());
@@ -505,7 +505,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage3Correctly)
     ASSERT_TRUE(entries.hasNext());
     entries.next();
 
-    TestMessage3::Entries::NestedEntries &nestedEntries1 = entries.nestedEntries();
+    TestMessage3Groups::EntriesGroups::NestedEntries &nestedEntries1 = entries.nestedEntries();
     EXPECT_EQ(nestedEntries1.count(), NESTED_ENTRIES_COUNT);
 
     ASSERT_TRUE(nestedEntries1.hasNext());
@@ -584,7 +584,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage4Correctly)
 
     EXPECT_EQ(msg4Decoder.tag1(), TAG_1);
 
-    TestMessage4::Entries &entries = msg4Decoder.entries();
+    TestMessage4Groups::Entries &entries = msg4Decoder.entries();
     EXPECT_EQ(entries.count(), ENTRIES_COUNT);
 
     ASSERT_TRUE(entries.hasNext());

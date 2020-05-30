@@ -242,7 +242,7 @@ public:
             .putManufacturerCode(MANUFACTURER_CODE)
             .booster().boostType(BoostType::NITROUS).horsePower(200);
 
-        Car::FuelFigures& fuelFigures = car.fuelFiguresCount(FUEL_FIGURES_COUNT);
+        CarGroups::FuelFigures& fuelFigures = car.fuelFiguresCount(FUEL_FIGURES_COUNT);
 
         fuelFigures
             .next().speed(fuel1Speed).mpg(fuel1Mpg);
@@ -260,7 +260,7 @@ public:
         fuelFigures.putUsageDescription(
             FUEL_FIGURES_3_USAGE_DESCRIPTION, static_cast<std::uint16_t>(strlen(FUEL_FIGURES_3_USAGE_DESCRIPTION)));
 
-        Car::PerformanceFigures &perfFigs = car.performanceFiguresCount(PERFORMANCE_FIGURES_COUNT);
+        CarGroups::PerformanceFigures &perfFigs = car.performanceFiguresCount(PERFORMANCE_FIGURES_COUNT);
 
         perfFigs.next()
             .octaneRating(perf1Octane)
