@@ -50,7 +50,7 @@ public:
 
         msg.wrapForEncode(m_buffer, hdr.encodedLength(), sizeof(m_buffer));
 
-        TestMessage1::Entries &entries = msg.entriesCount(2);
+        TestMessage1Groups::Entries &entries = msg.entriesCount(2);
 
         entries.next()
             .tagGroup1(10)

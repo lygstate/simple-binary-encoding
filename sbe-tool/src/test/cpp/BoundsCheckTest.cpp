@@ -96,7 +96,7 @@ public:
 
     std::uint64_t encodeCarFuelFigures()
     {
-        Car::FuelFigures& fuelFigures = m_car.fuelFiguresCount(3);
+        CarGroups::FuelFigures& fuelFigures = m_car.fuelFiguresCount(3);
 
         fuelFigures
             .next().speed(30).mpg(35.9f);
@@ -115,7 +115,7 @@ public:
 
     std::uint64_t encodeCarPerformanceFigures()
     {
-        Car::PerformanceFigures &perfFigs = m_car.performanceFiguresCount(2);
+        CarGroups::PerformanceFigures &perfFigs = m_car.performanceFiguresCount(2);
 
         perfFigs.next()
             .octaneRating((short)95)
@@ -180,7 +180,7 @@ public:
     std::uint64_t decodeCarFuelFigures()
     {
         char tmp[256];
-        Car::FuelFigures &fuelFigures = m_carDecoder.fuelFigures();
+        CarGroups::FuelFigures &fuelFigures = m_carDecoder.fuelFigures();
         EXPECT_EQ(fuelFigures.count(), 3u);
 
         EXPECT_TRUE(fuelFigures.hasNext());
@@ -209,14 +209,14 @@ public:
 
     std::uint64_t decodeCarPerformanceFigures()
     {
-        Car::PerformanceFigures &performanceFigures = m_carDecoder.performanceFigures();
+        CarGroups::PerformanceFigures &performanceFigures = m_carDecoder.performanceFigures();
         EXPECT_EQ(performanceFigures.count(), 2u);
 
         EXPECT_TRUE(performanceFigures.hasNext());
         performanceFigures.next();
         EXPECT_EQ(performanceFigures.octaneRating(), 95);
 
-        Car::PerformanceFigures::Acceleration &acceleration = performanceFigures.acceleration();
+        CarGroups::PerformanceFiguresGroups::Acceleration &acceleration = performanceFigures.acceleration();
         EXPECT_EQ(acceleration.count(), 3u);
         EXPECT_TRUE(acceleration.hasNext());
         acceleration.next();

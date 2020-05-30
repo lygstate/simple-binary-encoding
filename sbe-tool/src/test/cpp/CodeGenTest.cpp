@@ -123,7 +123,7 @@ public:
             .putManufacturerCode(MANUFACTURER_CODE)
             .booster().boostType(BOOST_TYPE).horsePower(BOOSTER_HORSEPOWER);
 
-        Car::FuelFigures& fuelFigures = car.fuelFiguresCount(FUEL_FIGURES_COUNT);
+        CarGroups::FuelFigures& fuelFigures = car.fuelFiguresCount(FUEL_FIGURES_COUNT);
 
         fuelFigures
             .next().speed(fuel1Speed).mpg(fuel1Mpg)
@@ -140,7 +140,7 @@ public:
             .putUsageDescription(
                 FUEL_FIGURES_3_USAGE_DESCRIPTION, static_cast<std::uint16_t>(strlen(FUEL_FIGURES_3_USAGE_DESCRIPTION)));
 
-        Car::PerformanceFigures &perfFigs = car.performanceFiguresCount(PERFORMANCE_FIGURES_COUNT);
+        CarGroups::PerformanceFigures &perfFigs = car.performanceFiguresCount(PERFORMANCE_FIGURES_COUNT);
 
         perfFigs.next()
             .octaneRating(perf1Octane)
@@ -270,15 +270,15 @@ TEST_F(CodeGenTest, shouldReturnCorrectValuesForCarFieldIdsAndCharacterEncoding)
     EXPECT_EQ(Car::discountedModelId(), fieldIdDiscountedModel);
     EXPECT_EQ(Car::engineId(), fieldIdEngine);
     EXPECT_EQ(Car::fuelFiguresId(), fieldIdFuelFigures);
-    EXPECT_EQ(Car::FuelFigures::speedId(), fieldIdFuelSpeed);
-    EXPECT_EQ(Car::FuelFigures::mpgId(), fieldIdFuelMpg);
-    EXPECT_EQ(Car::FuelFigures::usageDescriptionId(), fieldIdFuelUsageDescription);
-    EXPECT_EQ(Car::FuelFigures::usageDescriptionCharacterEncoding(), std::string("UTF-8"));
+    EXPECT_EQ(CarGroups::FuelFigures::speedId(), fieldIdFuelSpeed);
+    EXPECT_EQ(CarGroups::FuelFigures::mpgId(), fieldIdFuelMpg);
+    EXPECT_EQ(CarGroups::FuelFigures::usageDescriptionId(), fieldIdFuelUsageDescription);
+    EXPECT_EQ(CarGroups::FuelFigures::usageDescriptionCharacterEncoding(), std::string("UTF-8"));
     EXPECT_EQ(Car::performanceFiguresId(), fieldIdPerformanceFigures);
-    EXPECT_EQ(Car::PerformanceFigures::octaneRatingId(), fieldIdPerfOctaneRating);
-    EXPECT_EQ(Car::PerformanceFigures::accelerationId(), fieldIdPerfAcceleration);
-    EXPECT_EQ(Car::PerformanceFigures::Acceleration::mphId(), fieldIdPerfAccMph);
-    EXPECT_EQ(Car::PerformanceFigures::Acceleration::secondsId(), fieldIdPerfAccSeconds);
+    EXPECT_EQ(CarGroups::PerformanceFigures::octaneRatingId(), fieldIdPerfOctaneRating);
+    EXPECT_EQ(CarGroups::PerformanceFigures::accelerationId(), fieldIdPerfAcceleration);
+    EXPECT_EQ(CarGroups::PerformanceFiguresGroups::Acceleration::mphId(), fieldIdPerfAccMph);
+    EXPECT_EQ(CarGroups::PerformanceFiguresGroups::Acceleration::secondsId(), fieldIdPerfAccSeconds);
     EXPECT_EQ(Car::manufacturerId(), fieldIdManufacturer);
     EXPECT_EQ(Car::modelId(), fieldIdModel);
     EXPECT_EQ(Car::activationCodeId(), fieldIdActivationCode);
@@ -454,7 +454,7 @@ TEST_F(CodeGenTest, shouldBeAbleToEncodeCarCorrectly)
 
     EXPECT_EQ(sz, predictedCarSz);
     EXPECT_EQ(Car::isConstLength(), false);
-    EXPECT_EQ(Car::PerformanceFigures::Acceleration::isConstLength(), true);
+    EXPECT_EQ(CarGroups::PerformanceFiguresGroups::Acceleration::isConstLength(), true);
 }
 
 TEST_F(CodeGenTest, shouldBeAbleToEncodeHeaderPlusCarCorrectly)
@@ -527,7 +527,7 @@ TEST_F(CodeGenTest, shouldBeAbleToEncodeAndDecodeHeaderPlusCarCorrectly)
     EXPECT_EQ(engine.fuelLength(), 6u);
     EXPECT_EQ(std::string(engine.fuel(), 6), std::string("Petrol"));
 
-    Car::FuelFigures &fuelFigures = m_carDecoder.fuelFigures();
+    CarGroups::FuelFigures &fuelFigures = m_carDecoder.fuelFigures();
     EXPECT_EQ(fuelFigures.count(), FUEL_FIGURES_COUNT);
 
     ASSERT_TRUE(fuelFigures.hasNext());
@@ -551,14 +551,14 @@ TEST_F(CodeGenTest, shouldBeAbleToEncodeAndDecodeHeaderPlusCarCorrectly)
     EXPECT_EQ(fuelFigures.usageDescriptionLength(), FUEL_FIGURES_3_USAGE_DESCRIPTION_LENGTH);
     EXPECT_EQ(std::string(fuelFigures.usageDescription(), FUEL_FIGURES_3_USAGE_DESCRIPTION_LENGTH), FUEL_FIGURES_3_USAGE_DESCRIPTION);
 
-    Car::PerformanceFigures &performanceFigures = m_carDecoder.performanceFigures();
+    CarGroups::PerformanceFigures &performanceFigures = m_carDecoder.performanceFigures();
     EXPECT_EQ(performanceFigures.count(), PERFORMANCE_FIGURES_COUNT);
 
     ASSERT_TRUE(performanceFigures.hasNext());
     performanceFigures.next();
     EXPECT_EQ(performanceFigures.octaneRating(), perf1Octane);
 
-    Car::PerformanceFigures::Acceleration &acceleration = performanceFigures.acceleration();
+    CarGroups::PerformanceFiguresGroups::Acceleration &acceleration = performanceFigures.acceleration();
     EXPECT_EQ(acceleration.count(), ACCELERATION_COUNT);
     ASSERT_TRUE(acceleration.hasNext());
     acceleration.next();
@@ -620,21 +620,21 @@ struct CallbacksForEach
 
     CallbacksForEach() : countOfFuelFigures(0), countOfPerformanceFigures(0), countOfAccelerations(0) {}
 
-    void operator()(Car::FuelFigures& fuelFigures)
+    void operator()(CarGroups::FuelFigures& fuelFigures)
     {
         countOfFuelFigures++;
         static_cast<void>(fuelFigures.usageDescription());
     }
 
-    void operator()(Car::PerformanceFigures& performanceFigures)
+    void operator()(CarGroups::PerformanceFigures& performanceFigures)
     {
-        Car::PerformanceFigures::Acceleration acceleration = performanceFigures.acceleration();
+        CarGroups::PerformanceFiguresGroups::Acceleration acceleration = performanceFigures.acceleration();
 
         countOfPerformanceFigures++;
         acceleration.forEach(*this);
     }
 
-    void operator()(Car::PerformanceFigures::Acceleration&)
+    void operator()(CarGroups::PerformanceFiguresGroups::Acceleration&)
     {
         countOfAccelerations++;
     }
@@ -663,12 +663,12 @@ TEST_F(CodeGenTest, shouldBeAbleUseOnStackCodecsAndGroupForEach)
     Car carDecoder(buffer + hdrDecoder.encodedLength(), carEncodedLength, hdrDecoder.blockLength(), hdrDecoder.version());
     CallbacksForEach cbs;
 
-    Car::FuelFigures &fuelFigures = carDecoder.fuelFigures();
+    CarGroups::FuelFigures &fuelFigures = carDecoder.fuelFigures();
     EXPECT_EQ(fuelFigures.count(), FUEL_FIGURES_COUNT);
 
 #if __cplusplus >= 201103L
     fuelFigures.forEach(
-        [&](Car::FuelFigures &figures)
+        [&](CarGroups::FuelFigures &figures)
         {
             cbs.countOfFuelFigures++;
 
@@ -679,17 +679,17 @@ TEST_F(CodeGenTest, shouldBeAbleUseOnStackCodecsAndGroupForEach)
     fuelFigures.forEach(cbs);
 #endif
 
-    Car::PerformanceFigures &performanceFigures = carDecoder.performanceFigures();
+    CarGroups::PerformanceFigures &performanceFigures = carDecoder.performanceFigures();
     EXPECT_EQ(performanceFigures.count(), PERFORMANCE_FIGURES_COUNT);
 
 #if __cplusplus >= 201103L
-    performanceFigures.forEach([&](Car::PerformanceFigures&figures)
+    performanceFigures.forEach([&](CarGroups::PerformanceFigures&figures)
     {
-        Car::PerformanceFigures::Acceleration acceleration = figures.acceleration();
+        CarGroups::PerformanceFiguresGroups::Acceleration acceleration = figures.acceleration();
 
         cbs.countOfPerformanceFigures++;
         acceleration.forEach(
-            [&](Car::PerformanceFigures::Acceleration&)
+            [&](CarGroups::PerformanceFiguresGroups::Acceleration&)
             {
                 cbs.countOfAccelerations++;
             });
@@ -758,7 +758,7 @@ TEST_F(CodeGenTest, shouldBeAbleToUseStdStringMethodsForEncode)
         .next().putUsageDescription(usageDesc2)
         .next().putUsageDescription(usageDesc3);
 
-    Car::PerformanceFigures &perfFigs = car.performanceFiguresCount(PERFORMANCE_FIGURES_COUNT);
+    CarGroups::PerformanceFigures &perfFigs = car.performanceFiguresCount(PERFORMANCE_FIGURES_COUNT);
 
     perfFigs.next()
         .accelerationCount(ACCELERATION_COUNT).next().next().next();
@@ -826,7 +826,7 @@ TEST_F(CodeGenTest, shouldBeAbleToUseStdStringMethodsForDecode)
 
     EXPECT_EQ(carDecoder.getVehicleCodeAsString(), vehicleCode);
 
-    Car::FuelFigures &fuelFigures = carDecoder.fuelFigures();
+    CarGroups::FuelFigures &fuelFigures = carDecoder.fuelFigures();
 
     fuelFigures.next();
     EXPECT_EQ(fuelFigures.getUsageDescriptionAsString(), usageDesc1);
@@ -837,10 +837,10 @@ TEST_F(CodeGenTest, shouldBeAbleToUseStdStringMethodsForDecode)
     fuelFigures.next();
     EXPECT_EQ(fuelFigures.getUsageDescriptionAsString(), usageDesc3);
 
-    Car::PerformanceFigures &perfFigures = carDecoder.performanceFigures();
+    CarGroups::PerformanceFigures &perfFigures = carDecoder.performanceFigures();
 
     perfFigures.next();
-    Car::PerformanceFigures::Acceleration &acceleration = perfFigures.acceleration();
+    CarGroups::PerformanceFiguresGroups::Acceleration &acceleration = perfFigures.acceleration();
 
     acceleration.next().next().next();
 
@@ -896,7 +896,7 @@ TEST_F(CodeGenTest, shouldPrintFullDecodedFlyweightRegardlessOfReadPosition)
 
     EXPECT_EQ(carDecoder.getVehicleCodeAsString(), vehicleCode);
 
-    Car::FuelFigures &fuelFigures = carDecoder.fuelFigures();
+    CarGroups::FuelFigures &fuelFigures = carDecoder.fuelFigures();
 
     fuelFigures.next();
     EXPECT_EQ(fuelFigures.getUsageDescriptionAsString(), usageDesc1);
@@ -909,10 +909,10 @@ TEST_F(CodeGenTest, shouldPrintFullDecodedFlyweightRegardlessOfReadPosition)
 
     expectDisplayString(expectedDisplayString, carDecoder);
 
-    Car::PerformanceFigures &perfFigures = carDecoder.performanceFigures();
+    CarGroups::PerformanceFigures &perfFigures = carDecoder.performanceFigures();
 
     perfFigures.next();
-    Car::PerformanceFigures::Acceleration &acceleration = perfFigures.acceleration();
+    CarGroups::PerformanceFiguresGroups::Acceleration &acceleration = perfFigures.acceleration();
 
     acceleration.next().next().next();
 
