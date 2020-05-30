@@ -250,6 +250,12 @@ private:
         tmpLen = tokenCodec.getConstValue(tmpBuffer, sizeof(tmpBuffer));
         PrimitiveValue constValue(type, tmpLen, tmpBuffer);
 
+        tmpLen = tokenCodec.getLsbValue(tmpBuffer, sizeof(tmpBuffer));
+        PrimitiveValue lsbValue(type, tmpLen, tmpBuffer);
+
+        tmpLen = tokenCodec.getMsbValue(tmpBuffer, sizeof(tmpBuffer));
+        PrimitiveValue msbValue(type, tmpLen, tmpBuffer);
+
         tmpLen = tokenCodec.getMinValue(tmpBuffer, sizeof(tmpBuffer));
         PrimitiveValue minValue(type, tmpLen, tmpBuffer);
 
@@ -278,7 +284,8 @@ private:
         std::string referencedName(tmpBuffer, tmpLen);
 
         Encoding encoding(
-            type, presence, byteOrder, minValue, maxValue, nullValue, constValue,
+            type, presence, byteOrder, minValue, maxValue, nullValue,
+            constValue, lsbValue, msbValue,
             characterEncoding, epoch, timeUnit, semanticType);
 
         Token token(tokenOffset, id, version, tokenSize, componentTokenCount, arrayCapacity, signal, name, description, encoding);

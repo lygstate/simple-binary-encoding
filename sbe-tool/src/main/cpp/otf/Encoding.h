@@ -335,6 +335,8 @@ public:
         PrimitiveValue maxValue,
         PrimitiveValue nullValue,
         PrimitiveValue constValue,
+        PrimitiveValue lsbValue,
+        PrimitiveValue msbValue,
         std::string characterEncoding,
         std::string epoch,
         std::string timeUnit,
@@ -347,6 +349,8 @@ public:
         m_maxValue(std::move(maxValue)),
         m_nullValue(std::move(nullValue)),
         m_constValue(std::move(constValue)),
+        m_lsbValue(std::move(lsbValue)),
+        m_msbValue(std::move(msbValue)),
         m_characterEncoding(std::move(characterEncoding)),
         m_epoch(std::move(epoch)),
         m_timeUnit(std::move(timeUnit)),
@@ -441,6 +445,53 @@ public:
         return value.fp_value;
     }
 
+    static inline bool isInt(const PrimitiveType type)
+    {
+        switch (type)
+        {
+            case PrimitiveType::CHAR:
+            case PrimitiveType::INT8:
+            case PrimitiveType::INT16:
+            case PrimitiveType::INT32:
+            case PrimitiveType::INT64:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    static inline bool isUInt(const PrimitiveType type)
+    {
+        switch (type)
+        {
+            case PrimitiveType::UINT8:
+            case PrimitiveType::UINT16:
+            case PrimitiveType::UINT32:
+            case PrimitiveType::UINT64:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    static inline bool isDouble(const PrimitiveType type)
+    {
+        if (type == PrimitiveType::FLOAT)
+        {
+            return true;
+        }
+        else if (type == PrimitiveType::DOUBLE)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     static inline std::int64_t getInt(const PrimitiveType type, const ByteOrder byteOrder, const char *buffer)
     {
         switch (type)
@@ -502,6 +553,48 @@ public:
         }
     }
 
+    /* Function to reverse bits of uint8_t */
+    static inline std::uint8_t reverseBitsUint8(std::uint8_t b)
+    {
+        b = (b & 0xF0) >> 4 | (b & ~0xF0) << 4; /* 0b11110000 */
+        b = (b & 0xCC) >> 2 | (b & ~0xCC) << 2; /* 0b11001100 */
+        b = (b & 0xAA) >> 1 | (b & ~0xAA) << 1; /* 0b10101010 */
+        return b;
+    }
+
+    /* Function to reverse bits of uint16_t */
+    static inline std::uint16_t reverseBitsUint16(std::uint16_t b)
+    {
+        b = (b & 0xFF00) >> 8 | (b & ~0xFF00) << 8; /* 0b1111111100000000 */
+        b = (b & 0xF0F0) >> 4 | (b & ~0xF0F0) << 4; /* 0b1111000011110000 */
+        b = (b & 0xCCCC) >> 2 | (b & ~0xCCCC) << 2; /* 0b1100110011001100 */
+        b = (b & 0xAAAA) >> 1 | (b & ~0xAAAA) << 1; /* 0b1010101010101010 */
+        return b;
+    }
+
+    /* Function to reverse bits of uint32_t */
+    static inline std::uint32_t reverseBitsUint32(std::uint32_t b)
+    {
+        b = (b & 0xFFFF0000) >> 16 | (b & ~0xFFFF0000) << 16; /* 0b11111111111111110000000000000000 */
+        b = (b & 0xFF00FF00) >> 8  | (b & ~0xFF00FF00) << 8;  /* 0b11111111000000001111111100000000 */
+        b = (b & 0xF0F0F0F0) >> 4  | (b & ~0xF0F0F0F0) << 4;  /* 0b11110000111100001111000011110000 */
+        b = (b & 0xCCCCCCCC) >> 2  | (b & ~0xCCCCCCCC) << 2;  /* 0b11001100110011001100110011001100 */
+        b = (b & 0xAAAAAAAA) >> 1  | (b & ~0xAAAAAAAA) << 1;  /* 0b10101010101010101010101010101010 */
+        return b;
+    }
+
+    /* Function to reverse bits of uint64_t */
+    static inline std::uint64_t reverseBitsUint64(std::uint64_t b)
+    {
+        b = (b & 0xFFFFFFFF00000000ULL) >> 32 | (b & ~0xFFFFFFFF00000000ULL) << 32; /* 0b1111111111111111111111111111111100000000000000000000000000000000 */
+        b = (b & 0xFFFF0000FFFF0000ULL) >> 16 | (b & ~0xFFFF0000FFFF0000ULL) << 16; /* 0b1111111111111111000000000000000011111111111111110000000000000000 */
+        b = (b & 0xFF00FF00FF00FF00ULL) >> 8  | (b & ~0xFF00FF00FF00FF00ULL) << 8;  /* 0b1111111100000000111111110000000011111111000000001111111100000000 */
+        b = (b & 0xF0F0F0F0F0F0F0F0ULL) >> 4  | (b & ~0xF0F0F0F0F0F0F0F0ULL) << 4;  /* 0b1111000011110000111100001111000011110000111100001111000011110000 */
+        b = (b & 0xCCCCCCCCCCCCCCCCULL) >> 2  | (b & ~0xCCCCCCCCCCCCCCCCULL) << 2;  /* 0b1100110011001100110011001100110011001100110011001100110011001100 */
+        b = (b & 0xAAAAAAAAAAAAAAAAULL) >> 1  | (b & ~0xAAAAAAAAAAAAAAAAULL) << 1;  /* 0b1010101010101010101010101010101010101010101010101010101010101010 */
+        return b;
+    }
+
     inline Presence presence() const
     {
         return m_presence;
@@ -552,6 +645,56 @@ public:
         return m_constValue;
     }
 
+    inline bool isChoice() const
+    {
+        return m_constValue.getAsInt() != SBE_NULLVALUE_UINT8;
+    }
+
+    inline const PrimitiveValue& lsbValue() const
+    {
+        return m_lsbValue;
+    }
+
+    inline const PrimitiveValue& msbValue() const
+    {
+        return m_msbValue;
+    }
+
+    inline uint64_t getBits(uint64_t encodedValue) const
+    {
+        int64_t lsb = isChoice() ? m_constValue.getAsInt() : m_lsbValue.getAsInt();
+        int64_t msb = isChoice() ? m_constValue.getAsInt() : m_msbValue.getAsInt();
+        int64_t len = std::abs(msb - lsb) + 1;
+        uint64_t mask = (UINT64_C(1) << len) - 1;
+        uint64_t resultValue;
+        if (lsb <= msb)
+        {
+            resultValue = (encodedValue >> lsb) & mask;
+        }
+        else
+        {
+            uint64_t reversed = reverseBitsUint64(encodedValue);
+            resultValue = (reversed >> (63 - lsb)) & mask;
+        }
+        return resultValue;
+    }
+
+    inline std::string bitsToString(uint64_t bits)
+    {
+        if (isInt(m_primitiveType))
+        {
+            return std::to_string((int64_t)bits);
+        }
+        else if (isUInt(m_primitiveType))
+        {
+            return std::to_string(bits);
+        }
+        else
+        {
+            return "";
+        }
+    }
+
     inline const std::string& characterEncoding() const
     {
         return m_characterEncoding;
@@ -581,6 +724,8 @@ private:
     const PrimitiveValue m_maxValue;
     const PrimitiveValue m_nullValue;
     const PrimitiveValue m_constValue;
+    const PrimitiveValue m_lsbValue;
+    const PrimitiveValue m_msbValue;
 
     const std::string m_characterEncoding;
     const std::string m_epoch;

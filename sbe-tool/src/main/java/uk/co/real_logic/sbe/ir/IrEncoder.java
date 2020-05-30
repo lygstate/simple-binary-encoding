@@ -201,6 +201,8 @@ public class IrEncoder implements AutoCloseable
             tokenEncoder.putName(nameBytes, 0, nameBytes.length);
 
             tokenEncoder.putConstValue(valArray, 0, put(valBuffer, encoding.constValue(), type));
+            tokenEncoder.putLsbValue(valArray, 0, put(valBuffer, encoding.lsbValue(), type));
+            tokenEncoder.putMsbValue(valArray, 0, put(valBuffer, encoding.msbValue(), type));
             tokenEncoder.putMinValue(valArray, 0, put(valBuffer, encoding.minValue(), type));
             tokenEncoder.putMaxValue(valArray, 0, put(valBuffer, encoding.maxValue(), type));
             tokenEncoder.putNullValue(valArray, 0, put(valBuffer, encoding.nullValue(), type));

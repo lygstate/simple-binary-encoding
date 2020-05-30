@@ -231,16 +231,31 @@ public:
         for (size_t i = fromIndex + 1; i < toIndex; i++)
         {
             const Token &token = tokens.at(i);
-            const std::uint64_t constValue = token.encoding().constValue().getAsUInt();
+            const Encoding &encoding = token.encoding();
+            const std::uint64_t bits = encoding.getBits(value);
 
             std::cout << " " << token.name() << "=";
-            if (constValue && value)
+            if (encoding.isChoice())
             {
-                std::cout << "true";
+                if (bits == 1)
+                {
+                    std::cout << "true";
+                }
+                else
+                {
+                    std::cout << "false";
+                }
             }
             else
             {
-                std::cout << "false";
+                if (Encoding::isInt(encoding.primitiveType()))
+                {
+                    std::cout << static_cast<std::int64_t>(bits);
+                }
+                else if (Encoding::isUInt(encoding.primitiveType()))
+                {
+                    std::cout << bits;
+                }
             }
         }
 

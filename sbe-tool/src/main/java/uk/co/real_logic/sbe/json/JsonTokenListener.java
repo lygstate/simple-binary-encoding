@@ -119,11 +119,16 @@ public class JsonTokenListener implements TokenListener
         for (int i = fromIndex + 1; i < toIndex; i++)
         {
             output.append('"').append(tokens.get(i).name()).append("\": ");
-
-            final long bitPosition = tokens.get(i).encoding().constValue().longValue();
-            final boolean flag = (encodedValue & (1L << bitPosition)) != 0;
-
-            output.append(flag);
+            final Encoding encoding = tokens.get(i).encoding();
+            final long bits = encoding.getBits(encodedValue);
+            if (encoding.isChoice())
+            {
+                output.append(Boolean.toString(bits != 0));
+            }
+            else
+            {
+                output.append(encoding.bitsToString(bits));
+            }
 
             if (i < (toIndex - 1))
             {

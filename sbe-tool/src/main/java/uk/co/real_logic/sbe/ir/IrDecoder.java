@@ -229,6 +229,8 @@ public class IrDecoder implements AutoCloseable
         tokenBuilder.name(tokenDecoder.name());
 
         encBuilder.constValue(get(valBuffer, type, tokenDecoder.getConstValue(valArray, 0, valArray.length)));
+        encBuilder.lsbValue(get(valBuffer, type, tokenDecoder.getLsbValue(valArray, 0, valArray.length)));
+        encBuilder.msbValue(get(valBuffer, type, tokenDecoder.getMsbValue(valArray, 0, valArray.length)));
         encBuilder.minValue(get(valBuffer, type, tokenDecoder.getMinValue(valArray, 0, valArray.length)));
         encBuilder.maxValue(get(valBuffer, type, tokenDecoder.getMaxValue(valArray, 0, valArray.length)));
         encBuilder.nullValue(get(valBuffer, type, tokenDecoder.getNullValue(valArray, 0, valArray.length)));

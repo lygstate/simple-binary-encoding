@@ -88,6 +88,8 @@
         <field name="arrayCapacity" id="200" type="int32"/>
         <data name="name" id="11" type="varDataEncoding"/>
         <data name="constValue" id="12" type="varDataEncoding"/>
+        <data name="lsbValue" id="201" type="varDataEncoding"/>
+        <data name="msbValue" id="202" type="varDataEncoding"/>
         <data name="minValue" id="13" type="varDataEncoding"/>
         <data name="maxValue" id="14" type="varDataEncoding"/>
         <data name="nullValue" id="15" type="varDataEncoding"/>
