@@ -131,6 +131,27 @@ public enum PrimitiveType
     }
 
     /**
+     * Is the type an signed type like in C.
+     *
+     * @param type to be tested.
+     * @return true if unsigned otherwise false.
+     */
+    public static boolean isSigned(final PrimitiveType type)
+    {
+        switch (type)
+        {
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    /**
      * Lookup PrimitiveType by String name and return Enum.
      *
      * @param name of primitiveType to get
@@ -148,6 +169,18 @@ public enum PrimitiveType
         }
 
         throw new IllegalArgumentException("No PrimitiveType for name: " + name);
+    }
+
+    public static PrimitiveType getOrNull(final String name)
+    {
+        for (final PrimitiveType p : Singleton.VALUES)
+        {
+            if (p.name.equals(name))
+            {
+                return p;
+            }
+        }
+        return null;
     }
 
     /**
