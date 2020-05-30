@@ -404,4 +404,36 @@ public class BasicXmlIrGenerationTest
         assertEquals(ir.getType("OptionalExtras"), null);
     }
 
+    @Test
+    public void shouldHandleArrayComposite()
+        throws Exception
+    {
+        final MessageSchema schema = parse(getLocalResource(
+            "composite-elements-schema-array.xml"), ParserOptions.DEFAULT);
+        final IrGenerator irg = new IrGenerator();
+        final Ir ir = irg.generate(schema);
+
+        final List<Token> tokens = ir.getType("TypeToTestNestType");
+        assertThat(tokens.size(), is(27));
+
+        assertThat(tokens.get(1).signal(), is(Signal.BEGIN_ENUM));
+        assertThat(tokens.get(1).name(), is("enumTwo"));
+        assertThat(tokens.get(1).arrayCapacity(), is(11));
+        assertThat(tokens.get(1).encodedLength(), is(11));
+        assertThat(tokens.get(1).arrayLength(), is(11));
+
+        assertThat(tokens.get(5).signal(), is(Signal.BEGIN_SET));
+        assertThat(tokens.get(5).name(), is("setTwo"));
+        assertThat(tokens.get(5).arrayCapacity(), is(15));
+        assertThat(tokens.get(5).encodedLength(), is(60));
+        assertThat(tokens.get(5).arrayLength(), is(15));
+
+        assertThat(tokens.get(10).signal(), is(Signal.BEGIN_COMPOSITE));
+        assertThat(tokens.get(10).name(), is("outerName"));
+        assertThat(tokens.get(10).arrayCapacity(), is(16));
+        assertThat(tokens.get(10).encodedLength(), is(352));
+        assertThat(tokens.get(10).arrayLength(), is(16));
+
+    }
+
 }

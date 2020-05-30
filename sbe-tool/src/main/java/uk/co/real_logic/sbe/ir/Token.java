@@ -93,6 +93,13 @@ public class Token
     private int componentTokenCount;
     private final Encoding encoding;
 
+    /*
+    < 0 means not a composite array, maybe a data array according to arrayLength
+    >= 0 means a composite array, the array element type can be enumType, setType, or compositeDataType
+       can not be encodedDataType array
+    */
+    private int arrayCapacity;
+
     /**
      * Construct an {@link Token} by providing values for all fields.
      *
@@ -108,6 +115,7 @@ public class Token
      * @param offset              in the underlying message as octets.
      * @param componentTokenCount number of tokens in this component.
      * @param encoding            of the primitive field.
+     * @param arrayCapacity       of the token.
      */
     public Token(
         final Signal signal,
@@ -121,7 +129,8 @@ public class Token
         final int encodedLength,
         final int offset,
         final int componentTokenCount,
-        final Encoding encoding)
+        final Encoding encoding,
+        final int arrayCapacity)
     {
         Verify.notNull(signal, "signal");
         Verify.notNull(name, "name");
@@ -139,6 +148,7 @@ public class Token
         this.offset = offset;
         this.componentTokenCount = componentTokenCount;
         this.encoding = encoding;
+        this.arrayCapacity = arrayCapacity;
     }
 
     /**
@@ -243,6 +253,26 @@ public class Token
     }
 
     /**
+     * The encodedLength of element type
+     *
+     * @return the encodedLength of element type. A value of 0 means the node has no encodedLength when encoded.
+     * A value of {@link Token#VARIABLE_LENGTH} means this node represents a variable length field.
+     */
+    public int encodedElementLength()
+    {
+        if (this.arrayCapacity == 0)
+        {
+            return 0;
+        }
+        if (this.encodedLength() > 0 && this.arrayLength() > 0)
+        {
+            return this.encodedLength() / this.arrayLength();
+        }
+
+        return this.encodedLength();
+    }
+
+    /**
      * Set the encoded length for this node. See {@link #encodedLength()}.
      *
      * @param encodedLength that is overriding existing value.
@@ -259,12 +289,21 @@ public class Token
      */
     public int arrayLength()
     {
+        if (this.arrayCapacity >= 0)
+        {
+            return this.arrayCapacity;
+        }
         if (null == encoding.primitiveType() || 0 == encodedLength)
         {
             return 0;
         }
 
         return encodedLength / encoding.primitiveType().size();
+    }
+
+    public int arrayCapacity()
+    {
+        return this.arrayCapacity;
     }
 
     /**
@@ -374,6 +413,7 @@ public class Token
         private int offset = 0;
         private int componentTokenCount = 1;
         private Encoding encoding = new Encoding();
+        private int arrayCapacity = -1;
 
         public Builder signal(final Signal signal)
         {
@@ -447,6 +487,12 @@ public class Token
             return this;
         }
 
+        public Builder arrayCapacity(final int arrayCapacity)
+        {
+            this.arrayCapacity = arrayCapacity;
+            return this;
+        }
+
         public Token build()
         {
             return new Token(
@@ -461,7 +507,8 @@ public class Token
                 size,
                 offset,
                 componentTokenCount,
-                encoding);
+                encoding,
+                arrayCapacity);
         }
     }
 }

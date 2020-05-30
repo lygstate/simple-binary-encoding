@@ -45,6 +45,7 @@ public class EnumType extends Type
      */
     public static final String ENUM_TYPE = "enum";
 
+    private final int arrayCapacity;
     private final PrimitiveType encodingType;
     private final PrimitiveValue nullValue;
     private final Map<PrimitiveValue, ValidValue> validValueByPrimitiveValueMap = new LinkedHashMap<>();
@@ -52,7 +53,7 @@ public class EnumType extends Type
 
     public EnumType(final Node node) throws XPathExpressionException
     {
-        this(node, null, null);
+        this(node, null, null, -1);
     }
 
     /**
@@ -61,9 +62,10 @@ public class EnumType extends Type
      * @param node           from the XML Schema Parsing
      * @param givenName      for the node.
      * @param referencedName of the type when created from a ref in a composite.
+     * @param arrayCapacity  for this EnumType.
      * @throws XPathExpressionException if the XPath is invalid
      */
-    public EnumType(final Node node, final String givenName, final String referencedName)
+    public EnumType(final Node node, final String givenName, final String referencedName, final int arrayCapacity)
         throws XPathExpressionException
     {
         super(node, givenName, referencedName);
@@ -71,6 +73,7 @@ public class EnumType extends Type
         final XPath xPath = XPathFactory.newInstance().newXPath();
         final String encodingTypeStr = getAttributeValue(node, "encodingType");
         final EncodedDataType encodedDataType;
+        this.arrayCapacity = arrayCapacity;
 
         switch (encodingTypeStr)
         {
@@ -165,6 +168,16 @@ public class EnumType extends Type
     }
 
     /**
+     * The arrayCapacity of the EnumType when this EnumType
+     * referenced as an array element in compositeType
+     * @return arrayCapacity of the EnumType
+     */
+    public int arrayCapacity()
+    {
+        return arrayCapacity;
+    }
+
+    /**
      * The encodedLength (in octets) of the encodingType
      *
      * @return encodedLength of the encodingType
@@ -176,7 +189,14 @@ public class EnumType extends Type
             return 0;
         }
 
-        return encodingType.size();
+        if (this.arrayCapacity < 0)
+        {
+            return encodingType.size();
+        }
+        else
+        {
+            return encodingType.size() * this.arrayCapacity;
+        }
     }
 
     /**

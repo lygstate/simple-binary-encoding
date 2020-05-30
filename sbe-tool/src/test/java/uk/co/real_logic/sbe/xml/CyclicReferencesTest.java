@@ -36,7 +36,7 @@ public class CyclicReferencesTest
         }
         catch (final IllegalStateException ex)
         {
-            assertEquals(ex.getMessage(), "ref types cannot create circular dependencies");
+            assertEquals(ex.getMessage(), "ref types cannot create circular dependencies.");
             return;
         }
 

@@ -40,6 +40,7 @@ public class SetType extends Type
      */
     public static final String SET_TYPE = "set";
 
+    private final int arrayCapacity;
     private final PrimitiveType encodingType;
     private final Map<PrimitiveValue, Subfield> subfieldByPrimitiveValueMap = new LinkedHashMap<>();
     private final Map<String, Subfield> subfieldByNameMap = new LinkedHashMap<>();
@@ -47,7 +48,7 @@ public class SetType extends Type
     public SetType(final Node node)
         throws XPathExpressionException, IllegalArgumentException
     {
-        this(node, null, null);
+        this(node, null, null, -1);
     }
 
     /**
@@ -56,13 +57,15 @@ public class SetType extends Type
      * @param node           from the XML Schema Parsing
      * @param givenName      for the node.
      * @param referencedName of the type when created from a ref in a composite.
+     * @param arrayCapacity  for this EnumType.
      * @throws XPathExpressionException on invalid XPath.
      * @throws IllegalArgumentException on illegal encoding type.
      */
-    public SetType(final Node node, final String givenName, final String referencedName)
+    public SetType(final Node node, final String givenName, final String referencedName, final int arrayCapacity)
         throws XPathExpressionException, IllegalArgumentException
     {
         super(node, givenName, referencedName);
+        this.arrayCapacity = arrayCapacity;
 
         final String encodingTypeStr = getAttributeValueOrNull(node, "encodingType");
         encodingType = getEncodingType(node, encodingTypeStr).encodingType;
@@ -132,13 +135,30 @@ public class SetType extends Type
     }
 
     /**
+     * The arrayCapacity of the SetType when this SetType
+     * referenced as an array element in compositeType
+     * @return arrayCapacity of the SetType
+     */
+    public int arrayCapacity()
+    {
+        return arrayCapacity;
+    }
+
+    /**
      * The encodedLength (in octets) of the encodingType
      *
      * @return encodedLength of the encodingType
      */
     public int encodedLength()
     {
-        return encodingType.size();
+        if (this.arrayCapacity < 0)
+        {
+            return encodingType.size();
+        }
+        else
+        {
+            return encodingType.size() * this.arrayCapacity;
+        }
     }
 
     /**

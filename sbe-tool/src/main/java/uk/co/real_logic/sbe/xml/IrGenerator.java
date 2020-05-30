@@ -231,7 +231,8 @@ public class IrGenerator
             .version(type.sinceVersion())
             .deprecated(type.deprecated())
             .description(type.description())
-            .encoding(encoding);
+            .encoding(encoding)
+            .arrayCapacity(type.arrayCapacity());
 
         if (null != field)
         {
@@ -295,7 +296,8 @@ public class IrGenerator
             .name(type.name())
             .xPath(type.xPath())
             .referencedName(type.referencedName())
-            .size(encodingType.size())
+            .size(type.encodedLength())
+            .arrayCapacity(type.arrayCapacity())
             .offset(offset)
             .version(type.sinceVersion())
             .deprecated(type.deprecated())
@@ -356,7 +358,8 @@ public class IrGenerator
             .name(type.name())
             .xPath(type.xPath())
             .referencedName(type.referencedName())
-            .size(encodingType.size())
+            .size(type.encodedLength())
+            .arrayCapacity(type.arrayCapacity())
             .offset(offset)
             .version(type.sinceVersion())
             .deprecated(type.deprecated())

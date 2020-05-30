@@ -47,14 +47,15 @@ public class CompositeType extends Type
      * SBE schema composite type.
      */
     public static final String COMPOSITE_TYPE = "composite";
-    public static final String SUB_TYPES_EXP = "type|enum|set|composite|ref";
+    public static final String SUB_TYPES_EXP = "type|enum|set|composite|array|ref";
 
+    private final int arrayCapacity;
     private final List<String> compositesPath = new ArrayList<>();
     private final Map<String, Type> containedTypeByNameMap = new LinkedHashMap<>();
 
     public CompositeType(final Node node) throws XPathExpressionException
     {
-        this(node, null, null, new ArrayList<>());
+        this(node, null, null, new ArrayList<>(), -1);
     }
 
     /**
@@ -64,16 +65,22 @@ public class CompositeType extends Type
      * @param givenName      for this node.
      * @param referencedName of the type when created from a ref in a composite.
      * @param compositesPath with the path of composites that represents the levels of composition.
+     * @param arrayCapacity  for this CompositeType.
      * @throws XPathExpressionException if the XPath is invalid.
      */
     public CompositeType(
-        final Node node, final String givenName, final String referencedName, final List<String> compositesPath)
+        final Node node,
+        final String givenName,
+        final String referencedName,
+        final List<String> compositesPath,
+        final int arrayCapacity)
         throws XPathExpressionException
     {
         super(node, givenName, referencedName);
 
         this.compositesPath.addAll(compositesPath);
         this.compositesPath.add(getAttributeValue(node, "name"));
+        this.arrayCapacity = arrayCapacity;
 
         final XPath xPath = XPathFactory.newInstance().newXPath();
         final NodeList list = (NodeList)xPath.compile(SUB_TYPES_EXP).evaluate(node, NODESET);
@@ -83,7 +90,7 @@ public class CompositeType extends Type
             final Node subTypeNode = list.item(i);
             final String subTypeName = XmlSchemaParser.getAttributeValue(subTypeNode, "name");
 
-            processType(subTypeNode, subTypeName, null, null);
+            processType(subTypeNode, subTypeName, null, null, -1);
         }
 
         checkForValidOffsets(node);
@@ -98,6 +105,16 @@ public class CompositeType extends Type
     public Type getType(final String name)
     {
         return containedTypeByNameMap.get(name);
+    }
+
+    /**
+     * The arrayCapacity of the compositeType when this compositeType
+     * referenced as an array element in compositeType
+     * @return arrayCapacity of the compositeType
+     */
+    public int arrayCapacity()
+    {
+        return arrayCapacity;
     }
 
     /**
@@ -127,7 +144,14 @@ public class CompositeType extends Type
             }
         }
 
-        return length;
+        if (this.arrayCapacity < 0)
+        {
+            return length;
+        }
+        else
+        {
+            return length * this.arrayCapacity;
+        }
     }
 
     /**
@@ -425,7 +449,9 @@ public class CompositeType extends Type
     }
 
     private Type processType(
-        final Node subTypeNode, final String subTypeName, final String givenName, final String referencedName)
+        final Node subTypeNode,
+        final String subTypeName, final String givenName, final String referencedName,
+        final int arrayCapacity)
         throws XPathExpressionException
     {
         final String nodeName = subTypeNode.getNodeName();
@@ -437,19 +463,28 @@ public class CompositeType extends Type
         {
             case "type":
                 type = addType(subTypeNode, subTypeName, new EncodedDataType(subTypeNode, givenName, referencedName));
+                if (arrayCapacity >= 0)
+                {
+                    XmlSchemaParser.handleError(
+                        subTypeNode,
+                        String.format("'array' member should not reference to 'type'\n" +
+                        "and it can only reference to 'enum', 'set' and 'composite'."));
+                }
                 break;
 
             case "enum":
             {
                 final String enumReferencedName = referencedName != null ? referencedName : typeName;
-                type = addType(subTypeNode, subTypeName, new EnumType(subTypeNode, givenName, enumReferencedName));
+                type = addType(subTypeNode, subTypeName,
+                    new EnumType(subTypeNode, givenName, enumReferencedName, arrayCapacity));
                 break;
             }
 
             case "set":
             {
                 final String setReferencedName = referencedName != null ? referencedName : typeName;
-                type = addType(subTypeNode, subTypeName, new SetType(subTypeNode, givenName, setReferencedName));
+                type = addType(subTypeNode, subTypeName,
+                    new SetType(subTypeNode, givenName, setReferencedName, arrayCapacity));
                 break;
             }
 
@@ -458,12 +493,18 @@ public class CompositeType extends Type
                 type = addType(
                     subTypeNode,
                     subTypeName,
-                    new CompositeType(subTypeNode, givenName, compositeReferencedName, compositesPath));
+                    new CompositeType(subTypeNode, givenName, compositeReferencedName, compositesPath, arrayCapacity));
                 break;
 
+            case "array":
             case "ref":
             {
                 final XPath xPath = XPathFactory.newInstance().newXPath();
+                int length = -1;
+                if (nodeName.equals("array"))
+                {
+                    length = Integer.parseInt(XmlSchemaParser.getAttributeValue(subTypeNode, "length"));
+                }
 
                 final String refName = XmlSchemaParser.getAttributeValue(subTypeNode, "name");
                 final String refTypeName = XmlSchemaParser.getAttributeValue(subTypeNode, "type");
@@ -474,17 +515,19 @@ public class CompositeType extends Type
 
                 if (refTypeNode == null)
                 {
-                    XmlSchemaParser.handleError(subTypeNode, "ref type not found: " + refTypeName);
+                    XmlSchemaParser.handleError(subTypeNode,
+                        String.format("%1$s type not found: %2$s", nodeName, refTypeName));
                 }
                 else
                 {
                     if (compositesPath.contains(refTypeName))
                     {
-                        XmlSchemaParser.handleError(refTypeNode, "ref types cannot create circular dependencies.");
-                        throw new IllegalStateException("ref types cannot create circular dependencies");
+                        final String err = String.format("%1$s types cannot create circular dependencies.", nodeName);
+                        XmlSchemaParser.handleError(refTypeNode, err);
+                        throw new IllegalStateException(err);
                     }
 
-                    type = processType(refTypeNode, refName, refName, refTypeName);
+                    type = processType(refTypeNode, refName, refName, refTypeName, length);
 
                     if (-1 != refOffset)
                     {
