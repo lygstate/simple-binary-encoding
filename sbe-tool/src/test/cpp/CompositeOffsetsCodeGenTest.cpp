@@ -39,7 +39,7 @@ public:
     {
         m_msg.wrapForEncode(buffer, offset, bufferLength);
 
-        TestMessage1::Entries &entries = m_msg.entriesCount(2);
+        TestMessage1Groups::Entries &entries = m_msg.entriesCount(2);
 
         entries.next()
             .tagGroup1(10)
@@ -74,8 +74,8 @@ TEST_F(CompositeOffsetsCodeGenTest, shouldReturnCorrectValuesForTestMessage1Stat
     EXPECT_EQ(TestMessage1::sbeSchemaId(), 15);
     EXPECT_EQ(TestMessage1::sbeSchemaVersion(), 0);
     EXPECT_EQ(std::string(TestMessage1::sbeSemanticType()), std::string(""));
-    EXPECT_EQ(TestMessage1::Entries::sbeBlockLength(), 16u);
-    EXPECT_EQ(TestMessage1::Entries::sbeHeaderSize(), 8u);
+    EXPECT_EQ(TestMessage1Groups::Entries::sbeBlockLength(), 16u);
+    EXPECT_EQ(TestMessage1Groups::Entries::sbeHeaderSize(), 8u);
 }
 
 TEST_F(CompositeOffsetsCodeGenTest, shouldBeAbleToEncodeMessageHeaderCorrectly)
@@ -113,7 +113,7 @@ TEST_F(CompositeOffsetsCodeGenTest, shouldBeAbleToEncodeMessageCorrectly)
 
     EXPECT_EQ(sz, 40u);
 
-    EXPECT_EQ(*(::uint16_t *)bp, TestMessage1::Entries::sbeBlockLength());
+    EXPECT_EQ(*(::uint16_t *)bp, TestMessage1Groups::Entries::sbeBlockLength());
     EXPECT_EQ(*(::uint8_t *)(bp + 7), 2u);
     EXPECT_EQ(*(::uint64_t *)(bp + 8), 10u);
     EXPECT_EQ(*(::int64_t *)(bp + 16), 20u);
@@ -139,7 +139,7 @@ TEST_F(CompositeOffsetsCodeGenTest, shouldBeAbleToDecodeHeaderAndMsgCorrectly)
 
     m_msgDecoder.wrapForDecode(buffer, hdrSz, TestMessage1::sbeBlockLength(), TestMessage1::sbeSchemaVersion(), hdrSz + sz);
 
-    TestMessage1::Entries entries = m_msgDecoder.entries();
+    TestMessage1Groups::Entries entries = m_msgDecoder.entries();
     EXPECT_EQ(entries.count(), 2u);
 
     ASSERT_TRUE(entries.hasNext());
