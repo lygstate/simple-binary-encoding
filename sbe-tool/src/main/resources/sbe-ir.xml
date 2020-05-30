@@ -85,6 +85,7 @@
         <field name="byteOrder" id="8" type="ByteOrderCodec"/>
         <field name="presence" id="9" type="PresenceCodec"/>
         <field name="deprecated" id="10" type="deprecatedVersionType"/>
+        <field name="arrayCapacity" id="200" type="int32"/>
         <data name="name" id="11" type="varDataEncoding"/>
         <data name="constValue" id="12" type="varDataEncoding"/>
         <data name="minValue" id="13" type="varDataEncoding"/>

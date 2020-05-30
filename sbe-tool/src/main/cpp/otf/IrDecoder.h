@@ -240,6 +240,7 @@ private:
         std::int32_t id = tokenCodec.fieldId();
         std::int32_t version = tokenCodec.tokenVersion();
         std::int32_t componentTokenCount = tokenCodec.componentTokenCount();
+        std::int32_t arrayCapacity = tokenCodec.arrayCapacity();
         char tmpBuffer[256];
         std::uint64_t tmpLen = 0;
 
@@ -280,7 +281,7 @@ private:
             type, presence, byteOrder, minValue, maxValue, nullValue, constValue,
             characterEncoding, epoch, timeUnit, semanticType);
 
-        Token token(tokenOffset, id, version, tokenSize, componentTokenCount, signal, name, description, encoding);
+        Token token(tokenOffset, id, version, tokenSize, componentTokenCount, arrayCapacity, signal, name, description, encoding);
 
         tokens->push_back(token);
 

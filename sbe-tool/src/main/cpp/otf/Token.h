@@ -74,6 +74,7 @@ public:
         std::int32_t version,
         std::int32_t encodedLength,
         std::int32_t componentTokenCount,
+        std::int32_t arrayCapacity,
         Signal signal,
         std::string name,
         std::string description,
@@ -83,6 +84,7 @@ public:
         m_version(version),
         m_encodedLength(encodedLength),
         m_componentTokenCount(componentTokenCount),
+        m_arrayCapacity(arrayCapacity),
         m_signal(signal),
         m_name(std::move(name)),
         m_description(std::move(description)),
@@ -135,6 +137,11 @@ public:
         return m_componentTokenCount;
     }
 
+    inline std::int32_t arrayCapacity() const
+    {
+        return m_arrayCapacity;
+    }
+
     inline bool isConstantEncoding() const
     {
         return m_encoding.presence() == Presence::SBE_CONSTANT;
@@ -146,6 +153,7 @@ private:
     const std::int32_t m_version;
     const std::int32_t m_encodedLength;
     const std::int32_t m_componentTokenCount;
+    const std::int32_t m_arrayCapacity;
     const Signal m_signal;
     const std::string m_name;
     const std::string m_description;

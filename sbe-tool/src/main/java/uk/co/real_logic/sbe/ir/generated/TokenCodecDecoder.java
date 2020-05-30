@@ -10,7 +10,7 @@ import org.agrona.DirectBuffer;
 @SuppressWarnings("all")
 public class TokenCodecDecoder
 {
-    public static final int BLOCK_LENGTH = 28;
+    public static final int BLOCK_LENGTH = 32;
     public static final int TEMPLATE_ID = 2;
     public static final int SCHEMA_ID = 1;
     public static final int SCHEMA_VERSION = 0;
@@ -545,6 +545,57 @@ public class TokenCodecDecoder
     public int deprecated()
     {
         return buffer.getInt(offset + 24, java.nio.ByteOrder.LITTLE_ENDIAN);
+    }
+
+
+    public static int arrayCapacityId()
+    {
+        return 200;
+    }
+
+    public static int arrayCapacitySinceVersion()
+    {
+        return 0;
+    }
+
+    public static int arrayCapacityEncodingOffset()
+    {
+        return 28;
+    }
+
+    public static int arrayCapacityEncodingLength()
+    {
+        return 4;
+    }
+
+    public static String arrayCapacityMetaAttribute(final MetaAttribute metaAttribute)
+    {
+        if (MetaAttribute.PRESENCE == metaAttribute)
+        {
+            return "required";
+        }
+
+        return "";
+    }
+
+    public static int arrayCapacityNullValue()
+    {
+        return -2147483648;
+    }
+
+    public static int arrayCapacityMinValue()
+    {
+        return -2147483647;
+    }
+
+    public static int arrayCapacityMaxValue()
+    {
+        return 2147483647;
+    }
+
+    public int arrayCapacity()
+    {
+        return buffer.getInt(offset + 28, java.nio.ByteOrder.LITTLE_ENDIAN);
     }
 
 
@@ -1806,6 +1857,9 @@ public class TokenCodecDecoder
         builder.append('|');
         builder.append("deprecated=");
         builder.append(deprecated());
+        builder.append('|');
+        builder.append("arrayCapacity=");
+        builder.append(arrayCapacity());
         builder.append('|');
         builder.append("name=");
         builder.append('\'').append(name()).append('\'');

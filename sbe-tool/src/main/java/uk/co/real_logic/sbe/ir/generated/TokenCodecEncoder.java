@@ -10,7 +10,7 @@ import org.agrona.DirectBuffer;
 @SuppressWarnings("all")
 public class TokenCodecEncoder
 {
-    public static final int BLOCK_LENGTH = 28;
+    public static final int BLOCK_LENGTH = 32;
     public static final int TEMPLATE_ID = 2;
     public static final int SCHEMA_ID = 1;
     public static final int SCHEMA_VERSION = 0;
@@ -555,6 +555,58 @@ public class TokenCodecEncoder
     public TokenCodecEncoder deprecated(final int value)
     {
         buffer.putInt(offset + 24, value, java.nio.ByteOrder.LITTLE_ENDIAN);
+        return this;
+    }
+
+
+    public static int arrayCapacityId()
+    {
+        return 200;
+    }
+
+    public static int arrayCapacitySinceVersion()
+    {
+        return 0;
+    }
+
+    public static int arrayCapacityEncodingOffset()
+    {
+        return 28;
+    }
+
+    public static int arrayCapacityEncodingLength()
+    {
+        return 4;
+    }
+
+    public static String arrayCapacityMetaAttribute(final MetaAttribute metaAttribute)
+    {
+        if (MetaAttribute.PRESENCE == metaAttribute)
+        {
+            return "required";
+        }
+
+        return "";
+    }
+
+    public static int arrayCapacityNullValue()
+    {
+        return -2147483648;
+    }
+
+    public static int arrayCapacityMinValue()
+    {
+        return -2147483647;
+    }
+
+    public static int arrayCapacityMaxValue()
+    {
+        return 2147483647;
+    }
+
+    public TokenCodecEncoder arrayCapacity(final int value)
+    {
+        buffer.putInt(offset + 28, value, java.nio.ByteOrder.LITTLE_ENDIAN);
         return this;
     }
 
