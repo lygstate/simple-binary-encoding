@@ -28,6 +28,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static uk.co.real_logic.sbe.TestUtil.getLocalResource;
 import static uk.co.real_logic.sbe.xml.XmlSchemaParser.parse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class BasicXmlIrGenerationTest
 {
@@ -299,4 +301,107 @@ public class BasicXmlIrGenerationTest
         assertThat(tokens.get(dataEncIdx).signal(), is(Signal.ENCODING));
         assertThat(tokens.get(dataEncIdx).encoding().primitiveType(), is(PrimitiveType.CHAR));
     }
+
+    @Test
+    public void shouldExitAfterWhenDupEnumTypesDefined()
+        throws Exception
+    {
+        try
+        {
+            final MessageSchema schema = parse(getLocalResource(
+                "error-handler-types-dup-type-enum.xml"), ParserOptions.DEFAULT);
+            final IrGenerator irg = new IrGenerator();
+            irg.generate(schema);
+        }
+        catch (final IllegalStateException ex)
+        {
+            final String err = ex.getMessage().split("\n")[0];
+            assertEquals("ERROR: duplicate type 'OrderEnumType' are redefined", err);
+            return;
+        }
+
+        fail("expected IllegalStateException");
+    }
+
+    @Test
+    public void shouldExitAfterWhenDupSetTypesDefined()
+        throws Exception
+    {
+        try
+        {
+            final MessageSchema schema = parse(getLocalResource(
+                "error-handler-types-dup-type-set.xml"), ParserOptions.DEFAULT);
+            final IrGenerator irg = new IrGenerator();
+            irg.generate(schema);
+        }
+        catch (final IllegalStateException ex)
+        {
+            final String err = ex.getMessage().split("\n")[0];
+            assertEquals("ERROR: duplicate type 'OptionalExtrasType' are redefined", err);
+            return;
+        }
+
+        fail("expected IllegalStateException");
+    }
+
+    @Test
+    public void shouldExitAfterWhenDupCompositeTypesDefined()
+        throws Exception
+    {
+        try
+        {
+            final MessageSchema schema = parse(getLocalResource(
+                "error-handler-types-dup-type-composite.xml"), ParserOptions.DEFAULT);
+            final IrGenerator irg = new IrGenerator();
+            irg.generate(schema);
+        }
+        catch (final IllegalStateException ex)
+        {
+            final String err = ex.getMessage().split("\n")[0];
+            assertEquals("ERROR: duplicate type 'CompositeEmbedType' are redefined", err);
+            return;
+        }
+
+        fail("expected IllegalStateException");
+    }
+
+    @Test
+    public void shouldExitAfterWhenDupNameTypesDefined()
+        throws Exception
+    {
+        try
+        {
+            final MessageSchema schema = parse(getLocalResource(
+                "error-handler-types-dup-type-by-name.xml"), ParserOptions.DEFAULT);
+            final IrGenerator irg = new IrGenerator();
+            irg.generate(schema);
+        }
+        catch (final IllegalStateException ex)
+        {
+            final String err = ex.getMessage().split("\n")[0];
+            assertEquals("ERROR: duplicate type 'compositeDupName' are redefined", err);
+            return;
+        }
+
+        fail("expected IllegalStateException");
+    }
+
+    @Test
+    public void shouldHandleNestCompositeTypeName()
+        throws Exception
+    {
+        final MessageSchema schema = parse(getLocalResource(
+            "composite-elements-schema-nested-type.xml"), ParserOptions.DEFAULT);
+        final IrGenerator irg = new IrGenerator();
+        final Ir ir = irg.generate(schema);
+        assertThat(ir.getType("CompositeEmbedType").size(), is(4));
+        assertEquals(ir.getType("compositeEmbed"), null);
+
+        assertThat(ir.getType("OrderEnumType").size(), is(5));
+        assertEquals(ir.getType("orderKindEmbbed"), null);
+
+        assertThat(ir.getType("OptionalExtrasType").size(), is(5));
+        assertEquals(ir.getType("OptionalExtras"), null);
+    }
+
 }

@@ -431,6 +431,8 @@ public class CompositeType extends Type
         final String nodeName = subTypeNode.getNodeName();
         Type type = null;
 
+        final String typeName = XmlSchemaParser.getAttributeValueOrNull(subTypeNode, "type");
+
         switch (nodeName)
         {
             case "type":
@@ -438,18 +440,25 @@ public class CompositeType extends Type
                 break;
 
             case "enum":
-                type = addType(subTypeNode, subTypeName, new EnumType(subTypeNode, givenName, referencedName));
+            {
+                final String enumReferencedName = referencedName != null ? referencedName : typeName;
+                type = addType(subTypeNode, subTypeName, new EnumType(subTypeNode, givenName, enumReferencedName));
                 break;
+            }
 
             case "set":
-                type = addType(subTypeNode, subTypeName, new SetType(subTypeNode, givenName, referencedName));
+            {
+                final String setReferencedName = referencedName != null ? referencedName : typeName;
+                type = addType(subTypeNode, subTypeName, new SetType(subTypeNode, givenName, setReferencedName));
                 break;
+            }
 
             case "composite":
+                final String compositeReferencedName = referencedName != null ? referencedName : typeName;
                 type = addType(
                     subTypeNode,
                     subTypeName,
-                    new CompositeType(subTypeNode, givenName, referencedName, compositesPath));
+                    new CompositeType(subTypeNode, givenName, compositeReferencedName, compositesPath));
                 break;
 
             case "ref":

@@ -82,6 +82,7 @@ public class Token
 
     private final Signal signal;
     private final String name;
+    private final String xPath;
     private final String referencedName;
     private final String description;
     private final int id;
@@ -97,6 +98,7 @@ public class Token
      *
      * @param signal              for the token role.
      * @param name                of the token in the message.
+     * @param xPath               of the token in the xml.
      * @param referencedName      of the type when created from a ref in a composite.
      * @param description         of what the token is for.
      * @param id                  as the identifier in the message declaration.
@@ -110,6 +112,7 @@ public class Token
     public Token(
         final Signal signal,
         final String name,
+        final String xPath,
         final String referencedName,
         final String description,
         final int id,
@@ -126,6 +129,7 @@ public class Token
 
         this.signal = signal;
         this.name = name;
+        this.xPath = xPath;
         this.referencedName = referencedName;
         this.description = description;
         this.id = id;
@@ -155,6 +159,16 @@ public class Token
     public String name()
     {
         return name;
+    }
+
+    /**
+     * Return the xPath of the token
+     *
+     * @return xPath of the token
+     */
+    public String xPath()
+    {
+        return xPath;
     }
 
     /**
@@ -350,6 +364,7 @@ public class Token
     {
         private Signal signal;
         private String name;
+        private String xPath;
         private String referencedName;
         private String description;
         private int id = INVALID_ID;
@@ -369,6 +384,12 @@ public class Token
         public Builder name(final String name)
         {
             this.name = name;
+            return this;
+        }
+
+        public Builder xPath(final String xPath)
+        {
+            this.xPath = xPath;
             return this;
         }
 
@@ -431,6 +452,7 @@ public class Token
             return new Token(
                 signal,
                 name,
+                xPath,
                 referencedName,
                 description,
                 id,

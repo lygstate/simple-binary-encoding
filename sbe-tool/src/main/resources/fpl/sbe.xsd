@@ -185,6 +185,7 @@
         <xs:annotation>
             <xs:documentation>
                 A wire encoding composed of multiple parts
+                type is a referenceName if compositeDataType a in composite directly
             </xs:documentation>
         </xs:annotation>
         <xs:choice maxOccurs="unbounded">
@@ -195,6 +196,7 @@
             <xs:element name="ref" type="sbe:refType"/>
         </xs:choice>
         <xs:attribute name="name" type="sbe:symbolicName_t" use="required"/>
+        <xs:attribute name="type" type="sbe:symbolicName_t" use="optional"/>
         <xs:attributeGroup ref="sbe:alignmentAttributes"/>
         <xs:attributeGroup ref="sbe:semanticAttributes"/>
         <xs:attributeGroup ref="sbe:versionAttributes"/>
@@ -203,12 +205,14 @@
         <xs:annotation>
             <xs:documentation>
                 An enumeration of valid values
+                type is a referenceName if enumType a in composite directly
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
             <xs:element name="validValue" type="sbe:validValue" maxOccurs="unbounded"/>
         </xs:sequence>
         <xs:attribute name="name" type="sbe:symbolicName_t" use="required"/>
+        <xs:attribute name="type" type="sbe:symbolicName_t" use="optional"/>
         <xs:attribute name="encodingType" type="sbe:symbolicName_t" use="required"/>
         <xs:attributeGroup ref="sbe:alignmentAttributes"/>
         <xs:attributeGroup ref="sbe:byteOrderAttributes"/>
@@ -244,13 +248,15 @@
     <xs:complexType name="setType" mixed="true">
         <xs:annotation>
             <xs:documentation>
-                A multi value choice (encoded as a bitset)
+                A multi value choice/bits (encoded as a bitset)
+                type is a referenceName if setType a in composite directly
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
             <xs:element name="choice" type="sbe:choice" maxOccurs="64"/>
         </xs:sequence>
         <xs:attribute name="name" type="sbe:symbolicName_t" use="required"/>
+        <xs:attribute name="type" type="sbe:symbolicName_t" use="optional"/>
         <xs:attribute name="encodingType" type="sbe:symbolicName_t" use="required"/>
         <xs:attributeGroup ref="sbe:alignmentAttributes"/>
         <xs:attributeGroup ref="sbe:byteOrderAttributes"/>

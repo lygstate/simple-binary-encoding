@@ -290,16 +290,16 @@ public class Ir
             switch (token.signal())
             {
                 case BEGIN_COMPOSITE:
-                    i = captureType(tokens, i, Signal.END_COMPOSITE, token.name(), token.referencedName());
+                    i = captureType(tokens, i, Signal.END_COMPOSITE, token);
                     captureTypes(tokens, typeBeginIndex + 1, i - 1);
                     break;
 
                 case BEGIN_ENUM:
-                    i = captureType(tokens, i, Signal.END_ENUM, token.name(), token.referencedName());
+                    i = captureType(tokens, i, Signal.END_ENUM, token);
                     break;
 
                 case BEGIN_SET:
-                    i = captureType(tokens, i, Signal.END_SET, token.name(), token.referencedName());
+                    i = captureType(tokens, i, Signal.END_SET, token);
                     break;
             }
         }
@@ -309,8 +309,7 @@ public class Ir
         final List<Token> tokens,
         final int index,
         final Signal endSignal,
-        final String name,
-        final String referencedName)
+        final Token baseToken)
     {
         final List<Token> typeTokens = new ArrayList<>();
 
@@ -322,10 +321,22 @@ public class Ir
             token = tokens.get(++i);
             typeTokens.add(token);
         }
-        while (endSignal != token.signal() || !name.equals(token.name()));
+        while (endSignal != token.signal() || !baseToken.name().equals(token.name()));
 
         updateComponentTokenCounts(typeTokens);
-        typesByNameMap.put(null == referencedName ? name : referencedName, typeTokens);
+        final String applicableTypeName = baseToken.applicableTypeName();
+        if (typesByNameMap.containsKey(applicableTypeName))
+        {
+            final Token existToken = typesByNameMap.get(applicableTypeName).get(0);
+            if (existToken.xPath() != null && baseToken.xPath() != null &&
+                !existToken.xPath().equals(baseToken.xPath()))
+            {
+                throw new IllegalStateException(String.format(
+                    "ERROR: duplicate type '%1$s' are redefined\nxPath exist:%2$s\nxPath new:%3$s",
+                    applicableTypeName, existToken.xPath(), baseToken.xPath()));
+            }
+        }
+        typesByNameMap.put(applicableTypeName, typeTokens);
 
         return i;
     }

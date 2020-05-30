@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<sbe:messageSchema xmlns:sbe="http://fixprotocol.io/2016/sbe"
+                   package="composite.elements"
+                   id="3"
+                   version="0"
+                   semanticVersion="5.2"
+                   description="Unit Test"
+                   byteOrder="littleEndian">
+    <types>
+        <composite name="messageHeader" description="Message identifiers and length of message root">
+            <type name="blockLength" primitiveType="uint16"/>
+            <type name="templateId" primitiveType="uint16"/>
+            <type name="schemaId" primitiveType="uint16"/>
+            <type name="version" primitiveType="uint16"/>
+        </composite>
+
+        <composite name="TypeToTestNestType">
+            <composite name="compositeEmbed" type="CompositeEmbedType">
+                <type name="price" primitiveType="double"/>
+                <type name="volume" primitiveType="double"/>
+            </composite>
+            <enum name="orderKindEmbbed" type="OrderEnumType" encodingType="uint16" byteOrder="littleEndian">
+                <validValue name="market">0</validValue>
+                <validValue name="stop">2</validValue>
+                <validValue name="limit">1</validValue>
+            </enum>
+            <set name="OptionalExtras" type="OptionalExtrasType" encodingType="uint16" byteOrder="littleEndian">
+                <choice name="sunRoof">0</choice>
+                <choice name="sportsPack">1</choice>
+                <choice name="cruiseControl">2</choice>
+            </set>
+        </composite>
+    </types>
+
+    <sbe:message name="Msg" id="1">
+        <field name="nestType" id="42" type="TypeToTestNestType"/>
+    </sbe:message>
+</sbe:messageSchema>

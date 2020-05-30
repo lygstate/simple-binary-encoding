@@ -28,6 +28,7 @@ import static uk.co.real_logic.sbe.xml.XmlSchemaParser.getAttributeValueOrNull;
 public abstract class Type
 {
     private final String name;
+    private final String xPath;
     private final Presence presence;
     private final String description;
     private final int sinceVersion;
@@ -55,6 +56,8 @@ public abstract class Type
         {
             name = givenName;
         }
+
+        this.xPath = getXPath(node);
 
         this.referencedName = referencedName;
 
@@ -89,10 +92,22 @@ public abstract class Type
         }
     }
 
+    private static String getXPath(final Node node)
+    {
+        final Node parent = node.getParentNode();
+        if (parent == null)
+        {
+            return node.getNodeName();
+        }
+        final String name = getAttributeValueOrNull(node, "name");
+        return getXPath(parent) + String.format("/%1$s[name='%2$s']", node.getNodeName(), name == null ? "" : name);
+    }
+
     /**
      * Construct a new Type from direct values.
      *
      * @param name         of the type
+     * @param xPath        of the node in the xml.
      * @param presence     of the type
      * @param description  of the type or null
      * @param sinceVersion for the type
@@ -101,6 +116,7 @@ public abstract class Type
      */
     public Type(
         final String name,
+        final String xPath,
         final Presence presence,
         final String description,
         final int sinceVersion,
@@ -108,6 +124,7 @@ public abstract class Type
         final String semanticType)
     {
         this.name = name;
+        this.xPath = xPath;
         this.presence = presence;
         this.description = description;
         this.sinceVersion = sinceVersion;
@@ -129,6 +146,16 @@ public abstract class Type
     }
 
     /**
+     * Return the name of the type
+     *
+     * @return name of the Type
+     */
+    public String xPath()
+    {
+        return xPath;
+    }
+
+    /**
      * Get the name of the type field is from a reference.
      *
      * @return the name of the type field is from a reference.
@@ -136,6 +163,16 @@ public abstract class Type
     public String referencedName()
     {
         return referencedName;
+    }
+
+    /**
+     * Get the name of the type that should be applied in context.
+     *
+     * @return the name of the type that should be applied in context.
+     */
+    public String applicableTypeName()
+    {
+        return null == referencedName ? name : referencedName;
     }
 
     /**

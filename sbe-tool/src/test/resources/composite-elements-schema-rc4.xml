@@ -30,17 +30,17 @@
         </composite>
 
         <composite name="outerWithOffsets">
-            <enum name="enumOne" description="enum as uint8" encodingType="uint8" offset="2" semanticType="int">
+            <enum name="enumTwo" description="enum as uint8" encodingType="uint8" offset="2" semanticType="int">
                 <validValue name="Value1">1</validValue>
-                <validValue name="Value10">10</validValue>
+                <validValue name="Value10">101</validValue>
             </enum>
             <type name="zeroth" primitiveType="uint8"/>
-            <set name="setOne" description="set as uint32" encodingType="uint32" offset= "8" semanticType="int">
+            <set name="setTwo" description="set as uint32" encodingType="uint32" offset= "8" semanticType="int">
                 <choice name="Bit0">0</choice>
                 <choice name="Bit16">16</choice>
                 <choice name="Bit26">26</choice>
             </set>
-            <composite name="inner" offset="16">
+            <composite name="inner2" offset="16">
                 <type name="first" primitiveType="int64"/>
                 <type name="second" primitiveType="int64"/>
             </composite>

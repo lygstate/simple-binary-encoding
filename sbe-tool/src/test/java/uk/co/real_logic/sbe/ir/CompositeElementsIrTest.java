@@ -127,13 +127,13 @@ public class CompositeElementsIrTest
         assertThat(zerothToken.encoding().primitiveType(), is(PrimitiveType.UINT8));
 
         assertThat(setToken.signal(), is(Signal.BEGIN_SET));
-        assertThat(setToken.name(), is("setOne"));
+        assertThat(setToken.name(), is("setTwo"));
         assertThat(setToken.encodedLength(), is(4));
         assertThat(setToken.encoding().primitiveType(), is(PrimitiveType.UINT32));
         assertThat(setToken.offset(), is(8));
 
         assertThat(innerCompositeToken.signal(), is(Signal.BEGIN_COMPOSITE));
-        assertThat(innerCompositeToken.name(), is("inner"));
+        assertThat(innerCompositeToken.name(), is("inner2"));
         assertThat(innerCompositeToken.offset(), is(16));
 
         assertThat(firstToken.signal(), is(Signal.ENCODING));
