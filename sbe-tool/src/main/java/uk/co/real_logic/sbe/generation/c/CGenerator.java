@@ -787,13 +787,12 @@ public class CGenerator implements CodeGenerator
 
         for (final Token token : tokens)
         {
-            final CharSequence constVal = generateLiteral(
-                token.encoding().primitiveType(), token.encoding().constValue().toString());
             sb.append(String.format(
                 "    %s_%s = %s,\n",
                 enumName,
                 token.name(),
-                constVal));
+                generateLiteral(token.encoding())
+            ));
         }
 
         sb.append(String.format(
@@ -812,40 +811,59 @@ public class CGenerator implements CodeGenerator
         final String enumName = formatScopedName(scope, encodingToken.applicableTypeName());
         final StringBuilder sb = new StringBuilder();
 
-        sb.append(String.format(
+        for (final Token token : tokens)
+        {
+            sb.append(String.format(
+                "        case %s_%s:\n" +
+                "             return true;\n",
+                enumName,
+                token.name()
+            ));
+        }
+
+
+        return String.format(
+            "SBE_ONE_DEF bool %1$s_is_normal(\n" +
+            "    const %2$s value)\n" +
+            "{\n" +
+            "    switch (value)\n" +
+            "    {\n" +
+            "%3$s" +
+            "        default:\n" +
+            "             return false;\n" +
+            "    }\n" +
+            "}\n\n" +
+
+            "SBE_ONE_DEF bool %1$s_is_null(\n" +
+            "    const %2$s value)\n" +
+            "{\n" +
+
+            "    return value == %1$s_NULL_VALUE;\n" +
+            "}\n\n" +
+
             "SBE_ONE_DEF bool %1$s_get(\n" +
             "    const %2$s value,\n" +
             "    enum %1$s *const out)\n" +
             "{\n" +
-            "    switch (value)\n" +
-            "    {\n",
-            enumName,
-            cTypeName(tokens.get(0).encoding().primitiveType())));
-
-        for (final Token token : tokens)
-        {
-            sb.append(String.format(
-                "        case %s:\n" +
-                "             *out = %s_%s;\n" +
-                "             return true;\n",
-                token.encoding().constValue().toString(),
-                enumName,
-                token.name()));
-        }
-
-        sb.append(String.format(
-            "        case %s:\n" +
-            "             *out = %s_NULL_VALUE;\n" +
-            "             return true;\n" +
-            "    }\n\n" +
-
+            "    if (%1$s_is_normal(value) || %1$s_is_null(value))\n" +
+            "    {\n" +
+            "        *out = (enum %1$s)value;\n" +
+            "        return true;\n" +
+            "    }\n" +
+            "    *out =  %1$s_NULL_VALUE;\n" +
             "    errno = E103;\n" +
             "    return false;\n" +
-            "}\n",
-            encodingToken.encoding().applicableNullValue().toString(),
-            enumName));
+            "}\n\n" +
 
-        return sb;
+            "SBE_ONE_DEF uint64_t %1$s_encoded_length(void)\n" +
+            "{\n" +
+            "    return %4$s;\n" +
+            "}\n",
+            enumName,
+            cTypeName(encodingToken.encoding().primitiveType()),
+            sb,
+            encodingToken.encoding().primitiveType().size()
+        );
     }
 
     private CharSequence generateFieldNotPresentCondition(final int sinceVersion, final CharSequence nullReturn)
@@ -1388,7 +1406,7 @@ public class CGenerator implements CodeGenerator
                 "}\n",
                 cTypeName,
                 propertyName,
-                generateLiteral(token.encoding().primitiveType(), token.encoding().constValue().toString()),
+                generateLiteral(token.encoding()),
                 containingStructName);
         }
 
@@ -2080,7 +2098,12 @@ public class CGenerator implements CodeGenerator
         return generateLiteral(primitiveType, encoding.applicableNullValue().toString());
     }
 
-    private CharSequence generateLiteral(final PrimitiveType type, final String value)
+    private static CharSequence generateLiteral(final Encoding encoding)
+    {
+        return generateLiteral(encoding.primitiveType(), encoding.constValue().toString());
+    }
+
+    private static CharSequence generateLiteral(final PrimitiveType type, final String value)
     {
         String literal = "";
 
