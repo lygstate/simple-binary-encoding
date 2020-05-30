@@ -57,7 +57,7 @@ public:
            .next().speed(55).mpg(49.0f)
            .next().speed(75).mpg(40.0f);
 
-        Car::PerformanceFigures &performanceFigures = car.performanceFiguresCount(2);
+        CarGroups::PerformanceFigures &performanceFigures = car.performanceFiguresCount(2);
 
         performanceFigures.next()
             .octaneRating((short)95)
@@ -107,7 +107,7 @@ public:
         tmpChar = engine.manufacturerCode();
         tmpChar = engine.fuel();
 
-        Car::FuelFigures &fuelFigures = car.fuelFigures();
+        CarGroups::FuelFigures &fuelFigures = car.fuelFigures();
         while (fuelFigures.hasNext())
         {
             fuelFigures.next();
@@ -115,13 +115,13 @@ public:
             tmpDouble = fuelFigures.mpg();
         }
 
-        Car::PerformanceFigures &performanceFigures = car.performanceFigures();
+        CarGroups::PerformanceFigures &performanceFigures = car.performanceFigures();
         while (performanceFigures.hasNext())
         {
             performanceFigures.next();
             tmpInt = performanceFigures.octaneRating();
 
-            Car::PerformanceFigures::Acceleration &acceleration = performanceFigures.acceleration();
+            CarGroups::PerformanceFiguresGroups::Acceleration &acceleration = performanceFigures.acceleration();
             while (acceleration.hasNext())
             {
                 acceleration.next();

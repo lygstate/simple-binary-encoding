@@ -37,7 +37,7 @@ public:
         marketData_.eventTimeDelta(987);
         marketData_.matchEventIndicator(MatchEventIndicator::END_EVENT);
 
-        MarketDataIncrementalRefreshTrades::MdIncGrp &mdIncGrp = marketData_.mdIncGrpCount(2);
+        MarketDataIncrementalRefreshTradesGroups::MdIncGrp &mdIncGrp = marketData_.mdIncGrpCount(2);
 
         mdIncGrp.next();
         mdIncGrp.tradeId(1234L);
@@ -77,7 +77,7 @@ public:
         static_cast<void>(marketData_.eventTimeDelta());
         static_cast<void>(marketData_.matchEventIndicator());
 
-        MarketDataIncrementalRefreshTrades::MdIncGrp &mdIncGrp = marketData_.mdIncGrp();
+        MarketDataIncrementalRefreshTradesGroups::MdIncGrp &mdIncGrp = marketData_.mdIncGrp();
         while (mdIncGrp.hasNext())
         {
             mdIncGrp.next();

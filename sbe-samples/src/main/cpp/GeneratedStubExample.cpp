@@ -87,7 +87,7 @@ std::size_t encodeCar(Car &car, char *buffer, std::uint64_t offset, std::uint64_
        .boosterEnabled(BooleanType::T)
        .booster().boostType(BoostType::NITROUS).horsePower(200);
 
-    Car::FuelFigures& fuelFigures = car.fuelFiguresCount(3);
+    CarGroups::FuelFigures& fuelFigures = car.fuelFiguresCount(3);
 
     fuelFigures
         .next().speed(30).mpg(35.9f)
@@ -101,7 +101,7 @@ std::size_t encodeCar(Car &car, char *buffer, std::uint64_t offset, std::uint64_
         .next().speed(75).mpg(40.0f)
         .putUsageDescription("Highway Cycle", 13);
 
-    Car::PerformanceFigures &performanceFigures = car.performanceFiguresCount(2);
+    CarGroups::PerformanceFigures &performanceFigures = car.performanceFiguresCount(2);
 
     performanceFigures.next()
         .octaneRating((short)95)
@@ -193,14 +193,14 @@ std::size_t decodeCar(
     std::cout << "\ncar.extrasId=" << Car::extrasId();
     std::cout << "\ncar.engineId=" << Car::engineId();
     std::cout << "\ncar.fuelFiguresId=" << Car::fuelFiguresId();
-    std::cout << "\ncar.fuelFigures.speedId=" << Car::FuelFigures::speedId();
-    std::cout << "\ncar.fuelFigures.mpgId=" << Car::FuelFigures::mpgId();
-    std::cout << "\ncar.fuelFigures.usageDescriptionId=" << Car::FuelFigures::usageDescriptionId();
+    std::cout << "\ncar.fuelFigures.speedId=" << CarGroups::FuelFigures::speedId();
+    std::cout << "\ncar.fuelFigures.mpgId=" << CarGroups::FuelFigures::mpgId();
+    std::cout << "\ncar.fuelFigures.usageDescriptionId=" << CarGroups::FuelFigures::usageDescriptionId();
     std::cout << "\ncar.performanceFiguresId=" << Car::performanceFiguresId();
-    std::cout << "\ncar.performanceFigures.octaneRatingId=" << Car::PerformanceFigures::octaneRatingId();
-    std::cout << "\ncar.performanceFigures.accelerationId=" << Car::PerformanceFigures::accelerationId();
-    std::cout << "\ncar.performanceFigures.acceleration.mphId=" << Car::PerformanceFigures::Acceleration::mphId();
-    std::cout << "\ncar.performanceFigures.acceleration.secondsId=" << Car::PerformanceFigures::Acceleration::secondsId();
+    std::cout << "\ncar.performanceFigures.octaneRatingId=" << CarGroups::PerformanceFigures::octaneRatingId();
+    std::cout << "\ncar.performanceFigures.accelerationId=" << CarGroups::PerformanceFigures::accelerationId();
+    std::cout << "\ncar.performanceFigures.acceleration.mphId=" << CarGroups::PerformanceFiguresGroups::Acceleration::mphId();
+    std::cout << "\ncar.performanceFigures.acceleration.secondsId=" << CarGroups::PerformanceFiguresGroups::Acceleration::secondsId();
     std::cout << "\ncar.manufacturerId=" << Car::manufacturerId();
     std::cout << "\ncar.manufacturerCharacterEncoding=" << Car::manufacturerCharacterEncoding();
     std::cout << "\ncar.modelId=" << Car::modelId();
@@ -260,7 +260,7 @@ std::size_t decodeCar(
     std::cout << "\ncar.engine.booster.boostType=" << format(engine.booster().boostType());
     std::cout << "\ncar.engine.booster.horsePower=" << (int)engine.booster().horsePower();
 
-    Car::FuelFigures &fuelFigures = car.fuelFigures();
+    CarGroups::FuelFigures &fuelFigures = car.fuelFigures();
     while (fuelFigures.hasNext())
     {
         fuelFigures.next();
@@ -272,13 +272,13 @@ std::size_t decodeCar(
         std::cout << "\ncar.fuelFigures.usageDescription=" << usageDesc;
     }
 
-    Car::PerformanceFigures &performanceFigures = car.performanceFigures();
+    CarGroups::PerformanceFigures &performanceFigures = car.performanceFigures();
     while (performanceFigures.hasNext())
     {
         performanceFigures.next();
         std::cout << "\ncar.performanceFigures.octaneRating=" << (std::uint64_t)performanceFigures.octaneRating();
 
-        Car::PerformanceFigures::Acceleration &acceleration = performanceFigures.acceleration();
+        CarGroups::PerformanceFiguresGroups::Acceleration &acceleration = performanceFigures.acceleration();
         while (acceleration.hasNext())
         {
             acceleration.next();

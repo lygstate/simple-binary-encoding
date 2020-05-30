@@ -52,7 +52,7 @@ public:
         msg.field2().clear()
             .choice1(true);
 
-        MsgName::GrName &grp = msg.grNameCount(2);
+        MsgNameGroups::GrName &grp = msg.grNameCount(2);
 
         grp.next()
            .grField1(10)
