@@ -60,9 +60,31 @@ public class SetTypeTest
 
         assertThat(e.name(), is("biOp"));
         assertThat(e.encodingType(), is(PrimitiveType.UINT8));
-        assertThat(e.choices().size(), is(2));
+        assertThat(e.subfields().size(), is(2));
         assertThat(e.getChoice("Bit1").primitiveValue(), is(PrimitiveValue.parse("1", PrimitiveType.UINT8)));
         assertThat(e.getChoice("Bit0").primitiveValue(), is(PrimitiveValue.parse("0", PrimitiveType.UINT8)));
+    }
+
+    @Test
+    public void shouldHandleBasicBitsSetType()
+        throws Exception
+    {
+        final String testXmlString =
+            "<types>" +
+            "<set name=\"biOp\" encodingType=\"uint8\">" +
+            "    <bits name=\"Bits0\" msb=\"0\" lsb=\"0\" description=\"Bits 0\"></bits>" +
+            "    <bits name=\"Bits1\" msb=\"1\" lsb=\"1\" description=\"Bits 1\"></bits>" +
+            "</set>" +
+            "</types>";
+
+        final Map<String, Type> map = parseTestXmlWithMap("/types/set", testXmlString);
+        final SetType e = (SetType)map.get("biOp");
+
+        assertThat(e.name(), is("biOp"));
+        assertThat(e.encodingType(), is(PrimitiveType.UINT8));
+        assertThat(e.subfields().size(), is(2));
+        assertThat(e.getBits("Bits1").primitiveValues()[0], is(PrimitiveValue.parse("1", PrimitiveType.UINT8)));
+        assertThat(e.getBits("Bits0").primitiveValues()[0], is(PrimitiveValue.parse("0", PrimitiveType.UINT8)));
     }
 
     @Test
@@ -75,7 +97,7 @@ public class SetTypeTest
             "    <choice name=\"Bit0\">0</choice>" +
             "    <choice name=\"Bit1\">1</choice>" +
             "    <choice name=\"Bit2\">2</choice>" +
-            "    <choice name=\"Bit3\">3</choice>" +
+            "    <bits name=\"Bit3\" lsb=\"3\" msb=\"3\" />" +
             "</set>" +
             "</types>";
 
@@ -85,7 +107,7 @@ public class SetTypeTest
         assertThat(e.encodingType(), is(PrimitiveType.UINT8));
 
         int foundBit0 = 0, foundBit1 = 0, foundBit2 = 0, foundBit3 = 0, count = 0;
-        for (final SetType.Choice choice : e.choices())
+        for (final SetType.Subfield choice : e.subfields())
         {
             switch (choice.name())
             {

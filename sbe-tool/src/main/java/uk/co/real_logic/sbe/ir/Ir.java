@@ -280,7 +280,7 @@ public class Ir
         }
     }
 
-    private void captureTypes(final List<Token> tokens, final int beginIndex, final int endIndex)
+    public void captureTypes(final List<Token> tokens, final int beginIndex, final int endIndex)
     {
         for (int i = beginIndex; i <= endIndex; i++)
         {

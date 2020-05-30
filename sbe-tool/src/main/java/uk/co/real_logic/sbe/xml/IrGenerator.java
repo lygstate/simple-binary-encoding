@@ -24,6 +24,7 @@ import uk.co.real_logic.sbe.ir.Token;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -33,6 +34,7 @@ public class IrGenerator
 {
     private final List<Token> tokenList = new ArrayList<>();
     private MessageSchema schema;
+    private final HashSet<String> typesToAdd = new HashSet<String>();
 
     /**
      * Generate a complete {@link uk.co.real_logic.sbe.ir.Ir} for a given schema.
@@ -61,6 +63,17 @@ public class IrGenerator
             final long msgId = message.id();
             ir.addMessage(msgId, generateForMessage(schema, msgId));
         }
+
+        tokenList.clear();
+        for (final String referencedName : typesToAdd)
+        {
+            final Type enumType = this.schema.getType(referencedName);
+            if (enumType instanceof EnumType)
+            {
+                this.add((EnumType)enumType, -1, null);
+            }
+        }
+        ir.captureTypes(tokenList, 0, tokenList.size() - 1);
 
         return ir;
     }
@@ -357,9 +370,16 @@ public class IrGenerator
 
         tokenList.add(builder.build());
 
-        for (final SetType.Choice choice : type.choices())
+        for (final SetType.Subfield subfield : type.subfields())
         {
-            add(choice, encodingType, byteOrder);
+            if (subfield instanceof SetType.Choice)
+            {
+                add((SetType.Choice)subfield, encodingType, byteOrder);
+            }
+            else if (subfield instanceof SetType.Bits)
+            {
+                add((SetType.Bits)subfield, byteOrder);
+            }
         }
 
         builder.signal(Signal.END_SET);
@@ -384,6 +404,34 @@ public class IrGenerator
             .description(value.description())
             .version(value.sinceVersion())
             .deprecated(value.deprecated())
+            .encoding(encoding);
+
+        tokenList.add(builder.build());
+    }
+
+    private void add(
+        final SetType.Bits value,
+        final ByteOrder byteOrder)
+    {
+        if (value.encodingTypeInfo().referencedName != null)
+        {
+            typesToAdd.add(value.encodingTypeInfo().referencedName);
+        }
+
+        final Encoding encoding = new Encoding.Builder()            .constValue(PrimitiveType.UINT8.nullValue())
+            .lsbValue(value.lsbValue())
+            .msbValue(value.msbValue())
+            .byteOrder(byteOrder)
+            .primitiveType(value.encodingTypeInfo().encodingType)
+            .build();
+
+        final Token.Builder builder = new Token.Builder()
+            .signal(Signal.CHOICE)
+            .name(value.name())
+            .description(value.description())
+            .version(value.sinceVersion())
+            .deprecated(value.deprecated())
+            .referencedName(value.encodingTypeInfo().referencedName)
             .encoding(encoding);
 
         tokenList.add(builder.build());

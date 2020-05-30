@@ -54,6 +54,8 @@ public class Encoding
     private final PrimitiveValue maxValue;
     private final PrimitiveValue nullValue;
     private final PrimitiveValue constValue;
+    private final PrimitiveValue lsbValue;
+    private final PrimitiveValue msbValue;
     private final String characterEncoding;
     private final String epoch;
     private final String timeUnit;
@@ -68,6 +70,8 @@ public class Encoding
         maxValue = null;
         nullValue = null;
         constValue = null;
+        lsbValue = null;
+        msbValue = null;
         characterEncoding = null;
         epoch = null;
         timeUnit = null;
@@ -82,6 +86,8 @@ public class Encoding
         final PrimitiveValue maxValue,
         final PrimitiveValue nullValue,
         final PrimitiveValue constValue,
+        final PrimitiveValue lsbValue,
+        final PrimitiveValue msbValue,
         final String characterEncoding,
         final String epoch,
         final String timeUnit,
@@ -97,6 +103,8 @@ public class Encoding
         this.maxValue = maxValue;
         this.nullValue = nullValue;
         this.constValue = constValue;
+        this.lsbValue = lsbValue;
+        this.msbValue = msbValue;
         this.characterEncoding = characterEncoding;
         this.epoch = epoch;
         this.timeUnit = timeUnit;
@@ -161,6 +169,66 @@ public class Encoding
     public PrimitiveValue constValue()
     {
         return constValue;
+    }
+
+    public boolean isChoice()
+    {
+        return constValue.longValue() != PrimitiveValue.NULL_VALUE_UINT8;
+    }
+
+    /**
+     * The lsb position for the token or null if not set.
+     *
+     * @return the lsb position for the token or null if not set.
+     */
+    public PrimitiveValue lsbValue()
+    {
+        return lsbValue;
+    }
+
+    /**
+     * The msb position for the token or null if not set.
+     *
+     * @return the msb position for the token or null if not set.
+     */
+    public PrimitiveValue msbValue()
+    {
+        return msbValue;
+    }
+
+    public long getBits(final long encodedValue)
+    {
+        final long lsb = isChoice() ? constValue.longValue() : lsbValue.longValue();
+        final long msb = isChoice() ? constValue.longValue() : msbValue.longValue();
+        final long len = Math.abs(msb - lsb) + 1;
+        final long mask = (1 << len) - 1;
+        final long resultValue;
+        if (lsb <= msb)
+        {
+            resultValue = (encodedValue >>> lsb) & mask;
+        }
+        else
+        {
+            final long reversed = Long.reverse(encodedValue);
+            resultValue = (reversed >>> (63 - lsb)) & mask;
+        }
+        return resultValue;
+    }
+
+    public String bitsToString(final long bits)
+    {
+        if (PrimitiveType.isSigned(primitiveType))
+        {
+            return String.valueOf(bits);
+        }
+        else if (PrimitiveType.isUnsigned(primitiveType))
+        {
+            return Long.toUnsignedString(bits);
+        }
+        else
+        {
+            return "";
+        }
     }
 
     /**
@@ -279,6 +347,8 @@ public class Encoding
                 ", maxValue=" + maxValue +
                 ", nullValue=" + nullValue +
                 ", constValue=" + constValue +
+                ", lsbValue=" + lsbValue +
+                ", msbValue=" + msbValue +
                 ", characterEncoding='" + characterEncoding + '\'' +
                 ", epoch='" + epoch + '\'' +
                 ", timeUnit=" + timeUnit +
@@ -298,6 +368,8 @@ public class Encoding
         private PrimitiveValue maxValue = null;
         private PrimitiveValue nullValue = null;
         private PrimitiveValue constValue = null;
+        private PrimitiveValue lsbValue = null;
+        private PrimitiveValue msbValue = null;
         private String characterEncoding = null;
         private String epoch = null;
         private String timeUnit = null;
@@ -345,6 +417,18 @@ public class Encoding
             return this;
         }
 
+        public Builder lsbValue(final PrimitiveValue lsbValue)
+        {
+            this.lsbValue = lsbValue;
+            return this;
+        }
+
+        public Builder msbValue(final PrimitiveValue msbValue)
+        {
+            this.msbValue = msbValue;
+            return this;
+        }
+
         public Builder characterEncoding(final String characterEncoding)
         {
             this.characterEncoding = characterEncoding;
@@ -378,6 +462,8 @@ public class Encoding
                 maxValue,
                 nullValue,
                 constValue,
+                lsbValue,
+                msbValue,
                 characterEncoding,
                 epoch,
                 timeUnit,

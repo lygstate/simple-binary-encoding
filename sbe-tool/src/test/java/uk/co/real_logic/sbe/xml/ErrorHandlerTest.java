@@ -48,6 +48,7 @@ public class ErrorHandlerTest
         throws Exception
     {
         final String testXmlString =
+            "<messageSchema package=\"SBE tests\" id=\"3\" semanticVersion=\"5.2\">" +
             "<types>" +
             "<enum name=\"NullBoolean\" encodingType=\"uint8\" nullValue=\"255\" semanticType=\"Boolean\">" +
             "    <validValue name=\"false\">0</validValue>" +
@@ -71,6 +72,50 @@ public class ErrorHandlerTest
             "    <choice name=\"Bit0\">0</choice>" +
             "    <choice name=\"Bit0\">1</choice>" +
             "</set>" +
+            "<enum name=\"Valid16BitEnum\" encodingType=\"uint16\" semanticType=\"int\">" +
+            "    <validValue name=\"min_value\">0</validValue>" +
+            "    <validValue name=\"rand_value\">2000</validValue>" +
+            "    <validValue name=\"max_value\">3999</validValue>" +
+            "</enum>" +
+            "<type name=\"Valid16BitUint\" primitiveType=\"uint16\" />" +
+            "<enum name=\"Valid16BitEnumType\" encodingType=\"Valid16BitUint\" semanticType=\"int\">" +
+            "    <validValue name=\"min_value\">0</validValue>" +
+            "    <validValue name=\"rand_value\">2000</validValue>" +
+            "    <validValue name=\"max_value\">3999</validValue>" +
+            "</enum>" +
+            "<set name=\"DupNameBitfield\" encodingType=\"uint8\">" +
+            "    <bits name=\"Bits0\" msb=\"0\" lsb=\"0\" description=\"Bits 0\"></bits>" +
+            "    <bits name=\"Bits0\" msb=\"1\" lsb=\"1\" description=\"Bits 1\"></bits>" +
+            "</set>" +
+            "<set name=\"DupValueBitfield\" encodingType=\"uint8\">" +
+            "    <bits name=\"Bits0\" msb=\"0\" lsb=\"0\" description=\"Bits 0\"></bits>" +
+            "    <bits name=\"Bits1\" msb=\"0\" lsb=\"0\" description=\"Bits 1\"></bits>" +
+            "</set>" +
+            "<set name=\"OverlapValueBitfield\" encodingType=\"uint8\">" +
+            "    <bits name=\"Bits30\" msb=\"3\" lsb=\"0\" description=\"Bits 3-0\"></bits>" +
+            "    <bits name=\"Bits73\" msb=\"7\" lsb=\"3\" description=\"Bits 7-3\"></bits>" +
+            "</set>" +
+            "<set name=\"MsbOutRangeBitfield\" encodingType=\"uint8\">" +
+            "    <bits name=\"Bits9\" msb=\"9\" lsb=\"0\" description=\"Bit 9-0\"></bits>" +
+            "</set>" +
+            "<set name=\"LsbOutRangeBitfield\" encodingType=\"uint8\">" +
+            "    <bits name=\"Bits9\" msb=\"0\" lsb=\"9\" description=\"Bit 0-9\"></bits>" +
+            "</set>" +
+            "<set name=\"EncodingTypeOutRangeBitfield\" encodingType=\"uint8\">" +
+            "    <bits name=\"Bits03\" msb=\"0\" lsb=\"3\" type=\"uint16\" description=\"Bit 0-3\"></bits>" +
+            "</set>" +
+            "<set name=\"IndirectEnumEncodingTypeOutRangeBitfield\" encodingType=\"uint8\">" +
+            "    <bits name=\"Bits03\" msb=\"0\" lsb=\"3\" type=\"Valid16BitEnum\"/>" +
+            "</set>" +
+            "<set name=\"IndirectEncodingTypeNotFoundBitfield\" encodingType=\"uint8\">" +
+            "    <bits name=\"Bits03\" msb=\"0\" lsb=\"3\" type=\"NotFoundType\"/>" +
+            "</set>" +
+            "<set name=\"IndirectTypeEncodingTypeOutRangeBitfield\" encodingType=\"uint8\">" +
+            "    <bits name=\"Bits03\" msb=\"0\" lsb=\"3\" type=\"Valid16BitUint\"/>" +
+            "</set>" +
+            "<set name=\"IndirectEnumTypeEncodingTypeOutRangeBitfield\" encodingType=\"uint8\">" +
+            "    <bits name=\"Bits03\" msb=\"0\" lsb=\"3\" type=\"Valid16BitEnumType\"/>" +
+            "</set>" +
             "<composite name=\"decimal\">" +
             "    <type name=\"mantissa\" primitiveType=\"int64\"/>" +
             "    <type name=\"mantissa\" primitiveType=\"int64\"/>" +
@@ -78,18 +123,22 @@ public class ErrorHandlerTest
             "</composite>" +
             "<type name=\"ConstButNoValue\" primitiveType=\"char\" presence=\"constant\"></type>" +
             "<type name=\"NullButNotOptional\" primitiveType=\"int8\" presence=\"required\" nullValue=\"10\"/>" +
-            "</types>";
+            "</types>" +
+            "</messageSchema>";
 
         final Map<String, Type> map = new HashMap<>();
         final ParserOptions options = ParserOptions.builder().suppressOutput(true).build();
         final ErrorHandler handler = new ErrorHandler(options);
 
-        parseTestXmlAddToMap(map, "/types/composite", testXmlString, handler);
-        parseTestXmlAddToMap(map, "/types/type", testXmlString, handler);
-        parseTestXmlAddToMap(map, "/types/enum", testXmlString, handler);
-        parseTestXmlAddToMap(map, "/types/set", testXmlString, handler);
-
+        parseTestXmlAddToMap(map, "/messageSchema/types/composite", testXmlString, handler);
+        parseTestXmlAddToMap(map, "/messageSchema/types/type", testXmlString, handler);
+        parseTestXmlAddToMap(map, "/messageSchema/types/enum", testXmlString, handler);
         assertThat(handler.errorCount(), is(3));
+        /* There is no duplicate warning for different language now */
+        assertThat(handler.warningCount(), is(10));
+
+        parseTestXmlAddToMap(map, "/messageSchema/types/set", testXmlString, handler);
+        assertThat(handler.errorCount(), is(3 + 10));
         assertThat(handler.warningCount(), is(12));
     }
 

@@ -252,9 +252,10 @@
                 type is a referenceName if setType a in composite directly
             </xs:documentation>
         </xs:annotation>
-        <xs:sequence>
-            <xs:element name="choice" type="sbe:choice" maxOccurs="64"/>
-        </xs:sequence>
+        <xs:choice maxOccurs="64">
+            <xs:element name="choice" type="sbe:choice"/>
+            <xs:element name="bits" type="sbe:bits"/>
+        </xs:choice>
         <xs:attribute name="name" type="sbe:symbolicName_t" use="required"/>
         <xs:attribute name="type" type="sbe:symbolicName_t" use="optional"/>
         <xs:attribute name="encodingType" type="sbe:symbolicName_t" use="required"/>
@@ -277,6 +278,25 @@
                 <xs:attributeGroup ref="sbe:versionAttributes"/>
             </xs:extension>
         </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="bits">
+        <xs:annotation>
+            <xs:documentation>
+                A bits within a multi value set. Value is the
+                [msb, lsb] bits within a bitset (zero-based index).
+                msb are MSB of bits, msb are LSB of bits,
+                msb can be less,equal or large than lsb
+                if the type not present, then use the encodingType of setType
+                otherwise, the type should be a enum or and encodingType like
+                ref did.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="sbe:symbolicName_t" use="required"/>
+        <xs:attribute name="type" type="sbe:symbolicName_t" use="optional"/>
+        <xs:attribute name="description" type="xs:string" use="optional"/>
+        <xs:attribute name="msb" type="xs:unsignedInt" use="required"/>
+        <xs:attribute name="lsb" type="xs:unsignedInt" use="required"/>
+        <xs:attributeGroup ref="sbe:versionAttributes"/>
     </xs:complexType>
     <xs:complexType name="fieldType">
         <xs:annotation>
