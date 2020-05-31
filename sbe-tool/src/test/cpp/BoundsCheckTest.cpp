@@ -137,9 +137,9 @@ public:
 
     std::uint64_t encodeCarManufacturerModelAndActivationCode()
     {
-        m_car.putManufacturer(MANUFACTURER, static_cast<int>(strlen(MANUFACTURER)));
-        m_car.putModel(MODEL, static_cast<int>(strlen(MODEL)));
-        m_car.putActivationCode(ACTIVATION_CODE, static_cast<int>(strlen(ACTIVATION_CODE)));
+        m_car.putManufacturer(MANUFACTURER, static_cast<std::uint16_t>(strlen(MANUFACTURER)));
+        m_car.putModel(MODEL, static_cast<std::uint16_t>(strlen(MODEL)));
+        m_car.putActivationCode(ACTIVATION_CODE, static_cast<std::uint16_t>(strlen(ACTIVATION_CODE)));
 
         return m_car.encodedLength();
     }

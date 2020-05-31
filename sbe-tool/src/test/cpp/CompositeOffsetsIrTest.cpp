@@ -158,7 +158,7 @@ TEST_F(CompositeOffsetsIrTest, shouldHandleAllEventsCorrectlyInOrder)
     std::uint64_t blockLength = headerDecoder.getBlockLength(m_buffer);
 
     const std::size_t result =
-        OtfMessageDecoder::decode(messageBuffer, length, actingVersion, blockLength, messageTokens, *this);
+        OtfMessageDecoder::decode(messageBuffer, length, actingVersion, static_cast<std::size_t>(blockLength), messageTokens, *this);
     EXPECT_EQ(result, static_cast<std::size_t>(52 - MessageHeader::encodedLength()));
 
     EXPECT_EQ(m_eventNumber, 5);

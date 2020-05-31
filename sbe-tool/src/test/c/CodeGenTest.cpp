@@ -151,7 +151,7 @@ public:
         CGT(car_fuelFigures_put_usageDescription)(
             &fuelFigures,
             FUEL_FIGURES_1_USAGE_DESCRIPTION,
-            static_cast<int>(strlen(FUEL_FIGURES_1_USAGE_DESCRIPTION)));
+            static_cast<std::uint16_t>(strlen(FUEL_FIGURES_1_USAGE_DESCRIPTION)));
 
         CGT(car_fuelFigures_next)(&fuelFigures);
         CGT(car_fuelFigures_set_speed)(&fuelFigures, fuel2Speed);
@@ -159,7 +159,7 @@ public:
         CGT(car_fuelFigures_put_usageDescription)(
             &fuelFigures,
             FUEL_FIGURES_2_USAGE_DESCRIPTION,
-            static_cast<int>(strlen(FUEL_FIGURES_2_USAGE_DESCRIPTION)));
+            static_cast<std::uint16_t>(strlen(FUEL_FIGURES_2_USAGE_DESCRIPTION)));
 
         CGT(car_fuelFigures_next)(&fuelFigures);
         CGT(car_fuelFigures_set_speed)(&fuelFigures, fuel3Speed);
@@ -167,7 +167,7 @@ public:
         CGT(car_fuelFigures_put_usageDescription)(
             &fuelFigures,
             FUEL_FIGURES_3_USAGE_DESCRIPTION,
-            static_cast<int>(strlen(FUEL_FIGURES_3_USAGE_DESCRIPTION)));
+            static_cast<std::uint16_t>(strlen(FUEL_FIGURES_3_USAGE_DESCRIPTION)));
 
         CGT(car_performanceFigures) perfFigs;
         if (!CGT(car_performanceFigures_set_count)(
@@ -212,9 +212,9 @@ public:
         CGT(car_performanceFigures_acceleration_set_mph)(&acc, perf2cMph);
         CGT(car_performanceFigures_acceleration_set_seconds)(&acc, perf2cSeconds);
 
-        CGT(car_put_manufacturer)(&car, MANUFACTURER, static_cast<int>(strlen(MANUFACTURER)));
-        CGT(car_put_model)(&car, MODEL, static_cast<int>(strlen(MODEL)));
-        CGT(car_put_activationCode)(&car, ACTIVATION_CODE, static_cast<int>(strlen(ACTIVATION_CODE)));
+        CGT(car_put_manufacturer)(&car, MANUFACTURER, static_cast<std::uint16_t>(strlen(MANUFACTURER)));
+        CGT(car_put_model)(&car, MODEL, static_cast<std::uint16_t>(strlen(MODEL)));
+        CGT(car_put_activationCode)(&car, ACTIVATION_CODE, static_cast<std::uint16_t>(strlen(ACTIVATION_CODE)));
 
         return CGT(car_encoded_length)(&car);
     }
@@ -495,7 +495,7 @@ TEST_F(CodeGenTest, shouldBeAbleToEncodeHeaderPlusCarCorrectly)
     EXPECT_EQ(carEncodedLength, expectedCarEncodedLength);
 
     EXPECT_EQ(*((std::uint16_t *)bp), CGT(car_sbe_block_length)());
-    const size_t activationCodePosition = hdrSz + carEncodedLength - ACTIVATION_CODE_LENGTH;
+    const size_t activationCodePosition = static_cast<std::size_t>(hdrSz + carEncodedLength - ACTIVATION_CODE_LENGTH);
     const size_t activationCodeLengthPosition = activationCodePosition - sizeof(std::uint16_t);
     EXPECT_EQ(*(std::uint16_t *)(bp + activationCodeLengthPosition), ACTIVATION_CODE_LENGTH);
     EXPECT_EQ(std::string(bp + activationCodePosition, ACTIVATION_CODE_LENGTH), ACTIVATION_CODE);
@@ -817,7 +817,7 @@ static const std::size_t offsetActivationCodeData = offsetActivationCodeLength +
 
 TEST_F(CodeGenTest, shouldBeAbleToUseStdStringMethodsForEncode)
 {
-    std::string vehicleCode(VEHICLE_CODE, CGT(car_vehicleCode_length)());
+    std::string vehicleCode(VEHICLE_CODE, static_cast<std::size_t>(CGT(car_vehicleCode_length)()));
     std::string usageDesc1(FUEL_FIGURES_1_USAGE_DESCRIPTION, FUEL_FIGURES_1_USAGE_DESCRIPTION_LENGTH);
     std::string usageDesc2(FUEL_FIGURES_2_USAGE_DESCRIPTION, FUEL_FIGURES_2_USAGE_DESCRIPTION_LENGTH);
     std::string usageDesc3(FUEL_FIGURES_3_USAGE_DESCRIPTION, FUEL_FIGURES_3_USAGE_DESCRIPTION_LENGTH);
@@ -928,9 +928,9 @@ TEST_F(CodeGenTest, shouldBeAbleToUseStdStringMethodsForDecode)
     CGT(car) carDecoder;
     CGT(car_reset)(&carDecoder, buffer, 0, carEncodedLength, CGT(car_sbe_block_length)(), CGT(car_sbe_schema_version)());
 
-    std::string vehicleCode(VEHICLE_CODE, CGT(car_vehicleCode_length)());
+    std::string vehicleCode(VEHICLE_CODE, static_cast<std::size_t>(CGT(car_vehicleCode_length)()));
 
-    EXPECT_EQ(std::string(CGT(car_vehicleCode_buffer)(&carDecoder),CGT(car_vehicleCode_length)()), vehicleCode);
+    EXPECT_EQ(std::string(CGT(car_vehicleCode_buffer)(&carDecoder), static_cast<std::size_t>(CGT(car_vehicleCode_length)())), vehicleCode);
 
     CGT(car_fuelFigures) fuelFigures;
     if (!CGT(car_get_fuelFigures)(&carDecoder, &fuelFigures))
