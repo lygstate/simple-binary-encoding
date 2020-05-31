@@ -2406,15 +2406,15 @@ public class CppGenerator implements CodeGenerator
     private CharSequence generateCompositeDisplay(final String name, final List<Token> tokens)
     {
         return String.format("\n" +
-            "friend std::ostream& operator << (std::ostream& builder, %1$s writer)\n" +
-            "{\n" +
-            "    builder << '{';\n" +
-            "%2$s" +
-            "    builder << '}';\n\n" +
-            "    return builder;\n" +
-            "}\n\n",
+            INDENT + "friend std::ostream& operator << (std::ostream& builder, %1$s writer)\n" +
+            INDENT + "{\n" +
+            INDENT + "    builder << '{';\n" +
+            INDENT + "%2$s" +
+            INDENT + "    builder << '}';\n\n" +
+            INDENT + "    return builder;\n" +
+            INDENT + "}\n\n",
             formatClassName(name),
-            appendDisplay(new MessageItem(tokens, new ArrayList<Token>()), INDENT)
+            appendDisplay(new MessageItem(tokens, new ArrayList<Token>()), INDENT + INDENT)
         );
     }
 
