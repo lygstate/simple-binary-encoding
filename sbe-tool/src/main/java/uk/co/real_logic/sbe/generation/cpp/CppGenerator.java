@@ -572,7 +572,7 @@ public class CppGenerator implements CodeGenerator
                 indent + "        std::uint64_t bytesToCopy = length < dataLength ? length : dataLength;\n" +
                 indent + "        std::uint64_t pos = sbePosition();\n" +
                 indent + "        sbePosition(pos + dataLength);\n" +
-                indent + "        std::memcpy(dst, m_buffer + pos, static_cast<size_t>(bytesToCopy));\n" +
+                indent + "        std::memcpy(dst, m_buffer + pos, static_cast<std::size_t>(bytesToCopy));\n" +
                 indent + "        return bytesToCopy;\n" +
                 indent + "    }\n",
                 propertyName,
@@ -614,7 +614,7 @@ public class CppGenerator implements CodeGenerator
                 indent + "        std::memcpy(&lengthFieldValue, m_buffer + lengthPosition, sizeof(%5$s));\n" +
                 indent + "        std::uint64_t dataLength = %4$s(lengthFieldValue);\n" +
                 indent + "        std::uint64_t pos = sbePosition();\n" +
-                indent + "        const std::string result(m_buffer + pos, dataLength);\n" +
+                indent + "        const std::string result(m_buffer + pos, static_cast<std::size_t>(dataLength));\n" +
                 indent + "        sbePosition(pos + dataLength);\n" +
                 indent + "        return result;\n" +
                 indent + "    }\n",
@@ -1540,7 +1540,7 @@ public class CppGenerator implements CodeGenerator
 
             "%3$s" +
             indent + "        std::memcpy(dst, m_buffer + m_offset + %4$d, " +
-            "sizeof(%5$s) * static_cast<size_t>(length));\n" +
+            "sizeof(%5$s) * static_cast<std::size_t>(length));\n" +
             indent + "        return length;\n" +
             indent + "    }\n",
             toUpperFirstChar(propertyName),
@@ -1780,7 +1780,7 @@ public class CppGenerator implements CodeGenerator
             indent + "        std::uint64_t bytesToCopy = " +
             "length < sizeof(%2$sValues) ? length : sizeof(%2$sValues);\n\n" +
 
-            indent + "        std::memcpy(dst, %2$sValues, static_cast<size_t>(bytesToCopy));\n" +
+            indent + "        std::memcpy(dst, %2$sValues, static_cast<std::size_t>(bytesToCopy));\n" +
             indent + "        return bytesToCopy;\n" +
             indent + "    }\n",
             toUpperFirstChar(propertyName),
@@ -2707,7 +2707,8 @@ public class CppGenerator implements CodeGenerator
                             indent + "builder << '[';\n" +
                             indent + "if (" + fieldName + "Length() > 0)\n" +
                             indent + "{\n" +
-                            indent + "    for (size_t i = 0, length = " + fieldName + "Length(); i < length; i++)\n" +
+                            indent + "    for (size_t i = 0, length = static_cast<std::size_t>(" +
+                            fieldName + "Length()); i < length; i++)\n" +
                             indent + "    {\n" +
                             indent + "        if (i)\n" +
                             indent + "        {\n" +
@@ -3009,7 +3010,7 @@ public class CppGenerator implements CodeGenerator
             final String maxCheck = countName + " > " + maxCount;
 
             new Formatter(sbEncode).format("\n" +
-                indent + "    length += %1$s::sbeHeaderSize();\n",
+                indent + "    length += static_cast<std::size_t>(%1$s::sbeHeaderSize());\n",
                 formatClassName(groupToken.name()));
 
             if (isMessageConstLength(thisGroup))
@@ -3019,7 +3020,7 @@ public class CppGenerator implements CodeGenerator
                     indent + "    {\n" +
                     indent + "        throw std::runtime_error(\"%5$s outside of allowed range [E110]\");\n" +
                     indent + "    }\n" +
-                    indent + "    length += %1$sLength * %2$s::sbeBlockLength();\n",
+                    indent + "    length += static_cast<std::size_t>(%1$sLength * %2$s::sbeBlockLength());\n",
                     groupToken.name(),
                     formatClassName(groupToken.name()),
                     minCheck,
@@ -3074,7 +3075,7 @@ public class CppGenerator implements CodeGenerator
             final Token lengthToken = Generators.findFirst("length", varData, i);
 
             new Formatter(sbEncode).format("\n" +
-                indent + "    length += %1$sHeaderLength();\n" +
+                indent + "    length += static_cast<std::size_t>(%1$sHeaderLength());\n" +
                 indent + "    if (%1$sLength > %2$d)\n" +
                 indent + "    {\n" +
                 indent + "        throw std::runtime_error(\"%1$sLength too long for length type [E109]\");\n" +
@@ -3109,7 +3110,7 @@ public class CppGenerator implements CodeGenerator
             "#pragma GCC diagnostic push\n" +
             "#pragma GCC diagnostic ignored \"-Wtype-limits\"\n" +
             "#endif\n" +
-            indent + "    size_t length = sbeBlockLength();\n\n" +
+            indent + "    size_t length = static_cast<std::size_t>(sbeBlockLength());\n\n" +
             "%2$s" +
             indent + "    return length;\n" +
             "#if defined(__GNUG__) && !defined(__clang__)\n" +
