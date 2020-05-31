@@ -29,8 +29,8 @@ static const std::uint64_t ENTRIES_COUNT = 2;
 
 static const char TAG_GROUP_1_IDX_0[] = { 'T', 'a', 'g', 'G', 'r', 'o', 'u', 'p', '0' };
 static const char TAG_GROUP_1_IDX_1[] = { 'T', 'a', 'g', 'G', 'r', 'o', 'u', 'p', '1' };
-static const std::uint64_t TAG_GROUP_1_IDX_0_LENGTH = sizeof(TAG_GROUP_1_IDX_0);
-static const std::uint64_t TAG_GROUP_1_IDX_1_LENGTH = sizeof(TAG_GROUP_1_IDX_1);
+static const std::size_t TAG_GROUP_1_IDX_0_LENGTH = sizeof(TAG_GROUP_1_IDX_0);
+static const std::size_t TAG_GROUP_1_IDX_1_LENGTH = sizeof(TAG_GROUP_1_IDX_1);
 
 static const std::int64_t TAG_GROUP_2_IDX_0 = -120;
 static const std::int64_t TAG_GROUP_2_IDX_1 = 120;
@@ -266,7 +266,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage1Correctly)
     entries.next();
 
     EXPECT_EQ(entries.tagGroup1Length(), TAG_GROUP_1_IDX_0_LENGTH);
-    EXPECT_EQ(std::string(entries.tagGroup1(), entries.tagGroup1Length()), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
+    EXPECT_EQ(std::string(entries.tagGroup1(), static_cast<std::size_t>(entries.tagGroup1Length())), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
     EXPECT_EQ(entries.tagGroup2(), TAG_GROUP_2_IDX_0);
     EXPECT_EQ(entries.varDataFieldLength(), VAR_DATA_FIELD_IDX_0_LENGTH);
     EXPECT_EQ(std::string(entries.varDataField(), VAR_DATA_FIELD_IDX_0_LENGTH), VAR_DATA_FIELD_IDX_0);
@@ -275,7 +275,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage1Correctly)
     entries.next();
 
     EXPECT_EQ(entries.tagGroup1Length(), TAG_GROUP_1_IDX_1_LENGTH);
-    EXPECT_EQ(std::string(entries.tagGroup1(), entries.tagGroup1Length()), std::string(TAG_GROUP_1_IDX_1, TAG_GROUP_1_IDX_1_LENGTH));
+    EXPECT_EQ(std::string(entries.tagGroup1(), static_cast<std::size_t>(entries.tagGroup1Length())), std::string(TAG_GROUP_1_IDX_1, TAG_GROUP_1_IDX_1_LENGTH));
     EXPECT_EQ(entries.tagGroup2(), TAG_GROUP_2_IDX_1);
     EXPECT_EQ(entries.varDataFieldLength(), VAR_DATA_FIELD_IDX_1_LENGTH);
     EXPECT_EQ(std::string(entries.varDataField(), VAR_DATA_FIELD_IDX_1_LENGTH), VAR_DATA_FIELD_IDX_1);
@@ -347,7 +347,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage2Correctly)
     entries.next();
 
     EXPECT_EQ(entries.tagGroup1Length(), TAG_GROUP_1_IDX_0_LENGTH);
-    EXPECT_EQ(std::string(entries.tagGroup1(), entries.tagGroup1Length()), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
+    EXPECT_EQ(std::string(entries.tagGroup1(), static_cast<std::size_t>(entries.tagGroup1Length())), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
     EXPECT_EQ(entries.tagGroup2(), TAG_GROUP_2_IDX_0);
     EXPECT_EQ(entries.varDataField1Length(), VAR_DATA_FIELD_1_IDX_0_LENGTH);
     EXPECT_EQ(std::string(entries.varDataField1(), VAR_DATA_FIELD_1_IDX_0_LENGTH), VAR_DATA_FIELD_1_IDX_0);
@@ -358,7 +358,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage2Correctly)
     entries.next();
 
     EXPECT_EQ(entries.tagGroup1Length(), TAG_GROUP_1_IDX_1_LENGTH);
-    EXPECT_EQ(std::string(entries.tagGroup1(), entries.tagGroup1Length()), std::string(TAG_GROUP_1_IDX_1, TAG_GROUP_1_IDX_1_LENGTH));
+    EXPECT_EQ(std::string(entries.tagGroup1(), static_cast<std::size_t>(entries.tagGroup1Length())), std::string(TAG_GROUP_1_IDX_1, TAG_GROUP_1_IDX_1_LENGTH));
     EXPECT_EQ(entries.tagGroup2(), TAG_GROUP_2_IDX_1);
     EXPECT_EQ(entries.varDataField1Length(), VAR_DATA_FIELD_1_IDX_1_LENGTH);
     EXPECT_EQ(std::string(entries.varDataField1(), VAR_DATA_FIELD_1_IDX_1_LENGTH), VAR_DATA_FIELD_1_IDX_1);
@@ -476,7 +476,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage3Correctly)
     entries.next();
 
     EXPECT_EQ(entries.tagGroup1Length(), TAG_GROUP_1_IDX_0_LENGTH);
-    EXPECT_EQ(std::string(entries.tagGroup1(), entries.tagGroup1Length()), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
+    EXPECT_EQ(std::string(entries.tagGroup1(), static_cast<std::size_t>(entries.tagGroup1Length())), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
 
     TestMessage3::Entries::NestedEntries &nestedEntries0 = entries.nestedEntries();
     EXPECT_EQ(nestedEntries0.count(), NESTED_ENTRIES_COUNT);

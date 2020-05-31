@@ -156,7 +156,7 @@ inline std::size_t lengthOfType(PrimitiveType type)
 class PrimitiveValue
 {
 public:
-    PrimitiveValue(PrimitiveType type, std::size_t valueLength, const char *value) :
+    PrimitiveValue(PrimitiveType type, std::uint64_t valueLength, const char *value) :
         m_type(type)
     {
         if (0 == valueLength)
@@ -172,8 +172,8 @@ public:
             {
                 if (valueLength > 1)
                 {
-                    m_arrayValue = std::string(value, valueLength);
-                    m_size = valueLength;
+                    m_arrayValue = std::string(value, static_cast<size_t>(valueLength));
+                    m_size = static_cast<size_t>(valueLength);
                 }
                 else
                 {

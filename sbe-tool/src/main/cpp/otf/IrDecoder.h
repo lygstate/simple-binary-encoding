@@ -60,9 +60,9 @@ public:
         {
             return -1;
         }
-        std::unique_ptr<char[]> buffer(new char[m_length]);
+        std::unique_ptr<char[]> buffer(new char[static_cast<size_t>(m_length)]);
         m_buffer = std::move(buffer);
-        std::memcpy(m_buffer.get(), irBuffer, m_length);
+        std::memcpy(m_buffer.get(), irBuffer, static_cast<size_t>(m_length));
 
         return decodeIr();
     }
@@ -81,7 +81,7 @@ public:
         {
             return -1;
         }
-        std::unique_ptr<char[]> buffer(new char[m_length]);
+        std::unique_ptr<char[]> buffer(new char[static_cast<size_t>(m_length)]);
         m_buffer = std::move(buffer);
 
         if (readFileIntoBuffer(m_buffer.get(), filename, m_length) < 0)
@@ -266,22 +266,22 @@ private:
         PrimitiveValue nullValue(type, tmpLen, tmpBuffer);
 
         tmpLen = tokenCodec.getCharacterEncoding(tmpBuffer, sizeof(tmpBuffer));
-        std::string characterEncoding(tmpBuffer, tmpLen);
+        std::string characterEncoding(tmpBuffer, static_cast<size_t>(tmpLen));
 
         tmpLen = tokenCodec.getEpoch(tmpBuffer, sizeof(tmpBuffer));
-        std::string epoch(tmpBuffer, tmpLen);
+        std::string epoch(tmpBuffer, static_cast<size_t>(tmpLen));
 
         tmpLen = tokenCodec.getTimeUnit(tmpBuffer, sizeof(tmpBuffer));
-        std::string timeUnit(tmpBuffer, tmpLen);
+        std::string timeUnit(tmpBuffer, static_cast<size_t>(tmpLen));
 
         tmpLen = tokenCodec.getSemanticType(tmpBuffer, sizeof(tmpBuffer));
-        std::string semanticType(tmpBuffer, tmpLen);
+        std::string semanticType(tmpBuffer, static_cast<size_t>(tmpLen));
 
         tmpLen = tokenCodec.getDescription(tmpBuffer, sizeof(tmpBuffer));
-        std::string description(tmpBuffer, tmpLen);
+        std::string description(tmpBuffer, static_cast<size_t>(tmpLen));
 
         tmpLen = tokenCodec.getReferencedName(tmpBuffer, sizeof(tmpBuffer));
-        std::string referencedName(tmpBuffer, tmpLen);
+        std::string referencedName(tmpBuffer, static_cast<size_t>(tmpLen));
 
         Encoding encoding(
             type, presence, byteOrder, minValue, maxValue, nullValue,
