@@ -408,7 +408,7 @@ public class CppGenerator implements CodeGenerator
             .append(indent).append("#endif\n");
     }
 
-    private static void generateGroupProperty(
+    private void generateGroupProperty(
         final StringBuilder sb,
         final String className,
         final String propertyName,
@@ -428,10 +428,11 @@ public class CppGenerator implements CodeGenerator
         new Formatter(sb).format(
             indent + "    SBE_NODISCARD static SBE_CONSTEXPR std::uint16_t %1$sId() SBE_NOEXCEPT\n" +
             indent + "    {\n" +
-            indent + "        return %2$d;\n" +
+            indent + "        return %2$s;\n" +
             indent + "    }\n",
             propertyName,
-            token.id());
+            generateLiteral(ir.headerStructure().templateIdType(), "" + token.id())
+        );
 
         new Formatter(sb).format("\n" +
             indent + "    SBE_NODISCARD inline %1$s &%2$s()\n" +
@@ -683,11 +684,12 @@ public class CppGenerator implements CodeGenerator
 
             indent + "    static SBE_CONSTEXPR std::uint16_t %1$sId() SBE_NOEXCEPT\n" +
             indent + "    {\n" +
-            indent + "        return %3$d;\n" +
+            indent + "        return %3$s;\n" +
             indent + "    }\n",
             toLowerFirstChar(propertyName),
             token.version(),
-            token.id());
+            generateLiteral(ir.headerStructure().templateIdType(), "" + token.id())
+        );
 
         new Formatter(sb).format("\n" +
             indent + "    static SBE_CONSTEXPR std::uint64_t %sHeaderLength() SBE_NOEXCEPT\n" +
@@ -1168,10 +1170,11 @@ public class CppGenerator implements CodeGenerator
         new Formatter(sb).format("\n" +
             indent + "    static SBE_CONSTEXPR std::uint64_t %1$sEncodedLength() SBE_NOEXCEPT\n" +
             indent + "    {\n" +
-            indent + "        return %2$d;\n" +
+            indent + "        return %2$s;\n" +
             indent + "    }\n",
             propertyName,
-            token.encoding().primitiveType().size() * token.arrayLength());
+            generateEncodedLengthLiteral(token.encoding().primitiveType().size() * token.arrayLength())
+        );
     }
 
     private CharSequence generateLoadValue(
@@ -1695,7 +1698,7 @@ public class CppGenerator implements CodeGenerator
             "        m_bufferLength = bufferLength;\n" +
             "        m_offset = offset;\n" +
             "        m_actingVersion = actingVersion;\n" +
-            "        if (SBE_BOUNDS_CHECK_EXPECT(((m_offset + %2$s) > m_bufferLength), false))\n" +
+            "        if (SBE_BOUNDS_CHECK_EXPECT(((m_offset + %7$s) > m_bufferLength), false))\n" +
             "        {\n" +
             "            sbe_throw_errnum(E107, \"buffer too short for flyweight [E107]\");\n" +
             "            return ;\n" +
@@ -1766,11 +1769,13 @@ public class CppGenerator implements CodeGenerator
             "        return %6$s;\n" +
             "    }\n",
             className,
-            size,
+            generateEncodedLengthLiteral(size),
             schemaIdType,
             generateLiteral(ir.headerStructure().schemaIdType(), Integer.toString(ir.id())),
             schemaVersionType,
-            generateLiteral(ir.headerStructure().schemaVersionType(), Integer.toString(ir.version())));
+            generateLiteral(ir.headerStructure().schemaVersionType(), Integer.toString(ir.version())),
+            size < 0 ? "0" : "" + size
+        );
     }
 
     private static CharSequence generateConstructorsAndOperators(final String className)
@@ -2037,10 +2042,11 @@ public class CppGenerator implements CodeGenerator
         new Formatter(sb).format("\n" +
             indent + "    static SBE_CONSTEXPR std::uint16_t %1$sId() SBE_NOEXCEPT\n" +
             indent + "    {\n" +
-            indent + "        return %2$d;\n" +
+            indent + "        return %2$s;\n" +
             indent + "    }\n",
             propertyName,
-            fieldToken.id());
+            generateLiteral(ir.headerStructure().templateIdType(), "" + fieldToken.id())
+        );
 
         new Formatter(sb).format("\n" +
             indent + "    SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t %1$sSinceVersion() SBE_NOEXCEPT\n" +
@@ -2058,10 +2064,10 @@ public class CppGenerator implements CodeGenerator
         new Formatter(sb).format("\n" +
             indent + "    SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t %1$sEncodedOffset() SBE_NOEXCEPT\n" +
             indent + "    {\n" +
-            indent + "        return %2$d;\n" +
+            indent + "        return %2$s;\n" +
             indent + "    }\n",
             propertyName,
-            encodingToken.offset());
+            generateEncodedLengthLiteral(encodingToken.offset()));
     }
 
     private static void generateFieldMetaAttributeMethod(
@@ -2140,10 +2146,10 @@ public class CppGenerator implements CodeGenerator
         new Formatter(sb).format("\n" +
             indent + "    SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t %1$sEncodedLength() SBE_NOEXCEPT\n" +
             indent + "    {\n" +
-            indent + "        return %2$d;\n" +
+            indent + "        return %2$s;\n" +
             indent + "    }\n",
             propertyName,
-            fieldToken.encodedLength());
+            generateEncodedLengthLiteral(fieldToken.encodedLength()));
 
         if (fieldToken.isConstantEncoding())
         {
@@ -2229,10 +2235,11 @@ public class CppGenerator implements CodeGenerator
         new Formatter(sb).format("\n" +
             indent + "    static SBE_CONSTEXPR std::uint64_t %1$sEncodedLength() SBE_NOEXCEPT\n" +
             indent + "    {\n" +
-            indent + "        return %2$d;\n" +
+            indent + "        return %2$s;\n" +
             indent + "    }\n",
             propertyName,
-            token.encoding().primitiveType().size());
+            generateEncodedLengthLiteral(token.encoding().primitiveType().size())
+        );
     }
 
     private static void generateCompositeProperty(
@@ -2257,6 +2264,15 @@ public class CppGenerator implements CodeGenerator
             compositeName,
             propertyName,
             token.offset());
+    }
+
+    private static String generateEncodedLengthLiteral(final long sz)
+    {
+        if (sz < 0)
+        {
+            return "UINT64_MAX";
+        }
+        return "" + sz;
     }
 
     private CharSequence generateNullValueLiteral(final PrimitiveType primitiveType, final Encoding encoding)

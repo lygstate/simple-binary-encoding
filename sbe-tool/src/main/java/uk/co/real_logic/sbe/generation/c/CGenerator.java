@@ -205,7 +205,7 @@ public class CGenerator implements CodeGenerator
             "    }\n\n" +
             "    codec->block_length = %2$s_blockLength(&dimensions);\n" +
             "    codec->count = %2$s_numInGroup(&dimensions);\n" +
-            "    codec->index = -1;\n" +
+            "    codec->index = UINT64_MAX;\n" +
             "    codec->acting_version = acting_version;\n" +
             "    codec->position_ptr = pos;\n" +
             "    *codec->position_ptr = *codec->position_ptr + %3$d;\n\n" +
@@ -240,7 +240,7 @@ public class CGenerator implements CodeGenerator
             "    }\n\n" +
             "    %5$s_set_blockLength(&dimensions, (%2$s)%3$d);\n" +
             "    %5$s_set_numInGroup(&dimensions, (%4$s)count);\n" +
-            "    codec->index = -1;\n" +
+            "    codec->index = UINT64_MAX;\n" +
             "    codec->count = count;\n" +
             "    codec->block_length = %3$d;\n" +
             "    codec->acting_version = acting_version;\n" +
@@ -329,7 +329,7 @@ public class CGenerator implements CodeGenerator
             dimensionHeaderLength, blockLength, groupName));
     }
 
-    private static CharSequence generateGroupPropertyFunctions(
+    private CharSequence generateGroupPropertyFunctions(
         final String outerStruct, final String groupName, final Token token, final String cTypeForNumInGroup)
     {
         final StringBuilder sb = new StringBuilder();
@@ -338,10 +338,11 @@ public class CGenerator implements CodeGenerator
         sb.append(String.format("\n" +
             "SBE_ONE_DEF uint16_t %1$s_id(void)\n" +
             "{\n" +
-            "    return %2$d;\n" +
+            "    return %2$s;\n" +
             "}\n",
             groupName,
-            token.id()));
+            generateLiteral(ir.headerStructure().templateIdType(), "" + token.id())
+        ));
 
         sb.append(String.format("\n" +
             "SBE_ONE_DEF %2$s *%1$s_get_%3$s(\n" +
@@ -532,11 +533,11 @@ public class CGenerator implements CodeGenerator
 
             "SBE_ONE_DEF uint16_t %1$s_id(void)\n" +
             "{\n" +
-            "    return %3$d;\n" +
+            "    return %3$s;\n" +
             "}\n",
             fullyQualifiedPropertyName,
             token.version(),
-            token.id(),
+            generateLiteral(ir.headerStructure().templateIdType(), "" + token.id()),
             structName));
 
         sb.append(String.format("\n" +
@@ -828,7 +829,7 @@ public class CGenerator implements CodeGenerator
             enumName,
             cTypeName(encodingToken.encoding().primitiveType()),
             sb,
-            encodingToken.encoding().primitiveType().size()
+            generateEncodedLengthLiteral(encodingToken.encoding().primitiveType().size())
         );
     }
 
@@ -1044,10 +1045,10 @@ public class CGenerator implements CodeGenerator
         sb.append(String.format("\n" +
             "SBE_ONE_DEF uint64_t %3$s_%1$s_encoded_length(void)\n" +
             "{\n" +
-            "    return %2$d;\n" +
+            "    return %2$s;\n" +
             "}\n",
             propertyName,
-            token.encoding().primitiveType().size() * token.arrayLength(),
+            generateEncodedLengthLiteral(token.encoding().primitiveType().size() * token.arrayLength()),
             containingStructName));
 
         return sb;
@@ -1309,7 +1310,7 @@ public class CGenerator implements CodeGenerator
             "    const uint64_t buffer_length,\n" +
             "    const uint64_t acting_version)\n" +
             "{\n" +
-            "    if (SBE_BOUNDS_CHECK_EXPECT(((offset + %2$s) > buffer_length), false))\n" +
+            "    if (SBE_BOUNDS_CHECK_EXPECT(((offset + %7$s) > buffer_length), false))\n" +
             "    {\n" +
             "        errno = E107;\n" +
             "        return NULL;\n" +
@@ -1370,11 +1371,13 @@ public class CGenerator implements CodeGenerator
             "    return %6$s;\n" +
             "}\n",
             structName,
-            size,
+            generateEncodedLengthLiteral(size),
             schemaIdType,
             generateLiteral(ir.headerStructure().schemaIdType(), Integer.toString(ir.id())),
             schemaVersionType,
-            generateLiteral(ir.headerStructure().schemaVersionType(), Integer.toString(ir.version())));
+            generateLiteral(ir.headerStructure().schemaVersionType(), Integer.toString(ir.version())),
+            size < 0 ? "0" : "" + size
+        );
     }
 
     private CharSequence generateMessageFlyweightStruct(final String structName)
@@ -1571,7 +1574,7 @@ public class CGenerator implements CodeGenerator
             blockLengthType,
             generateLiteral(ir.headerStructure().blockLengthType(), Integer.toString(token.encodedLength())),
             templateIdType,
-            generateLiteral(ir.headerStructure().templateIdType(), Integer.toString(token.id())),
+            generateLiteral(ir.headerStructure().templateIdType(), "" + token.id()),
             schemaIdType,
             generateLiteral(ir.headerStructure().schemaIdType(), Integer.toString(ir.id())),
             schemaVersionType,
@@ -1632,10 +1635,10 @@ public class CGenerator implements CodeGenerator
         sb.append(String.format("\n" +
             "SBE_ONE_DEF uint16_t %3$s_%1$s_id(void)\n" +
             "{\n" +
-            "    return %2$d;\n" +
+            "    return %2$s;\n" +
             "}\n",
             propertyName,
-            fieldToken.id(),
+            generateLiteral(ir.headerStructure().templateIdType(), "" + fieldToken.id()),
             containingStructName));
 
         sb.append(String.format("\n" +
@@ -1741,10 +1744,10 @@ public class CGenerator implements CodeGenerator
         sb.append(String.format("\n" +
             "SBE_ONE_DEF uint64_t %3$s_%1$s_encoded_length(void)\n" +
             "{\n" +
-            "    return %2$d;\n" +
+            "    return %2$s;\n" +
             "}\n",
             propertyName,
-            signalToken.encodedLength(),
+            generateEncodedLengthLiteral(signalToken.encodedLength()),
             containingStructName));
 
         if (signalToken.isConstantEncoding())
@@ -1868,11 +1871,12 @@ public class CGenerator implements CodeGenerator
         sb.append(String.format("\n" +
             "SBE_ONE_DEF uint64_t %s_%s_encoded_length(void)\n" +
             "{\n" +
-            "    return %d;\n" +
+            "    return %3$s;\n" +
             "}\n",
             containingStructName,
             propertyName,
-            token.encodedLength()));
+            generateEncodedLengthLiteral(token.encodedLength())
+        ));
     }
 
     private static void generateCompositePropertyFunction(
@@ -1908,7 +1912,7 @@ public class CGenerator implements CodeGenerator
 
             "SBE_ONE_DEF uint64_t %4$s_%2$s_encoded_length(void)\n" +
             "{\n" +
-            "    return %7$d;\n" +
+            "    return %7$s;\n" +
             "}\n",
             compositeName,
             propertyName,
@@ -1916,7 +1920,8 @@ public class CGenerator implements CodeGenerator
             containingStructName,
             indexParam,
             indexOffset,
-            token.encodedLength()));
+            generateEncodedLengthLiteral(token.encodedLength())
+        ));
     }
 
     private CharSequence generateNullValueLiteral(final PrimitiveType primitiveType, final Encoding encoding)
@@ -1952,6 +1957,15 @@ public class CGenerator implements CodeGenerator
         }
 
         return generateLiteral(primitiveType, encoding.applicableNullValue().toString());
+    }
+
+    private static String generateEncodedLengthLiteral(final long sz)
+    {
+        if (sz < 0)
+        {
+            return "UINT64_MAX";
+        }
+        return "" + sz;
     }
 
     private static CharSequence generateLiteral(final Encoding encoding)
