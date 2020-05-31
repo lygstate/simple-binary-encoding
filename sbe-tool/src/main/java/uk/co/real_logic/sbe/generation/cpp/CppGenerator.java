@@ -736,7 +736,7 @@ public class CppGenerator implements CodeGenerator
             sizeOfLengthField);
 
         new Formatter(sb).format("\n" +
-            indent + "    SBE_NODISCARD %4$s %1$sLength() const\n" +
+            indent + "    SBE_NODISCARD std::uint64_t %1$sLength() const\n" +
             indent + "    {\n" +
             "%2$s" +
             indent + "        %4$s length;\n" +
@@ -1317,7 +1317,7 @@ public class CppGenerator implements CodeGenerator
             generateLiteral(primitiveType, token.encoding().applicableMaxValue().toString()));
 
         new Formatter(sb).format("\n" +
-            indent + "    static SBE_CONSTEXPR std::size_t %1$sEncodingLength() SBE_NOEXCEPT\n" +
+            indent + "    static SBE_CONSTEXPR std::uint64_t %1$sEncodedLength() SBE_NOEXCEPT\n" +
             indent + "    {\n" +
             indent + "        return %2$d;\n" +
             indent + "    }\n",
@@ -1997,7 +1997,7 @@ public class CppGenerator implements CodeGenerator
             "    using messageHeader = %12$s;\n\n" +
 
             "%11$s" +
-            "    SBE_NODISCARD static SBE_CONSTEXPR %1$s sbeBlockLength() SBE_NOEXCEPT\n" +
+            "    SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t sbeBlockLength() SBE_NOEXCEPT\n" +
             "    {\n" +
             "        return %2$s;\n" +
             "    }\n\n" +
@@ -2211,7 +2211,7 @@ public class CppGenerator implements CodeGenerator
             fieldToken.version());
 
         new Formatter(sb).format("\n" +
-            indent + "    SBE_NODISCARD static SBE_CONSTEXPR std::size_t %1$sEncodingOffset() SBE_NOEXCEPT\n" +
+            indent + "    SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t %1$sEncodedOffset() SBE_NOEXCEPT\n" +
             indent + "    {\n" +
             indent + "        return %2$d;\n" +
             indent + "    }\n",
@@ -2293,7 +2293,7 @@ public class CppGenerator implements CodeGenerator
         final int offset = token.offset();
 
         new Formatter(sb).format("\n" +
-            indent + "    SBE_NODISCARD static SBE_CONSTEXPR std::size_t %1$sEncodingLength() SBE_NOEXCEPT\n" +
+            indent + "    SBE_NODISCARD static SBE_CONSTEXPR std::uint64_t %1$sEncodedLength() SBE_NOEXCEPT\n" +
             indent + "    {\n" +
             indent + "        return %2$d;\n" +
             indent + "    }\n",
@@ -2382,7 +2382,7 @@ public class CppGenerator implements CodeGenerator
             offset);
 
         new Formatter(sb).format("\n" +
-            indent + "    static SBE_CONSTEXPR std::size_t %1$sEncodingLength() SBE_NOEXCEPT\n" +
+            indent + "    static SBE_CONSTEXPR std::uint64_t %1$sEncodedLength() SBE_NOEXCEPT\n" +
             indent + "    {\n" +
             indent + "        return %2$d;\n" +
             indent + "    }\n",
