@@ -45,7 +45,7 @@ std::size_t encodeHdr(MessageHeader &hdr, Car &car, char *buffer, std::uint64_t 
        .schemaId(Car::sbeSchemaId())
        .version(Car::sbeSchemaVersion());
 
-    return hdr.encodedLength();
+    return static_cast<std::size_t>(hdr.encodedLength());
 }
 
 std::size_t decodeHdr(MessageHeader &hdr, char *buffer, std::uint64_t offset, std::uint64_t bufferLength)
@@ -59,7 +59,7 @@ std::size_t decodeHdr(MessageHeader &hdr, char *buffer, std::uint64_t offset, st
     cout << "messageHeader.schemaVersion=" << hdr.version() << endl;
     cout << "messageHeader.encodedLength=" << hdr.encodedLength() << endl;
 
-    return hdr.encodedLength();
+    return static_cast<std::size_t>(hdr.encodedLength());
 }
 
 std::size_t encodeCar(Car &car, char *buffer, std::uint64_t offset, std::uint64_t bufferLength)
@@ -123,7 +123,7 @@ std::size_t encodeCar(Car &car, char *buffer, std::uint64_t offset, std::uint64_
         .putModel(MODEL, 9)
         .putActivationCode("deadbeef", 8);
 
-    return car.encodedLength();
+    return static_cast<std::size_t>(car.encodedLength());
 }
 
 const char *format(BooleanType::Value value)
@@ -258,7 +258,7 @@ std::size_t decodeCar(
     std::cout << "\ncar.engine.efficiency=" << (int)engine.efficiency();
     std::cout << "\ncar.engine.boosterEnabled=" << format(engine.boosterEnabled());
     std::cout << "\ncar.engine.fuelLength=" << bytesCopied;
-    std::cout << "\ncar.engine.fuel=" << std::string(tmp, bytesCopied);
+    std::cout << "\ncar.engine.fuel=" << std::string(tmp, static_cast<std::size_t>(bytesCopied));
     std::cout << "\ncar.engine.booster.boostType=" << format(engine.booster().boostType());
     std::cout << "\ncar.engine.booster.horsePower=" << (int)engine.booster().horsePower();
 
@@ -291,19 +291,19 @@ std::size_t decodeCar(
 
     bytesCopied = car.getManufacturer(tmp, sizeof(tmp));
     std::cout << "\ncar.manufacturerLength=" << bytesCopied;
-    std::cout << "\ncar.manufacturer=" << std::string(tmp, bytesCopied);
+    std::cout << "\ncar.manufacturer=" << std::string(tmp, static_cast<std::size_t>(bytesCopied));
 
     bytesCopied = car.getModel(tmp, sizeof(tmp));
     std::cout << "\ncar.modelLength=" << bytesCopied;
-    std::cout << "\ncar.model=" << std::string(tmp, bytesCopied);
+    std::cout << "\ncar.model=" << std::string(tmp, static_cast<std::size_t>(bytesCopied));
 
     bytesCopied = car.getActivationCode(tmp, sizeof(tmp));
     std::cout << "\ncar.activationCodeLength=" << bytesCopied;
-    std::cout << "\ncar.activationCode=" << std::string(tmp, bytesCopied);
+    std::cout << "\ncar.activationCode=" << std::string(tmp, static_cast<std::size_t>(bytesCopied));
 
     std::cout << "\ncar.encodedLength=" << (int)car.encodedLength() << "\n";
 
-    return car.encodedLength();
+    return static_cast<std::size_t>(car.encodedLength());
 }
 
 int main(int argc, const char* argv[])

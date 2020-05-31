@@ -312,7 +312,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage1Correctly)
     GWD(testMessage1_entries_next)(&entries);
 
     EXPECT_EQ(GWD(testMessage1_entries_tagGroup1_length)(), TAG_GROUP_1_IDX_0_LENGTH);
-    EXPECT_EQ(std::string(GWD(testMessage1_entries_tagGroup1_buffer)(&entries), GWD(testMessage1_entries_tagGroup1_length)()), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
+    EXPECT_EQ(std::string(GWD(testMessage1_entries_tagGroup1_buffer)(&entries), static_cast<std::size_t>(GWD(testMessage1_entries_tagGroup1_length)())), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
     EXPECT_EQ(GWD(testMessage1_entries_tagGroup2)(&entries), TAG_GROUP_2_IDX_0);
     EXPECT_EQ(GWD(testMessage1_entries_varDataField_length)(&entries), VAR_DATA_FIELD_IDX_0_LENGTH);
     EXPECT_EQ(std::string(GWD(testMessage1_entries_varDataField)(&entries), VAR_DATA_FIELD_IDX_0_LENGTH), VAR_DATA_FIELD_IDX_0);
@@ -321,7 +321,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage1Correctly)
     GWD(testMessage1_entries_next)(&entries);
 
     EXPECT_EQ(GWD(testMessage1_entries_tagGroup1_length)(), TAG_GROUP_1_IDX_1_LENGTH);
-    EXPECT_EQ(std::string(GWD(testMessage1_entries_tagGroup1_buffer)(&entries), GWD(testMessage1_entries_tagGroup1_length)()), std::string(TAG_GROUP_1_IDX_1, TAG_GROUP_1_IDX_1_LENGTH));
+    EXPECT_EQ(std::string(GWD(testMessage1_entries_tagGroup1_buffer)(&entries), static_cast<std::size_t>(GWD(testMessage1_entries_tagGroup1_length)())), std::string(TAG_GROUP_1_IDX_1, TAG_GROUP_1_IDX_1_LENGTH));
     EXPECT_EQ(GWD(testMessage1_entries_tagGroup2)(&entries), TAG_GROUP_2_IDX_1);
     EXPECT_EQ(GWD(testMessage1_entries_varDataField_length)(&entries), VAR_DATA_FIELD_IDX_1_LENGTH);
     EXPECT_EQ(std::string(GWD(testMessage1_entries_varDataField)(&entries), VAR_DATA_FIELD_IDX_1_LENGTH), VAR_DATA_FIELD_IDX_1);
@@ -401,7 +401,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage2Correctly)
     GWD(testMessage2_entries_next)(&entries);
 
     EXPECT_EQ(GWD(testMessage2_entries_tagGroup1_length)(), TAG_GROUP_1_IDX_0_LENGTH);
-    EXPECT_EQ(std::string(GWD(testMessage2_entries_tagGroup1_buffer)(&entries), GWD(testMessage2_entries_tagGroup1_length)()), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
+    EXPECT_EQ(std::string(GWD(testMessage2_entries_tagGroup1_buffer)(&entries), static_cast<std::size_t>(GWD(testMessage2_entries_tagGroup1_length)())), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
     EXPECT_EQ(GWD(testMessage2_entries_tagGroup2)(&entries), TAG_GROUP_2_IDX_0);
     EXPECT_EQ(GWD(testMessage2_entries_varDataField1_length)(&entries), VAR_DATA_FIELD_1_IDX_0_LENGTH);
     EXPECT_EQ(std::string(GWD(testMessage2_entries_varDataField1)(&entries), VAR_DATA_FIELD_1_IDX_0_LENGTH), VAR_DATA_FIELD_1_IDX_0);
@@ -412,7 +412,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage2Correctly)
     GWD(testMessage2_entries_next)(&entries);
 
     EXPECT_EQ(GWD(testMessage2_entries_tagGroup1_length)(), TAG_GROUP_1_IDX_1_LENGTH);
-    EXPECT_EQ(std::string(GWD(testMessage2_entries_tagGroup1_buffer)(&entries), GWD(testMessage2_entries_tagGroup1_length)()), std::string(TAG_GROUP_1_IDX_1, TAG_GROUP_1_IDX_1_LENGTH));
+    EXPECT_EQ(std::string(GWD(testMessage2_entries_tagGroup1_buffer)(&entries), static_cast<std::size_t>(GWD(testMessage2_entries_tagGroup1_length)())), std::string(TAG_GROUP_1_IDX_1, TAG_GROUP_1_IDX_1_LENGTH));
 
 
     EXPECT_EQ(GWD(testMessage2_entries_tagGroup2)(&entries), TAG_GROUP_2_IDX_1);
@@ -540,7 +540,7 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage3Correctly)
     GWD(testMessage3_entries_next)(&entries);
 
     EXPECT_EQ(GWD(testMessage3_entries_tagGroup1_length)(), TAG_GROUP_1_IDX_0_LENGTH);
-    EXPECT_EQ(std::string(GWD(testMessage3_entries_tagGroup1_buffer)(&entries), GWD(testMessage3_entries_tagGroup1_length)()), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
+    EXPECT_EQ(std::string(GWD(testMessage3_entries_tagGroup1_buffer)(&entries), static_cast<std::size_t>(GWD(testMessage3_entries_tagGroup1_length)())), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
 
     GWD(testMessage3_entries_nestedEntries) nestedEntries0;
     if (!GWD(testMessage3_entries_get_nestedEntries)(&entries, &nestedEntries0))

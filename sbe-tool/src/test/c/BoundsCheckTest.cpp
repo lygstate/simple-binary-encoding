@@ -235,15 +235,15 @@ protected:
 
     std::uint64_t encodeCarManufacturerModelAndActivationCode()
     {
-        if (!CGT(car_put_manufacturer)(&m_car, MANUFACTURER, (int)(strlen(MANUFACTURER))))
+        if (!CGT(car_put_manufacturer)(&m_car, MANUFACTURER, static_cast<std::uint16_t>(strlen(MANUFACTURER))))
         {
             throw std::runtime_error(sbe_strerror(errno));
         }
-        if (!CGT(car_put_model)(&m_car, MODEL, (int)(strlen(MODEL))))
+        if (!CGT(car_put_model)(&m_car, MODEL, static_cast<std::uint16_t>(strlen(MODEL))))
         {
             throw std::runtime_error(sbe_strerror(errno));
         }
-        if (!CGT(car_put_activationCode)(&m_car, ACTIVATION_CODE, (int)(strlen(ACTIVATION_CODE))))
+        if (!CGT(car_put_activationCode)(&m_car, ACTIVATION_CODE, static_cast<std::uint16_t>(strlen(ACTIVATION_CODE))))
         {
             throw std::runtime_error(sbe_strerror(errno));
         }

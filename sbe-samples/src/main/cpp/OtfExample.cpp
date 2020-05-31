@@ -86,7 +86,7 @@ public:
                         buffer = encoding.constValue().getArray();
                     }
 
-                    result << std::string(buffer, length);
+                    result << std::string(buffer, static_cast<size_t>(length));
                 }
                 break;
             }
@@ -313,7 +313,7 @@ public:
         Token& typeToken)
     {
         printScope();
-        std::cout << fieldToken.name() << "=" << std::string(buffer, length) << "\n";
+        std::cout << fieldToken.name() << "=" << std::string(buffer, static_cast<size_t>(length)) << "\n";
     }
 };
 
@@ -468,7 +468,7 @@ int main(int argc, char **argv)
         static_cast<int>(templateId), static_cast<int>(actingVersion));
 
     const std::size_t result = OtfMessageDecoder::decode(
-        messageBuffer, length, actingVersion, blockLength, messageTokens, tokenListener);
+        messageBuffer, static_cast<size_t>(length), actingVersion, static_cast<size_t>(blockLength), messageTokens, tokenListener);
 
     std::cout << "result = " << result << "\n";
 

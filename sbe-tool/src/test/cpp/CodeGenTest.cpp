@@ -129,17 +129,17 @@ public:
         fuelFigures
             .next().speed(fuel1Speed).mpg(fuel1Mpg)
             .putUsageDescription(
-                FUEL_FIGURES_1_USAGE_DESCRIPTION, static_cast<int>(strlen(FUEL_FIGURES_1_USAGE_DESCRIPTION)));
+                FUEL_FIGURES_1_USAGE_DESCRIPTION, static_cast<std::uint16_t>(strlen(FUEL_FIGURES_1_USAGE_DESCRIPTION)));
 
         fuelFigures
             .next().speed(fuel2Speed).mpg(fuel2Mpg)
             .putUsageDescription(
-                FUEL_FIGURES_2_USAGE_DESCRIPTION, static_cast<int>(strlen(FUEL_FIGURES_2_USAGE_DESCRIPTION)));
+                FUEL_FIGURES_2_USAGE_DESCRIPTION, static_cast<std::uint16_t>(strlen(FUEL_FIGURES_2_USAGE_DESCRIPTION)));
 
         fuelFigures
             .next().speed(fuel3Speed).mpg(fuel3Mpg)
             .putUsageDescription(
-                FUEL_FIGURES_3_USAGE_DESCRIPTION, static_cast<int>(strlen(FUEL_FIGURES_3_USAGE_DESCRIPTION)));
+                FUEL_FIGURES_3_USAGE_DESCRIPTION, static_cast<std::uint16_t>(strlen(FUEL_FIGURES_3_USAGE_DESCRIPTION)));
 
         Car::PerformanceFigures &perfFigs = car.performanceFiguresCount(PERFORMANCE_FIGURES_COUNT);
 
@@ -157,10 +157,10 @@ public:
                 .next().mph(perf2bMph).seconds(perf2bSeconds)
                 .next().mph(perf2cMph).seconds(perf2cSeconds);
 
-        car.putManufacturer(MANUFACTURER, static_cast<int>(strlen(MANUFACTURER)))
-            .putModel(MODEL, static_cast<int>(strlen(MODEL)))
-            .putActivationCode(ACTIVATION_CODE, static_cast<int>(strlen(ACTIVATION_CODE)))
-            .putColor(COLOR, static_cast<int>(strlen(COLOR)));
+        car.putManufacturer(MANUFACTURER, static_cast<std::uint16_t>(strlen(MANUFACTURER)))
+            .putModel(MODEL, static_cast<std::uint16_t>(strlen(MODEL)))
+            .putActivationCode(ACTIVATION_CODE, static_cast<std::uint16_t>(strlen(ACTIVATION_CODE)))
+            .putColor(COLOR, static_cast<std::uint32_t>(strlen(COLOR)));
 
         return car.encodedLength();
     }
@@ -462,7 +462,7 @@ TEST_F(CodeGenTest, shouldBeAbleToEncodeHeaderPlusCarCorrectly)
 
     EXPECT_EQ(*((std::uint16_t *)bp), Car::sbeBlockLength());
     const size_t activationCodePosition =
-        (hdrSz + carEncodedLength) - (ACTIVATION_CODE_LENGTH + sizeof(std::uint32_t) + COLOR_LENGTH);
+        static_cast<std::uint16_t>((hdrSz + carEncodedLength) - (ACTIVATION_CODE_LENGTH + sizeof(std::uint32_t) + COLOR_LENGTH));
     const size_t activationCodeLengthPosition = activationCodePosition - sizeof(std::uint16_t);
     EXPECT_EQ(*(std::uint16_t *)(bp + activationCodeLengthPosition), ACTIVATION_CODE_LENGTH);
     EXPECT_EQ(std::string(bp + activationCodePosition, ACTIVATION_CODE_LENGTH), ACTIVATION_CODE);
@@ -729,7 +729,7 @@ static const std::size_t offsetColorData = offsetColorLength + sizeof(std::uint3
 
 TEST_F(CodeGenTest, shouldBeAbleToUseStdStringMethodsForEncode)
 {
-    std::string vehicleCode(VEHICLE_CODE, Car::vehicleCodeLength());
+    std::string vehicleCode(VEHICLE_CODE, static_cast<std::uint16_t>(Car::vehicleCodeLength()));
     std::string usageDesc1(FUEL_FIGURES_1_USAGE_DESCRIPTION, FUEL_FIGURES_1_USAGE_DESCRIPTION_LENGTH);
     std::string usageDesc2(FUEL_FIGURES_2_USAGE_DESCRIPTION, FUEL_FIGURES_2_USAGE_DESCRIPTION_LENGTH);
     std::string usageDesc3(FUEL_FIGURES_3_USAGE_DESCRIPTION, FUEL_FIGURES_3_USAGE_DESCRIPTION_LENGTH);
@@ -807,7 +807,7 @@ TEST_F(CodeGenTest, shouldBeAbleToUseStdStringMethodsForDecode)
 
     Car carDecoder(buffer, carEncodedLength, Car::sbeBlockLength(), Car::sbeSchemaVersion());
 
-    std::string vehicleCode(VEHICLE_CODE, Car::vehicleCodeLength());
+    std::string vehicleCode(VEHICLE_CODE, static_cast<std::uint16_t>(Car::vehicleCodeLength()));
     std::string usageDesc1(FUEL_FIGURES_1_USAGE_DESCRIPTION, FUEL_FIGURES_1_USAGE_DESCRIPTION_LENGTH);
     std::string usageDesc2(FUEL_FIGURES_2_USAGE_DESCRIPTION, FUEL_FIGURES_2_USAGE_DESCRIPTION_LENGTH);
     std::string usageDesc3(FUEL_FIGURES_3_USAGE_DESCRIPTION, FUEL_FIGURES_3_USAGE_DESCRIPTION_LENGTH);
@@ -875,7 +875,7 @@ TEST_F(CodeGenTest, shouldPrintFullDecodedFlyweightRegardlessOfReadPosition)
 
     Car carDecoder(buffer, carEncodedLength, Car::sbeBlockLength(), Car::sbeSchemaVersion());
 
-    std::string vehicleCode(VEHICLE_CODE, Car::vehicleCodeLength());
+    std::string vehicleCode(VEHICLE_CODE, static_cast<std::uint16_t>(Car::vehicleCodeLength()));
     std::string usageDesc1(FUEL_FIGURES_1_USAGE_DESCRIPTION, FUEL_FIGURES_1_USAGE_DESCRIPTION_LENGTH);
     std::string usageDesc2(FUEL_FIGURES_2_USAGE_DESCRIPTION, FUEL_FIGURES_2_USAGE_DESCRIPTION_LENGTH);
     std::string usageDesc3(FUEL_FIGURES_3_USAGE_DESCRIPTION, FUEL_FIGURES_3_USAGE_DESCRIPTION_LENGTH);
