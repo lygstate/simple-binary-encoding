@@ -564,15 +564,16 @@ public class CGenerator implements CodeGenerator
                 structName,
                 outermostStruct));
 
+            /* TODO: Add length range judgement */
             sb.append(String.format("\n" +
                 "SBE_ONE_DEF struct %5$s *%5$s_put_%1$s(\n" +
                 "    struct %5$s *const codec,\n" +
                 "    const char *src,\n" +
-                "    const %3$s length)\n" +
+                "    const uint64_t length)\n" +
                 "{\n" +
                 "    uint64_t length_of_length_field = %2$d;\n" +
                 "    uint64_t length_position = %5$s_sbe_position(codec);\n" +
-                "    %3$s length_field_value = %4$s(length);\n" +
+                "    %3$s length_field_value = %4$s((%3$s)length);\n" +
                 "    if (!%5$s_set_sbe_position(codec, length_position + length_of_length_field))\n" +
                 "    {\n" +
                 "        return NULL;\n" +
@@ -1247,7 +1248,7 @@ public class CGenerator implements CodeGenerator
             containingStructName));
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF size_t %3$s_%1$s_encoding_length(void)\n" +
+            "SBE_ONE_DEF uint64_t %3$s_%1$s_encoded_length(void)\n" +
             "{\n" +
             "    return %2$d;\n" +
             "}\n",
@@ -2028,7 +2029,7 @@ public class CGenerator implements CodeGenerator
             containingStructName));
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF size_t %2$s_%1$s_encoding_offset(void)\n" +
+            "SBE_ONE_DEF uint64_t %2$s_%1$s_encoded_offset(void)\n" +
             "{\n" +
             "    return %3$d;\n" +
             "}\n",
@@ -2112,7 +2113,7 @@ public class CGenerator implements CodeGenerator
         final int offset = token.offset();
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF size_t %3$s_%1$s_encoding_length(void)\n" +
+            "SBE_ONE_DEF uint64_t %3$s_%1$s_encoded_length(void)\n" +
             "{\n" +
             "    return %2$d;\n" +
             "}\n",
@@ -2213,7 +2214,7 @@ public class CGenerator implements CodeGenerator
             containingStructName));
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF size_t %s_%s_encoding_length(void)\n" +
+            "SBE_ONE_DEF uint64_t %s_%s_encoded_length(void)\n" +
             "{\n" +
             "    return %d;\n" +
             "}\n",
