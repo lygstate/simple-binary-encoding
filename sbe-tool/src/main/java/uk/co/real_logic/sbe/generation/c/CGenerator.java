@@ -503,7 +503,7 @@ public class CGenerator implements CodeGenerator
                 "    return field_ptr;\n" +
                 "}\n",
                 propertyName,
-                generateTypeFieldNotPresentCondition(token.version()),
+                generateFieldNotPresentCondition(token.version(), "NULL"),
                 lengthOfLengthField,
                 lengthCType,
                 lengthByteOrderStr,
@@ -535,7 +535,7 @@ public class CGenerator implements CodeGenerator
                 "    return bytes_to_copy;\n" +
                 "}\n",
                 propertyName,
-                generateArrayFieldNotPresentCondition(token.version()),
+                generateFieldNotPresentCondition(token.version(), "0"),
                 lengthOfLengthField,
                 lengthByteOrderStr,
                 lengthCType,
@@ -558,7 +558,7 @@ public class CGenerator implements CodeGenerator
                 "    return ret;\n" +
                 "}\n",
                 propertyName,
-                generateStringViewNotPresentCondition(token.version()),
+                generateFieldNotPresentCondition(token.version(), "{NULL, 0}"),
                 lengthOfLengthField,
                 lengthCType,
                 structName,
@@ -657,7 +657,7 @@ public class CGenerator implements CodeGenerator
             "    return %3$s(length);\n" +
             "}\n",
             fullyQualifiedPropertyName,
-            generateArrayFieldNotPresentCondition(token.version()),
+            generateFieldNotPresentCondition(token.version(), "0"),
             formatByteOrderEncoding(lengthToken.encoding().byteOrder(), lengthToken.encoding().primitiveType()),
             lengthCType,
             structName));
@@ -933,7 +933,7 @@ public class CGenerator implements CodeGenerator
         return sb;
     }
 
-    private CharSequence generateFieldNotPresentCondition(final int sinceVersion, final Encoding encoding)
+    private CharSequence generateFieldNotPresentCondition(final int sinceVersion, final CharSequence nullReturn)
     {
         if (0 == sinceVersion)
         {
@@ -945,53 +945,7 @@ public class CGenerator implements CodeGenerator
             "    {\n" +
             "        return %2$s;\n" +
             "    }\n\n",
-            sinceVersion,
-            generateLiteral(encoding.primitiveType(), encoding.applicableNullValue().toString()));
-    }
-
-    private static CharSequence generateArrayFieldNotPresentCondition(final int sinceVersion)
-    {
-        if (0 == sinceVersion)
-        {
-            return "";
-        }
-
-        return String.format(
-            "    if (codec->acting_version < %1$d)\n" +
-            "    {\n" +
-            "        return 0;\n" +
-            "    }\n\n",
-            sinceVersion);
-    }
-
-    private static CharSequence generateStringViewNotPresentCondition(final int sinceVersion)
-    {
-        if (0 == sinceVersion)
-        {
-            return "";
-        }
-
-        return String.format(
-            "    if (codec->acting_version < %1$d)\n" +
-            "    {\n" +
-            "        return { NULL, 0 };\n" +
-            "    }\n\n",
-            sinceVersion);
-    }
-
-    private static CharSequence generateTypeFieldNotPresentCondition(final int sinceVersion)
-    {
-        if (0 == sinceVersion)
-        {
-            return "";
-        }
-
-        return String.format(
-            "    if (codec->acting_version < %1$d)\n" +
-            "    {\n" +
-            "        return NULL;\n" +
-            "    }\n\n",
-            sinceVersion);
+            sinceVersion, nullReturn);
     }
 
     private static CharSequence generateFileHeader(final String structName, final List<String> typesToInclude)
@@ -1416,6 +1370,8 @@ public class CGenerator implements CodeGenerator
             Integer.toString(offset),
             token.encoding().byteOrder());
 
+        final CharSequence nullReturn = generateLiteral(primitiveType,
+            token.encoding().applicableNullValue().toString());
         sb.append(String.format("\n" +
             "SBE_ONE_DEF %1$s %5$s_%2$s(\n" +
             "    const struct %5$s *const codec)\n" +
@@ -1425,7 +1381,7 @@ public class CGenerator implements CodeGenerator
             "}\n",
             cTypeName,
             propertyName,
-            generateFieldNotPresentCondition(token.version(), token.encoding()),
+            generateFieldNotPresentCondition(token.version(), nullReturn),
             loadValue,
             containingStructName));
 
@@ -1475,7 +1431,7 @@ public class CGenerator implements CodeGenerator
             "}\n",
             containingStructName,
             propertyName,
-            generateTypeFieldNotPresentCondition(token.version()),
+            generateFieldNotPresentCondition(token.version(), "NULL"),
             offset));
 
         final CharSequence loadValue = generateLoadValue(
@@ -1484,6 +1440,8 @@ public class CGenerator implements CodeGenerator
             String.format("%d + (index * %d)", offset, primitiveType.size()),
             token.encoding().byteOrder());
 
+        final CharSequence nullReturn = generateLiteral(primitiveType,
+            token.encoding().applicableNullValue().toString());
         sb.append(String.format("\n" +
             "SBE_ONE_DEF %2$s %1$s_%3$s_unsafe(\n" +
             "    const struct %1$s *const codec,\n" +
@@ -1495,7 +1453,7 @@ public class CGenerator implements CodeGenerator
             containingStructName,
             cTypeName,
             propertyName,
-            generateFieldNotPresentCondition(token.version(), token.encoding()),
+            generateFieldNotPresentCondition(token.version(), nullReturn),
             loadValue));
 
         final CharSequence loadValueUnsafe = generateLoadValueUnsafe(
@@ -1524,7 +1482,7 @@ public class CGenerator implements CodeGenerator
             cTypeName,
             propertyName,
             token.arrayLength(),
-            generateFieldNotPresentCondition(token.version(), token.encoding()),
+            generateFieldNotPresentCondition(token.version(), "false"),
             loadValueUnsafe));
 
         final CharSequence storeValue = generateStoreValue(
@@ -1587,7 +1545,7 @@ public class CGenerator implements CodeGenerator
             containingStructName,
             propertyName,
             token.arrayLength(),
-            generateArrayFieldNotPresentCondition(token.version()),
+            generateFieldNotPresentCondition(token.version(), "NULL"),
             offset,
             cTypeName));
 
