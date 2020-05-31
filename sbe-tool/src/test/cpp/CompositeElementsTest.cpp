@@ -287,13 +287,13 @@ TEST_F(CompositeElementsTest, shouldHandleAllEventsCorrectlyInOrder)
 
     EXPECT_EQ(headerDecoder.encodedLength(), MessageHeader::encodedLength());
     const char *messageBuffer = m_buffer + headerDecoder.encodedLength();
-    std::size_t length = sz - headerDecoder.encodedLength();
+    std::size_t length = static_cast<std::size_t>(sz - headerDecoder.encodedLength());
     std::uint64_t actingVersion = headerDecoder.getSchemaVersion(m_buffer);
     std::uint64_t blockLength = headerDecoder.getBlockLength(m_buffer);
 
     const std::size_t result =
-        OtfMessageDecoder::decode(messageBuffer, length, actingVersion, blockLength, messageTokens, *this);
-    EXPECT_EQ(result, static_cast<std::size_t>(Msg::sbeBlockLength()));
+        OtfMessageDecoder::decode(messageBuffer, length, actingVersion, static_cast<std::size_t>(blockLength), messageTokens, *this);
+    EXPECT_EQ(result, Msg::sbeBlockLength());
 
     EXPECT_EQ(m_eventNumber, 9);
 }

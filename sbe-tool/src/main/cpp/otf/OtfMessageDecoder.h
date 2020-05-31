@@ -292,7 +292,7 @@ std::size_t decodeData(
 
         listener.onVarData(token, buffer + bufferIndex, dataLength, dataToken);
 
-        bufferIndex += dataLength;
+        bufferIndex += static_cast<size_t>(dataLength);
         tokenIndex += token.componentTokenCount();
     }
 
@@ -356,7 +356,7 @@ std::pair<size_t, size_t> decodeGroups(
 
             size_t afterFieldsIndex = decodeFields(
                 buffer, bufferIndex, length, actingVersion, tokens, beginFieldsIndex, numTokens, listener);
-            bufferIndex += blockLength;
+            bufferIndex += static_cast<size_t>(blockLength);
 
             std::pair<size_t, size_t> groupsResult = decodeGroups(
                 buffer, bufferIndex, length, actingVersion, tokens, afterFieldsIndex, numTokens, listener);
