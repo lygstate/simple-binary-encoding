@@ -531,7 +531,7 @@ public class CGenerator implements CodeGenerator
                 "    {\n" +
                 "        return 0;\n" +
                 "    }\n\n" +
-                "    memcpy(dst, codec->buffer + pos, bytes_to_copy);\n\n" +
+                "    memcpy(dst, codec->buffer + pos, (size_t)bytes_to_copy);\n\n" +
                 "    return bytes_to_copy;\n" +
                 "}\n",
                 propertyName,
@@ -584,7 +584,7 @@ public class CGenerator implements CodeGenerator
                 "    {\n" +
                 "        return NULL;\n" +
                 "    }\n\n" +
-                "    memcpy(codec->buffer + pos, src, length);\n\n" +
+                "    memcpy(codec->buffer + pos, src, (size_t)length);\n\n" +
                 "    return codec;\n" +
                 "}\n",
                 propertyName,
@@ -1540,7 +1540,7 @@ public class CGenerator implements CodeGenerator
             "    }\n\n" +
 
             "%4$s" +
-            "    memcpy(dst, codec->buffer + codec->offset + %5$d, sizeof(%6$s) * length);\n\n" +
+            "    memcpy(dst, codec->buffer + codec->offset + %5$d, sizeof(%6$s) * (size_t)length);\n\n" +
             "    return dst;\n" +
             "}\n",
             containingStructName,
@@ -1640,7 +1640,7 @@ public class CGenerator implements CodeGenerator
             "    static uint8_t %2$s_values[] = {%3$s};\n" +
             "    uint64_t bytes_to_copy = length < sizeof(%2$s_values) ? length : sizeof(%2$s_values);\n\n" +
 
-            "    memcpy(dst, %2$s_values, bytes_to_copy);\n\n" +
+            "    memcpy(dst, %2$s_values, (size_t)bytes_to_copy);\n\n" +
             "    return bytes_to_copy;\n" +
             "}\n",
             toUpperFirstChar(propertyName),
