@@ -307,17 +307,10 @@ public class CppGenerator implements CodeGenerator
             indent + "        const std::uint64_t actingVersion,\n" +
             indent + "        const std::uint64_t bufferLength)\n" +
             indent + "    {\n" +
-            indent + "#if defined(__GNUG__) && !defined(__clang__)\n" +
-            indent + "#pragma GCC diagnostic push\n" +
-            indent + "#pragma GCC diagnostic ignored \"-Wtype-limits\"\n" +
-            indent + "#endif\n" +
             indent + "        if (%5$scount > %6$d)\n" +
             indent + "        {\n" +
             indent + "            throw std::runtime_error(\"count outside of allowed range [E110]\");\n" +
             indent + "        }\n" +
-            indent + "#if defined(__GNUG__) && !defined(__clang__)\n" +
-            indent + "#pragma GCC diagnostic pop\n" +
-            indent + "#endif\n" +
             indent + "        m_buffer = buffer;\n" +
             indent + "        m_bufferLength = bufferLength;\n" +
             indent + "        %7$s dimensions(buffer, *pos, bufferLength, actingVersion);\n" +
@@ -488,14 +481,7 @@ public class CppGenerator implements CodeGenerator
 
             indent + "    SBE_NODISCARD bool %1$sInActingVersion() const SBE_NOEXCEPT\n" +
             indent + "    {\n" +
-            indent + "#if defined(__clang__)\n" +
-            indent + "#pragma clang diagnostic push\n" +
-            indent + "#pragma clang diagnostic ignored \"-Wtautological-compare\"\n" +
-            indent + "#endif\n" +
             indent + "        return m_actingVersion >= %1$sSinceVersion();\n" +
-            indent + "#if defined(__clang__)\n" +
-            indent + "#pragma clang diagnostic pop\n" +
-            indent + "#endif\n" +
             indent + "    }\n",
             propertyName,
             token.version());
@@ -710,14 +696,7 @@ public class CppGenerator implements CodeGenerator
 
             indent + "    bool %1$sInActingVersion() SBE_NOEXCEPT\n" +
             indent + "    {\n" +
-            indent + "#if defined(__clang__)\n" +
-            indent + "#pragma clang diagnostic push\n" +
-            indent + "#pragma clang diagnostic ignored \"-Wtautological-compare\"\n" +
-            indent + "#endif\n" +
             indent + "        return m_actingVersion >= %1$sSinceVersion();\n" +
-            indent + "#if defined(__clang__)\n" +
-            indent + "#pragma clang diagnostic pop\n" +
-            indent + "#endif\n" +
             indent + "    }\n\n" +
 
             indent + "    static SBE_CONSTEXPR std::uint16_t %1$sId() SBE_NOEXCEPT\n" +
@@ -2072,14 +2051,7 @@ public class CppGenerator implements CodeGenerator
 
             indent + "    SBE_NODISCARD bool %1$sInActingVersion() SBE_NOEXCEPT\n" +
             indent + "    {\n" +
-            indent + "#if defined(__clang__)\n" +
-            indent + "#pragma clang diagnostic push\n" +
-            indent + "#pragma clang diagnostic ignored \"-Wtautological-compare\"\n" +
-            indent + "#endif\n" +
             indent + "        return m_actingVersion >= %1$sSinceVersion();\n" +
-            indent + "#if defined(__clang__)\n" +
-            indent + "#pragma clang diagnostic pop\n" +
-            indent + "#endif\n" +
             indent + "    }\n",
             propertyName,
             fieldToken.version());
@@ -2988,16 +2960,9 @@ public class CppGenerator implements CodeGenerator
 
             indent + "SBE_NODISCARD static SBE_CONSTEXPR_14 size_t computeLength(%1$s)\n" +
             indent + "{\n" +
-            "#if defined(__GNUG__) && !defined(__clang__)\n" +
-            "#pragma GCC diagnostic push\n" +
-            "#pragma GCC diagnostic ignored \"-Wtype-limits\"\n" +
-            "#endif\n" +
             indent + "    size_t length = static_cast<std::size_t>(sbeBlockLength());\n\n" +
             "%2$s" +
             indent + "    return length;\n" +
-            "#if defined(__GNUG__) && !defined(__clang__)\n" +
-            "#pragma GCC diagnostic pop\n" +
-            "#endif\n" +
             indent + "}\n",
             generateMessageLengthArgs(groups, varData, indent + INDENT, true)[0],
             sbEncode,
