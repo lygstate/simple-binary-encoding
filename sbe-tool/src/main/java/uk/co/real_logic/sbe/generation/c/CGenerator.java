@@ -32,7 +32,6 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
-import static uk.co.real_logic.sbe.generation.Generators.toLowerFirstChar;
 import static uk.co.real_logic.sbe.generation.c.CUtil.*;
 import static uk.co.real_logic.sbe.ir.GenerationUtil.*;
 
@@ -238,8 +237,8 @@ public class CGenerator implements CodeGenerator
             "    {\n" +
             "        return NULL;\n" +
             "    }\n\n" +
-            "    %5$s_set_blockLength(&dimensions, (%2$s)%3$d);\n" +
-            "    %5$s_set_numInGroup(&dimensions, (%4$s)count);\n" +
+            "    %5$s_blockLength_set(&dimensions, (%2$s)%3$d);\n" +
+            "    %5$s_numInGroup_set(&dimensions, (%4$s)count);\n" +
             "    codec->index = UINT64_MAX;\n" +
             "    codec->count = count;\n" +
             "    codec->block_length = %3$d;\n" +
@@ -270,7 +269,7 @@ public class CGenerator implements CodeGenerator
             "    return *codec->position_ptr;\n" +
             "}\n\n" +
 
-            "SBE_ONE_DEF bool %3$s_set_sbe_position(\n" +
+            "SBE_ONE_DEF bool %3$s_sbe_position_set(\n" +
             "    %3$s *const codec,\n" +
             "    const uint64_t position)\n" +
             "{\n" +
@@ -345,7 +344,7 @@ public class CGenerator implements CodeGenerator
         ));
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF %2$s *%1$s_get_%3$s(\n" +
+            "SBE_ONE_DEF %2$s *%1$s_%3$s_get(\n" +
             "    %1$s *const codec,\n" +
             "    %2$s *const property)\n" +
             "{\n" +
@@ -361,7 +360,7 @@ public class CGenerator implements CodeGenerator
             propertyName));
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF %2$s *%2$s_set_count(\n" +
+            "SBE_ONE_DEF %2$s *%2$s_count_set(\n" +
             "    %1$s *const codec,\n" +
             "    %2$s *const property,\n" +
             "    const %3$s count)\n" +
@@ -434,7 +433,7 @@ public class CGenerator implements CodeGenerator
                 identBlock(
                 "    %4$s length_field_value = %5$s_%1$s_length(codec);\n" +
                 "    char *field_ptr = codec->buffer + %5$s_sbe_position(codec) + %3$d;\n" +
-                "    if (%5$s_set_sbe_position(\n" +
+                "    if (%5$s_sbe_position_set(\n" +
                 "        codec, %5$s_sbe_position(codec) + %3$d + length_field_value))\n" +
                 "    {\n" +
                 "        ret.data = field_ptr;\n" +
@@ -463,7 +462,7 @@ public class CGenerator implements CodeGenerator
                 "    {\n" +
                 "        return NULL;\n" +
                 "    }\n" +
-                "    if (%5$s_set_sbe_position(codec, length_position + length_of_length_field + length))\n" +
+                "    if (%5$s_sbe_position_set(codec, length_position + length_of_length_field + length))\n" +
                 "    {\n" +
                 "        %3$s length_field_value = %4$s((%3$s)length);\n" +
                 "        memcpy(codec->buffer + length_position, &length_field_value, sizeof(%3$s));\n" +
@@ -867,7 +866,7 @@ public class CGenerator implements CodeGenerator
             sb.append("\n");
             for (final String incName : typesToInclude)
             {
-                sb.append(String.format("#include \"%1$s.h\"\n", toLowerFirstChar(incName)));
+                sb.append(String.format("#include \"%1$s.h\"\n", incName));
             }
         }
 
@@ -1182,7 +1181,7 @@ public class CGenerator implements CodeGenerator
             outermostStruct, primitiveType, Integer.toString(offset), token.encoding().byteOrder());
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF %1$s *%1$s_set_%2$s(\n" +
+            "SBE_ONE_DEF %1$s *%1$s_%2$s_set(\n" +
             "    %1$s *const codec,\n" +
             "    const %3$s value)\n" +
             "{\n" +
@@ -1406,7 +1405,7 @@ public class CGenerator implements CodeGenerator
             "    return codec->position;\n" +
             "}\n\n" +
 
-            "SBE_ONE_DEF bool %10$s_set_sbe_position(\n" +
+            "SBE_ONE_DEF bool %10$s_sbe_position_set(\n" +
             "    %10$s *const codec,\n" +
             "    const uint64_t position)\n" +
             "{\n" +
@@ -1437,7 +1436,7 @@ public class CGenerator implements CodeGenerator
             "    codec->offset = offset;\n" +
             "    codec->buffer_length = buffer_length;\n" +
             "    codec->acting_version = acting_version;\n" +
-            "    if (!%10$s_set_sbe_position(codec, offset + acting_block_length))\n" +
+            "    if (!%10$s_sbe_position_set(codec, offset + acting_block_length))\n" +
             "    {\n" +
             "        return NULL;\n" +
             "    }\n\n" +
@@ -1497,10 +1496,10 @@ public class CGenerator implements CodeGenerator
             "    %11$s_wrap(\n" +
             "        hdr, buffer + offset, 0, buffer_length, %11$s_sbe_schema_version());\n\n" +
 
-            "    %11$s_set_blockLength(hdr, %10$s_sbe_block_length());\n" +
-            "    %11$s_set_templateId(hdr, %10$s_sbe_template_id());\n" +
-            "    %11$s_set_schemaId(hdr, %10$s_sbe_schema_id());\n" +
-            "    %11$s_set_version(hdr, %10$s_sbe_schema_version());\n\n" +
+            "    %11$s_blockLength_set(hdr, %10$s_sbe_block_length());\n" +
+            "    %11$s_templateId_set(hdr, %10$s_sbe_template_id());\n" +
+            "    %11$s_schemaId_set(hdr, %10$s_sbe_schema_id());\n" +
+            "    %11$s_version_set(hdr, %10$s_sbe_schema_version());\n\n" +
 
             "    %10$s_reset(\n" +
             "        codec,\n" +
@@ -1811,7 +1810,7 @@ public class CGenerator implements CodeGenerator
                 "    return (%1$s)%4$s(val);\n" +
                 "}\n\n" +
 
-                "SBE_ONE_DEF %7$s *%7$s_set_%2$s(\n" +
+                "SBE_ONE_DEF %7$s *%7$s_%2$s_set(\n" +
                 "    %7$s *const codec%8$s,\n" +
                 "    const %1$s value)\n" +
                 "{\n" +
