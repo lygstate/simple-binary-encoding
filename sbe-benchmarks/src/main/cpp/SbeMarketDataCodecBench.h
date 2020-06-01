@@ -33,31 +33,31 @@ public:
         messageHeader_.version(marketData_.sbeSchemaVersion());
 
         marketData_.wrapForEncode(buffer + messageHeader_.encodedLength(), 0, bufferLength);
-        marketData_.transactTime(1234L);
-        marketData_.eventTimeDelta(987);
-        marketData_.matchEventIndicator(MatchEventIndicator::END_EVENT);
+        marketData_.TransactTime(1234L);
+        marketData_.EventTimeDelta(987);
+        marketData_.MatchEventIndicator(MatchEventIndicator::END_EVENT);
 
-        MarketDataIncrementalRefreshTradesGroups::MdIncGrp &mdIncGrp = marketData_.mdIncGrpCount(2);
-
-        mdIncGrp.next();
-        mdIncGrp.tradeId(1234L);
-        mdIncGrp.securityId(56789L);
-        mdIncGrp.mdEntryPx().mantissa(50);
-        mdIncGrp.mdEntrySize().mantissa(10);
-        mdIncGrp.numberOfOrders(1);
-        mdIncGrp.mdUpdateAction(MDUpdateAction::NEW);
-        mdIncGrp.rptSeq((short)1);
+        MarketDataIncrementalRefreshTradesGroups::MdIncGrp &mdIncGrp = marketData_.MdIncGrpCount(2);
 
         mdIncGrp.next();
-        mdIncGrp.tradeId(1234L);
-        mdIncGrp.securityId(56789L);
-        mdIncGrp.mdEntryPx().mantissa(50);
-        mdIncGrp.mdEntrySize().mantissa(10);
-        mdIncGrp.numberOfOrders(1);
-        mdIncGrp.mdUpdateAction(MDUpdateAction::NEW);
-        mdIncGrp.rptSeq((short)1);
+        mdIncGrp.TradeId(1234L);
+        mdIncGrp.SecurityId(56789L);
+        mdIncGrp.MdEntryPx().mantissa(50);
+        mdIncGrp.MdEntrySize().mantissa(10);
+        mdIncGrp.NumberOfOrders(1);
+        mdIncGrp.MdUpdateAction(MDUpdateAction::NEW);
+        mdIncGrp.RptSeq((short)1);
 
-        return MessageHeader::encodedLength() + marketData_.encodedLength();
+        mdIncGrp.next();
+        mdIncGrp.TradeId(1234L);
+        mdIncGrp.SecurityId(56789L);
+        mdIncGrp.MdEntryPx().mantissa(50);
+        mdIncGrp.MdEntrySize().mantissa(10);
+        mdIncGrp.NumberOfOrders(1);
+        mdIncGrp.MdUpdateAction(MDUpdateAction::NEW);
+        mdIncGrp.RptSeq((short)1);
+
+        return messageHeader::encodedLength() + marketData_.encodedLength();
     };
 
     virtual std::uint64_t decode(const char *buffer, const std::uint64_t bufferLength)
@@ -73,30 +73,30 @@ public:
 
         marketData_.wrapForDecode((char *)buffer, messageHeader_.encodedLength(), actingBlockLength, actingVersion, bufferLength);
 
-        static_cast<void>(marketData_.transactTime());
-        static_cast<void>(marketData_.eventTimeDelta());
-        static_cast<void>(marketData_.matchEventIndicator());
+        static_cast<void>(marketData_.TransactTime());
+        static_cast<void>(marketData_.EventTimeDelta());
+        static_cast<void>(marketData_.MatchEventIndicator());
 
-        MarketDataIncrementalRefreshTradesGroups::MdIncGrp &mdIncGrp = marketData_.mdIncGrp();
+        MarketDataIncrementalRefreshTradesGroups::MdIncGrp &mdIncGrp = marketData_.MdIncGrp();
         while (mdIncGrp.hasNext())
         {
             mdIncGrp.next();
-            static_cast<void>(mdIncGrp.tradeId());
-            static_cast<void>(mdIncGrp.securityId());
-            static_cast<void>(mdIncGrp.mdEntryPx().mantissa());
-            static_cast<void>(mdIncGrp.mdEntrySize().mantissa());
-            static_cast<void>(mdIncGrp.numberOfOrders());
-            static_cast<void>(mdIncGrp.mdUpdateAction());
-            static_cast<void>(mdIncGrp.rptSeq());
-            static_cast<void>(mdIncGrp.aggressorSide());
-            static_cast<void>(mdIncGrp.mdEntryType());
+            static_cast<void>(mdIncGrp.TradeId());
+            static_cast<void>(mdIncGrp.SecurityId());
+            static_cast<void>(mdIncGrp.MdEntryPx().mantissa());
+            static_cast<void>(mdIncGrp.MdEntrySize().mantissa());
+            static_cast<void>(mdIncGrp.NumberOfOrders());
+            static_cast<void>(mdIncGrp.MdUpdateAction());
+            static_cast<void>(mdIncGrp.RptSeq());
+            static_cast<void>(mdIncGrp.AggressorSide());
+            static_cast<void>(mdIncGrp.MdEntryType());
         }
 
-        return MessageHeader::encodedLength() + marketData_.encodedLength();
+        return messageHeader::encodedLength() + marketData_.encodedLength();
     };
 
 private:
-    MessageHeader messageHeader_;
+    messageHeader messageHeader_;
     MarketDataIncrementalRefreshTrades marketData_;
 };
 

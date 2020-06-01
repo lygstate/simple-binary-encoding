@@ -50,7 +50,7 @@ public:
 
     std::uint64_t encodeHdrAndMsg()
     {
-        MessageHeader hdr;
+        messageHeader hdr;
         Msg msg;
 
         hdr.wrap(m_buffer, 0, 0, sizeof(m_buffer))
@@ -62,9 +62,9 @@ public:
         msg.wrapForEncode(m_buffer, hdr.encodedLength(), sizeof(m_buffer));
 
         msg.structure()
-            .enumOne(EnumOne::Value10)
+            .enumOne(enumOne::Value10)
             .zeroth(42)
-            .setOne().clear().bit0(false).bit16(true).bit26(false);
+            .setOne().clear().Bit0(false).Bit16(true).Bit26(false);
 
         msg.structure()
             .inner()
@@ -243,9 +243,9 @@ TEST_F(CompositeElementsTest, shouldEncodeAndDecodeMsgCorrectly)
 {
     std::uint64_t sz = encodeHdrAndMsg();
 
-    ASSERT_EQ(sz, MessageHeader::encodedLength() + Msg::sbeBlockLength());
+    ASSERT_EQ(sz, messageHeader::encodedLength() + Msg::sbeBlockLength());
 
-    MessageHeader hdr;
+    messageHeader hdr;
     Msg msg;
 
     hdr.wrap(m_buffer, 0, Msg::sbeSchemaVersion(), sizeof(m_buffer));
@@ -255,24 +255,24 @@ TEST_F(CompositeElementsTest, shouldEncodeAndDecodeMsgCorrectly)
     EXPECT_EQ(hdr.schemaId(), Msg::sbeSchemaId());
     EXPECT_EQ(hdr.version(), Msg::sbeSchemaVersion());
 
-    msg.wrapForDecode(m_buffer, MessageHeader::encodedLength(), hdr.blockLength(), hdr.version(), sizeof(m_buffer));
+    msg.wrapForDecode(m_buffer, messageHeader::encodedLength(), hdr.blockLength(), hdr.version(), sizeof(m_buffer));
 
-    EXPECT_EQ(msg.structure().enumOne(), EnumOne::Value::Value10);
+    EXPECT_EQ(msg.structure().enumOne(), enumOne::Value::Value10);
     EXPECT_EQ(msg.structure().zeroth(), 42u);
-    EXPECT_EQ(msg.structure().setOne().bit0(), false);
-    EXPECT_EQ(msg.structure().setOne().bit16(), true);
-    EXPECT_EQ(msg.structure().setOne().bit26(), false);
+    EXPECT_EQ(msg.structure().setOne().Bit0(), false);
+    EXPECT_EQ(msg.structure().setOne().Bit16(), true);
+    EXPECT_EQ(msg.structure().setOne().Bit26(), false);
     EXPECT_EQ(msg.structure().inner().first(), 101l);
     EXPECT_EQ(msg.structure().inner().second(), 202l);
 
-    EXPECT_EQ(msg.encodedLength(), sz - MessageHeader::encodedLength());
+    EXPECT_EQ(msg.encodedLength(), sz - messageHeader::encodedLength());
 }
 
 TEST_F(CompositeElementsTest, shouldHandleAllEventsCorrectlyInOrder)
 {
     std::uint64_t sz = encodeHdrAndMsg();
 
-    ASSERT_EQ(sz, MessageHeader::encodedLength() + Msg::sbeBlockLength());
+    ASSERT_EQ(sz, messageHeader::encodedLength() + Msg::sbeBlockLength());
 
     ASSERT_GE(m_irDecoder.decode("composite-elements-schema.sbeir"), 0);
 
@@ -284,7 +284,7 @@ TEST_F(CompositeElementsTest, shouldHandleAllEventsCorrectlyInOrder)
 
     OtfHeaderDecoder headerDecoder(headerTokens);
 
-    EXPECT_EQ(headerDecoder.encodedLength(), MessageHeader::encodedLength());
+    EXPECT_EQ(headerDecoder.encodedLength(), messageHeader::encodedLength());
     const char *messageBuffer = m_buffer + headerDecoder.encodedLength();
     std::size_t length = static_cast<std::size_t>(sz - headerDecoder.encodedLength());
     std::uint64_t actingVersion = headerDecoder.getSchemaVersion(m_buffer);

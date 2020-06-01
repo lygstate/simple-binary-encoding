@@ -22,9 +22,6 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
 
-import static uk.co.real_logic.sbe.generation.Generators.toLowerFirstChar;
-import static uk.co.real_logic.sbe.generation.Generators.toUpperFirstChar;
-
 /**
  * Utilities for mapping between IR and the C++ language.
  */
@@ -66,7 +63,7 @@ public class CppUtil
      */
     public static String formatPropertyName(final String value)
     {
-        final String formattedValue = toLowerFirstChar(value);
+        final String formattedValue = value;
         return ValidationUtil.tryFixInvalidName(formattedValue);
     }
 
@@ -78,7 +75,7 @@ public class CppUtil
      */
     public static String formatClassName(final String value)
     {
-        return toUpperFirstChar(value);
+        return value;
     }
 
     public static String openingBraces(final ArrayList<String> namespaces)

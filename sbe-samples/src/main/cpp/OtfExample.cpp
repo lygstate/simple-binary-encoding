@@ -368,7 +368,7 @@ static const std::uint8_t engineNumCylinders = 4;
 
 std::uint64_t encodeHdrAndCar(char *buffer, std::uint64_t length)
 {
-    MessageHeader hdr;
+    messageHeader hdr;
     Car car;
 
     hdr.wrap(buffer, 0, 0, length)
@@ -382,7 +382,7 @@ std::uint64_t encodeHdrAndCar(char *buffer, std::uint64_t length)
         .modelYear(MODEL_YEAR)
         .available(AVAILABLE)
         .code(CODE)
-        .putVehicleCode(VEHICLE_CODE);
+        .vehicleCodeSet(VEHICLE_CODE);
 
     for (std::uint64_t i = 0; i < Car::someNumbersLength(); i++)
     {
@@ -397,28 +397,28 @@ std::uint64_t encodeHdrAndCar(char *buffer, std::uint64_t length)
     car.engine()
         .capacity(engineCapacity)
         .numCylinders(engineNumCylinders)
-        .putManufacturerCode(MANUFACTURER_CODE)
-        .booster().boostType(BoostType::NITROUS).horsePower(200);
+        .manufacturerCodeSet(MANUFACTURER_CODE)
+        .booster().BoostType(BoostType::NITROUS).horsePower(200);
 
-    CarGroups::FuelFigures& fuelFigures = car.fuelFiguresCount(FUEL_FIGURES_COUNT);
+    CarGroups::fuelFigures& fuelFigures = car.fuelFiguresCount(FUEL_FIGURES_COUNT);
 
     fuelFigures
         .next().speed(fuel1Speed).mpg(fuel1Mpg);
 
-    fuelFigures.putUsageDescription(
+    fuelFigures.usageDescriptionSet(
         FUEL_FIGURES_1_USAGE_DESCRIPTION, static_cast<int>(strlen(FUEL_FIGURES_1_USAGE_DESCRIPTION)));
 
     fuelFigures
         .next().speed(fuel2Speed).mpg(fuel2Mpg);
-    fuelFigures.putUsageDescription(
+    fuelFigures.usageDescriptionSet(
         FUEL_FIGURES_2_USAGE_DESCRIPTION, static_cast<int>(strlen(FUEL_FIGURES_2_USAGE_DESCRIPTION)));
 
     fuelFigures
         .next().speed(fuel3Speed).mpg(fuel3Mpg);
-    fuelFigures.putUsageDescription(
+    fuelFigures.usageDescriptionSet(
         FUEL_FIGURES_3_USAGE_DESCRIPTION, static_cast<int>(strlen(FUEL_FIGURES_3_USAGE_DESCRIPTION)));
 
-    CarGroups::PerformanceFigures &perfFigs = car.performanceFiguresCount(PERFORMANCE_FIGURES_COUNT);
+    CarGroups::performanceFigures &perfFigs = car.performanceFiguresCount(PERFORMANCE_FIGURES_COUNT);
 
     perfFigs.next()
         .octaneRating(perf1Octane)
@@ -434,9 +434,9 @@ std::uint64_t encodeHdrAndCar(char *buffer, std::uint64_t length)
         .next().mph(perf2bMph).seconds(perf2bSeconds)
         .next().mph(perf2cMph).seconds(perf2cSeconds);
 
-    car.putManufacturer(MANUFACTURER, static_cast<int>(strlen(MANUFACTURER)))
-        .putModel(MODEL, static_cast<int>(strlen(MODEL)))
-        .putActivationCode(ACTIVATION_CODE, static_cast<int>(strlen(ACTIVATION_CODE)));
+    car.manufacturerSet(MANUFACTURER, static_cast<int>(strlen(MANUFACTURER)))
+        .modelSet(MODEL, static_cast<int>(strlen(MODEL)))
+        .activationCodeSet(ACTIVATION_CODE, static_cast<int>(strlen(ACTIVATION_CODE)));
 
     return hdr.encodedLength() + car.encodedLength();
 }

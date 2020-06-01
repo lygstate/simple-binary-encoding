@@ -195,15 +195,15 @@ private:
 
         frame.wrapForDecode(m_buffer.get(), offset, frame.sbeBlockLength(), frame.sbeSchemaVersion(), m_length);
 
-        frame.getPackageName(tmp, sizeof(tmp));
+        frame.packageNameGet(tmp, sizeof(tmp));
 
         if (frame.irVersion() != 0)
         {
             return -1;
         }
 
-        frame.getNamespaceName(tmp, sizeof(tmp));
-        frame.getSemanticVersion(tmp, sizeof(tmp));
+        frame.namespaceNameGet(tmp, sizeof(tmp));
+        frame.semanticVersionGet(tmp, sizeof(tmp));
 
         offset += frame.encodedLength();
 
@@ -243,43 +243,43 @@ private:
         char tmpBuffer[256];
         std::uint64_t tmpLen = 0;
 
-        tmpLen = tokenCodec.getName(tmpBuffer, sizeof(tmpBuffer));
+        tmpLen = tokenCodec.nameGet(tmpBuffer, sizeof(tmpBuffer));
         std::string name(tmpBuffer, static_cast<std::size_t>(tmpLen));
 
-        tmpLen = tokenCodec.getConstValue(tmpBuffer, sizeof(tmpBuffer));
+        tmpLen = tokenCodec.constValueGet(tmpBuffer, sizeof(tmpBuffer));
         PrimitiveValue constValue(type, tmpLen, tmpBuffer);
 
-        tmpLen = tokenCodec.getLsbValue(tmpBuffer, sizeof(tmpBuffer));
+        tmpLen = tokenCodec.lsbValueGet(tmpBuffer, sizeof(tmpBuffer));
         PrimitiveValue lsbValue(type, tmpLen, tmpBuffer);
 
-        tmpLen = tokenCodec.getMsbValue(tmpBuffer, sizeof(tmpBuffer));
+        tmpLen = tokenCodec.msbValueGet(tmpBuffer, sizeof(tmpBuffer));
         PrimitiveValue msbValue(type, tmpLen, tmpBuffer);
 
-        tmpLen = tokenCodec.getMinValue(tmpBuffer, sizeof(tmpBuffer));
+        tmpLen = tokenCodec.minValueGet(tmpBuffer, sizeof(tmpBuffer));
         PrimitiveValue minValue(type, tmpLen, tmpBuffer);
 
-        tmpLen = tokenCodec.getMaxValue(tmpBuffer, sizeof(tmpBuffer));
+        tmpLen = tokenCodec.maxValueGet(tmpBuffer, sizeof(tmpBuffer));
         PrimitiveValue maxValue(type, tmpLen, tmpBuffer);
 
-        tmpLen = tokenCodec.getNullValue(tmpBuffer, sizeof(tmpBuffer));
+        tmpLen = tokenCodec.nullValueGet(tmpBuffer, sizeof(tmpBuffer));
         PrimitiveValue nullValue(type, tmpLen, tmpBuffer);
 
-        tmpLen = tokenCodec.getCharacterEncoding(tmpBuffer, sizeof(tmpBuffer));
+        tmpLen = tokenCodec.characterEncodingGet(tmpBuffer, sizeof(tmpBuffer));
         std::string characterEncoding(tmpBuffer, static_cast<size_t>(tmpLen));
 
-        tmpLen = tokenCodec.getEpoch(tmpBuffer, sizeof(tmpBuffer));
+        tmpLen = tokenCodec.epochGet(tmpBuffer, sizeof(tmpBuffer));
         std::string epoch(tmpBuffer, static_cast<size_t>(tmpLen));
 
-        tmpLen = tokenCodec.getTimeUnit(tmpBuffer, sizeof(tmpBuffer));
+        tmpLen = tokenCodec.timeUnitGet(tmpBuffer, sizeof(tmpBuffer));
         std::string timeUnit(tmpBuffer, static_cast<size_t>(tmpLen));
 
-        tmpLen = tokenCodec.getSemanticType(tmpBuffer, sizeof(tmpBuffer));
+        tmpLen = tokenCodec.semanticTypeGet(tmpBuffer, sizeof(tmpBuffer));
         std::string semanticType(tmpBuffer, static_cast<size_t>(tmpLen));
 
-        tmpLen = tokenCodec.getDescription(tmpBuffer, sizeof(tmpBuffer));
+        tmpLen = tokenCodec.descriptionGet(tmpBuffer, sizeof(tmpBuffer));
         std::string description(tmpBuffer, static_cast<size_t>(tmpLen));
 
-        tmpLen = tokenCodec.getReferencedName(tmpBuffer, sizeof(tmpBuffer));
+        tmpLen = tokenCodec.referencedNameGet(tmpBuffer, sizeof(tmpBuffer));
         std::string referencedName(tmpBuffer, static_cast<size_t>(tmpLen));
 
         Encoding encoding(

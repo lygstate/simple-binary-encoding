@@ -39,8 +39,8 @@ public:
            .modelYear(2013)
            .available(BooleanType::T)
            .code(Model::A)
-           .putVehicleCode(VEHICLE_CODE)
-           .putSomeNumbers((char *)SOME_NUMBERS);
+           .vehicleCodeSet(VEHICLE_CODE)
+           .someNumbersSet((char *)SOME_NUMBERS);
 
         car.extras().clear()
            .cruiseControl(true)
@@ -50,14 +50,14 @@ public:
         car.engine()
            .capacity(2000)
            .numCylinders((short)4)
-           .putManufacturerCode(MANUFACTURER_CODE);
+           .manufacturerCodeSet(MANUFACTURER_CODE);
 
         car.fuelFiguresCount(3)
            .next().speed(30).mpg(35.9f)
            .next().speed(55).mpg(49.0f)
            .next().speed(75).mpg(40.0f);
 
-        CarGroups::PerformanceFigures &performanceFigures = car.performanceFiguresCount(2);
+        CarGroups::performanceFigures &performanceFigures = car.performanceFiguresCount(2);
 
         performanceFigures.next()
             .octaneRating((short)95)
@@ -73,8 +73,8 @@ public:
                 .next().mph(60).seconds(7.1f)
                 .next().mph(100).seconds(11.8f);
 
-        car.putManufacturer(MANUFACTURER, static_cast<std::uint32_t>(MANUFACTURER_LEN));
-        car.putModel(MODEL, static_cast<std::uint32_t>(MODEL_LEN));
+        car.manufacturerSet(MANUFACTURER, static_cast<std::uint32_t>(MANUFACTURER_LEN));
+        car.modelSet(MODEL, static_cast<std::uint32_t>(MODEL_LEN));
 
         return car.encodedLength();
     }
@@ -107,7 +107,7 @@ public:
         tmpChar = engine.manufacturerCode();
         tmpChar = engine.fuel();
 
-        CarGroups::FuelFigures &fuelFigures = car.fuelFigures();
+        CarGroups::fuelFigures &fuelFigures = car.fuelFigures();
         while (fuelFigures.hasNext())
         {
             fuelFigures.next();
@@ -115,13 +115,13 @@ public:
             tmpDouble = fuelFigures.mpg();
         }
 
-        CarGroups::PerformanceFigures &performanceFigures = car.performanceFigures();
+        CarGroups::performanceFigures &performanceFigures = car.performanceFigures();
         while (performanceFigures.hasNext())
         {
             performanceFigures.next();
             tmpInt = performanceFigures.octaneRating();
 
-            CarGroups::PerformanceFiguresGroups::Acceleration &acceleration = performanceFigures.acceleration();
+            CarGroups::performanceFiguresGroups::acceleration &acceleration = performanceFigures.acceleration();
             while (acceleration.hasNext())
             {
                 acceleration.next();

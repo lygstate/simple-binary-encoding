@@ -81,21 +81,21 @@ public:
     {
         m_msg1.wrapForEncode(buffer, offset, bufferLength);
 
-        m_msg1.tag1(TAG_1);
+        m_msg1.Tag1(TAG_1);
 
-        TestMessage1Groups::Entries &entries = m_msg1.entriesCount(ENTRIES_COUNT);
-
-        entries.next()
-            .putTagGroup1(TAG_GROUP_1_IDX_0)
-            .tagGroup2(TAG_GROUP_2_IDX_0);
-
-        entries.putVarDataField(VAR_DATA_FIELD_IDX_0, VAR_DATA_FIELD_IDX_0_LENGTH);
+        TestMessage1Groups::Entries &entries = m_msg1.EntriesCount(ENTRIES_COUNT);
 
         entries.next()
-            .putTagGroup1(TAG_GROUP_1_IDX_1)
-            .tagGroup2(TAG_GROUP_2_IDX_1);
+            .TagGroup1Set(TAG_GROUP_1_IDX_0)
+            .TagGroup2(TAG_GROUP_2_IDX_0);
 
-        entries.putVarDataField(VAR_DATA_FIELD_IDX_1, VAR_DATA_FIELD_IDX_1_LENGTH);
+        entries.varDataFieldSet(VAR_DATA_FIELD_IDX_0, VAR_DATA_FIELD_IDX_0_LENGTH);
+
+        entries.next()
+            .TagGroup1Set(TAG_GROUP_1_IDX_1)
+            .TagGroup2(TAG_GROUP_2_IDX_1);
+
+        entries.varDataFieldSet(VAR_DATA_FIELD_IDX_1, VAR_DATA_FIELD_IDX_1_LENGTH);
 
         return m_msg1.encodedLength();
     }
@@ -104,23 +104,23 @@ public:
     {
         m_msg2.wrapForEncode(buffer, offset, bufferLength);
 
-        m_msg2.tag1(TAG_1);
+        m_msg2.Tag1(TAG_1);
 
-        TestMessage2Groups::Entries &entries = m_msg2.entriesCount(ENTRIES_COUNT);
-
-        entries.next()
-            .putTagGroup1(TAG_GROUP_1_IDX_0)
-            .tagGroup2(TAG_GROUP_2_IDX_0);
-
-        entries.putVarDataField1(VAR_DATA_FIELD_1_IDX_0, VAR_DATA_FIELD_1_IDX_0_LENGTH);
-        entries.putVarDataField2(VAR_DATA_FIELD_2_IDX_0, VAR_DATA_FIELD_2_IDX_0_LENGTH);
+        TestMessage2Groups::Entries &entries = m_msg2.EntriesCount(ENTRIES_COUNT);
 
         entries.next()
-            .putTagGroup1(TAG_GROUP_1_IDX_1)
-            .tagGroup2(TAG_GROUP_2_IDX_1);
+            .TagGroup1Set(TAG_GROUP_1_IDX_0)
+            .TagGroup2(TAG_GROUP_2_IDX_0);
 
-        entries.putVarDataField1(VAR_DATA_FIELD_1_IDX_1, VAR_DATA_FIELD_1_IDX_1_LENGTH);
-        entries.putVarDataField2(VAR_DATA_FIELD_2_IDX_1, VAR_DATA_FIELD_2_IDX_1_LENGTH);
+        entries.varDataField1Set(VAR_DATA_FIELD_1_IDX_0, VAR_DATA_FIELD_1_IDX_0_LENGTH);
+        entries.varDataField2Set(VAR_DATA_FIELD_2_IDX_0, VAR_DATA_FIELD_2_IDX_0_LENGTH);
+
+        entries.next()
+            .TagGroup1Set(TAG_GROUP_1_IDX_1)
+            .TagGroup2(TAG_GROUP_2_IDX_1);
+
+        entries.varDataField1Set(VAR_DATA_FIELD_1_IDX_1, VAR_DATA_FIELD_1_IDX_1_LENGTH);
+        entries.varDataField2Set(VAR_DATA_FIELD_2_IDX_1, VAR_DATA_FIELD_2_IDX_1_LENGTH);
 
         return m_msg2.encodedLength();
     }
@@ -129,53 +129,53 @@ public:
     {
         m_msg3.wrapForEncode(buffer, offset, bufferLength);
 
-        m_msg3.tag1(TAG_1);
+        m_msg3.Tag1(TAG_1);
 
-        TestMessage3Groups::Entries &entries = m_msg3.entriesCount(ENTRIES_COUNT);
-
-        entries.next()
-            .putTagGroup1(TAG_GROUP_1_IDX_0);
-
-        TestMessage3Groups::EntriesGroups::NestedEntries &nestedEntries0 = entries.nestedEntriesCount(NESTED_ENTRIES_COUNT);
-
-        nestedEntries0.next()
-            .tagGroup2(TAG_GROUP_2_IDX_0);
-
-        nestedEntries0.putVarDataFieldNested(VAR_DATA_FIELD_NESTED_IDX_0, VAR_DATA_FIELD_NESTED_IDX_0_LENGTH);
-
-        nestedEntries0.next()
-            .tagGroup2(TAG_GROUP_2_IDX_1);
-
-        nestedEntries0.putVarDataFieldNested(VAR_DATA_FIELD_NESTED_IDX_1, VAR_DATA_FIELD_NESTED_IDX_1_LENGTH);
-
-        nestedEntries0.next()
-            .tagGroup2(TAG_GROUP_2_IDX_2);
-
-        nestedEntries0.putVarDataFieldNested(VAR_DATA_FIELD_NESTED_IDX_2, VAR_DATA_FIELD_NESTED_IDX_2_LENGTH);
-
-        entries.putVarDataField(VAR_DATA_FIELD_IDX_0, VAR_DATA_FIELD_IDX_0_LENGTH);
+        TestMessage3Groups::Entries &entries = m_msg3.EntriesCount(ENTRIES_COUNT);
 
         entries.next()
-            .putTagGroup1(TAG_GROUP_1_IDX_1);
+            .TagGroup1Set(TAG_GROUP_1_IDX_0);
 
-        TestMessage3Groups::EntriesGroups::NestedEntries &nestedEntries1 = entries.nestedEntriesCount(NESTED_ENTRIES_COUNT);
+        TestMessage3Groups::EntriesGroups::NestedEntries &nestedEntries0 = entries.NestedEntriesCount(NESTED_ENTRIES_COUNT);
+
+        nestedEntries0.next()
+            .TagGroup2(TAG_GROUP_2_IDX_0);
+
+        nestedEntries0.varDataFieldNestedSet(VAR_DATA_FIELD_NESTED_IDX_0, VAR_DATA_FIELD_NESTED_IDX_0_LENGTH);
+
+        nestedEntries0.next()
+            .TagGroup2(TAG_GROUP_2_IDX_1);
+
+        nestedEntries0.varDataFieldNestedSet(VAR_DATA_FIELD_NESTED_IDX_1, VAR_DATA_FIELD_NESTED_IDX_1_LENGTH);
+
+        nestedEntries0.next()
+            .TagGroup2(TAG_GROUP_2_IDX_2);
+
+        nestedEntries0.varDataFieldNestedSet(VAR_DATA_FIELD_NESTED_IDX_2, VAR_DATA_FIELD_NESTED_IDX_2_LENGTH);
+
+        entries.varDataFieldSet(VAR_DATA_FIELD_IDX_0, VAR_DATA_FIELD_IDX_0_LENGTH);
+
+        entries.next()
+            .TagGroup1Set(TAG_GROUP_1_IDX_1);
+
+        TestMessage3Groups::EntriesGroups::NestedEntries &nestedEntries1 = entries.NestedEntriesCount(NESTED_ENTRIES_COUNT);
 
         nestedEntries1.next()
-            .tagGroup2(TAG_GROUP_2_IDX_3);
+            .TagGroup2(TAG_GROUP_2_IDX_3);
 
-        nestedEntries1.putVarDataFieldNested(VAR_DATA_FIELD_NESTED_IDX_3, VAR_DATA_FIELD_NESTED_IDX_3_LENGTH);
-
-        nestedEntries1.next()
-            .tagGroup2(TAG_GROUP_2_IDX_4);
-
-        nestedEntries1.putVarDataFieldNested(VAR_DATA_FIELD_NESTED_IDX_4, VAR_DATA_FIELD_NESTED_IDX_4_LENGTH);
+        nestedEntries1.varDataFieldNestedSet(VAR_DATA_FIELD_NESTED_IDX_3, VAR_DATA_FIELD_NESTED_IDX_3_LENGTH);
 
         nestedEntries1.next()
-            .tagGroup2(TAG_GROUP_2_IDX_5);
+            .TagGroup2(TAG_GROUP_2_IDX_4);
 
-        nestedEntries1.putVarDataFieldNested(VAR_DATA_FIELD_NESTED_IDX_5, VAR_DATA_FIELD_NESTED_IDX_5_LENGTH);
+        nestedEntries1.varDataFieldNestedSet(VAR_DATA_FIELD_NESTED_IDX_4, VAR_DATA_FIELD_NESTED_IDX_4_LENGTH);
 
-        entries.putVarDataField(VAR_DATA_FIELD_IDX_1, VAR_DATA_FIELD_IDX_1_LENGTH);
+        nestedEntries1.next()
+            .TagGroup2(TAG_GROUP_2_IDX_5);
+
+        nestedEntries1.varDataFieldNestedSet(VAR_DATA_FIELD_NESTED_IDX_5, VAR_DATA_FIELD_NESTED_IDX_5_LENGTH);
+
+        entries.varDataFieldSet(VAR_DATA_FIELD_IDX_1, VAR_DATA_FIELD_IDX_1_LENGTH);
 
         return m_msg3.encodedLength();
     }
@@ -184,19 +184,19 @@ public:
     {
         m_msg4.wrapForEncode(buffer, offset, bufferLength);
 
-        m_msg4.tag1(TAG_1);
+        m_msg4.Tag1(TAG_1);
 
-        TestMessage4Groups::Entries &entries = m_msg4.entriesCount(ENTRIES_COUNT);
-
-        entries.next();
-
-        entries.putVarDataField1(VAR_DATA_FIELD_1_IDX_0, VAR_DATA_FIELD_1_IDX_0_LENGTH);
-        entries.putVarDataField2(VAR_DATA_FIELD_2_IDX_0, VAR_DATA_FIELD_2_IDX_0_LENGTH);
+        TestMessage4Groups::Entries &entries = m_msg4.EntriesCount(ENTRIES_COUNT);
 
         entries.next();
 
-        entries.putVarDataField1(VAR_DATA_FIELD_1_IDX_1, VAR_DATA_FIELD_1_IDX_1_LENGTH);
-        entries.putVarDataField2(VAR_DATA_FIELD_2_IDX_1, VAR_DATA_FIELD_2_IDX_1_LENGTH);
+        entries.varDataField1Set(VAR_DATA_FIELD_1_IDX_0, VAR_DATA_FIELD_1_IDX_0_LENGTH);
+        entries.varDataField2Set(VAR_DATA_FIELD_2_IDX_0, VAR_DATA_FIELD_2_IDX_0_LENGTH);
+
+        entries.next();
+
+        entries.varDataField1Set(VAR_DATA_FIELD_1_IDX_1, VAR_DATA_FIELD_1_IDX_1_LENGTH);
+        entries.varDataField2Set(VAR_DATA_FIELD_2_IDX_1, VAR_DATA_FIELD_2_IDX_1_LENGTH);
 
         return m_msg4.encodedLength();
     }
@@ -254,26 +254,26 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage1Correctly)
 
     TestMessage1 msg1Decoder(buffer, sizeof(buffer), TestMessage1::sbeBlockLength(), TestMessage1::sbeSchemaVersion());
 
-    EXPECT_EQ(msg1Decoder.tag1(), TAG_1);
+    EXPECT_EQ(msg1Decoder.Tag1(), TAG_1);
 
-    TestMessage1Groups::Entries &entries = msg1Decoder.entries();
+    TestMessage1Groups::Entries &entries = msg1Decoder.Entries();
     EXPECT_EQ(entries.count(), ENTRIES_COUNT);
 
     ASSERT_TRUE(entries.hasNext());
     entries.next();
 
-    EXPECT_EQ(entries.tagGroup1Length(), TAG_GROUP_1_IDX_0_LENGTH);
-    EXPECT_EQ(std::string(entries.tagGroup1(), static_cast<std::size_t>(entries.tagGroup1Length())), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
-    EXPECT_EQ(entries.tagGroup2(), TAG_GROUP_2_IDX_0);
+    EXPECT_EQ(entries.TagGroup1Length(), TAG_GROUP_1_IDX_0_LENGTH);
+    EXPECT_EQ(std::string(entries.TagGroup1(), static_cast<std::size_t>(entries.TagGroup1Length())), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
+    EXPECT_EQ(entries.TagGroup2(), TAG_GROUP_2_IDX_0);
     EXPECT_EQ(entries.varDataFieldLength(), VAR_DATA_FIELD_IDX_0_LENGTH);
     EXPECT_EQ(std::string(entries.varDataField(), VAR_DATA_FIELD_IDX_0_LENGTH), VAR_DATA_FIELD_IDX_0);
 
     ASSERT_TRUE(entries.hasNext());
     entries.next();
 
-    EXPECT_EQ(entries.tagGroup1Length(), TAG_GROUP_1_IDX_1_LENGTH);
-    EXPECT_EQ(std::string(entries.tagGroup1(), static_cast<std::size_t>(entries.tagGroup1Length())), std::string(TAG_GROUP_1_IDX_1, TAG_GROUP_1_IDX_1_LENGTH));
-    EXPECT_EQ(entries.tagGroup2(), TAG_GROUP_2_IDX_1);
+    EXPECT_EQ(entries.TagGroup1Length(), TAG_GROUP_1_IDX_1_LENGTH);
+    EXPECT_EQ(std::string(entries.TagGroup1(), static_cast<std::size_t>(entries.TagGroup1Length())), std::string(TAG_GROUP_1_IDX_1, TAG_GROUP_1_IDX_1_LENGTH));
+    EXPECT_EQ(entries.TagGroup2(), TAG_GROUP_2_IDX_1);
     EXPECT_EQ(entries.varDataFieldLength(), VAR_DATA_FIELD_IDX_1_LENGTH);
     EXPECT_EQ(std::string(entries.varDataField(), VAR_DATA_FIELD_IDX_1_LENGTH), VAR_DATA_FIELD_IDX_1);
 
@@ -335,17 +335,17 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage2Correctly)
 
     TestMessage2 msg2Decoder(buffer, sizeof(buffer), TestMessage2::sbeBlockLength(), TestMessage2::sbeSchemaVersion());
 
-    EXPECT_EQ(msg2Decoder.tag1(), TAG_1);
+    EXPECT_EQ(msg2Decoder.Tag1(), TAG_1);
 
-    TestMessage2Groups::Entries &entries = msg2Decoder.entries();
+    TestMessage2Groups::Entries &entries = msg2Decoder.Entries();
     EXPECT_EQ(entries.count(), ENTRIES_COUNT);
 
     ASSERT_TRUE(entries.hasNext());
     entries.next();
 
-    EXPECT_EQ(entries.tagGroup1Length(), TAG_GROUP_1_IDX_0_LENGTH);
-    EXPECT_EQ(std::string(entries.tagGroup1(), static_cast<std::size_t>(entries.tagGroup1Length())), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
-    EXPECT_EQ(entries.tagGroup2(), TAG_GROUP_2_IDX_0);
+    EXPECT_EQ(entries.TagGroup1Length(), TAG_GROUP_1_IDX_0_LENGTH);
+    EXPECT_EQ(std::string(entries.TagGroup1(), static_cast<std::size_t>(entries.TagGroup1Length())), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
+    EXPECT_EQ(entries.TagGroup2(), TAG_GROUP_2_IDX_0);
     EXPECT_EQ(entries.varDataField1Length(), VAR_DATA_FIELD_1_IDX_0_LENGTH);
     EXPECT_EQ(std::string(entries.varDataField1(), VAR_DATA_FIELD_1_IDX_0_LENGTH), VAR_DATA_FIELD_1_IDX_0);
     EXPECT_EQ(entries.varDataField2Length(), VAR_DATA_FIELD_2_IDX_0_LENGTH);
@@ -354,9 +354,9 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage2Correctly)
     ASSERT_TRUE(entries.hasNext());
     entries.next();
 
-    EXPECT_EQ(entries.tagGroup1Length(), TAG_GROUP_1_IDX_1_LENGTH);
-    EXPECT_EQ(std::string(entries.tagGroup1(), static_cast<std::size_t>(entries.tagGroup1Length())), std::string(TAG_GROUP_1_IDX_1, TAG_GROUP_1_IDX_1_LENGTH));
-    EXPECT_EQ(entries.tagGroup2(), TAG_GROUP_2_IDX_1);
+    EXPECT_EQ(entries.TagGroup1Length(), TAG_GROUP_1_IDX_1_LENGTH);
+    EXPECT_EQ(std::string(entries.TagGroup1(), static_cast<std::size_t>(entries.TagGroup1Length())), std::string(TAG_GROUP_1_IDX_1, TAG_GROUP_1_IDX_1_LENGTH));
+    EXPECT_EQ(entries.TagGroup2(), TAG_GROUP_2_IDX_1);
     EXPECT_EQ(entries.varDataField1Length(), VAR_DATA_FIELD_1_IDX_1_LENGTH);
     EXPECT_EQ(std::string(entries.varDataField1(), VAR_DATA_FIELD_1_IDX_1_LENGTH), VAR_DATA_FIELD_1_IDX_1);
     EXPECT_EQ(entries.varDataField2Length(), VAR_DATA_FIELD_2_IDX_1_LENGTH);
@@ -464,38 +464,38 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage3Correctly)
 
     TestMessage3 msg3Decoder(buffer, sizeof(buffer), TestMessage3::sbeBlockLength(), TestMessage3::sbeSchemaVersion());
 
-    EXPECT_EQ(msg3Decoder.tag1(), TAG_1);
+    EXPECT_EQ(msg3Decoder.Tag1(), TAG_1);
 
-    TestMessage3Groups::Entries &entries = msg3Decoder.entries();
+    TestMessage3Groups::Entries &entries = msg3Decoder.Entries();
     EXPECT_EQ(entries.count(), ENTRIES_COUNT);
 
     ASSERT_TRUE(entries.hasNext());
     entries.next();
 
-    EXPECT_EQ(entries.tagGroup1Length(), TAG_GROUP_1_IDX_0_LENGTH);
-    EXPECT_EQ(std::string(entries.tagGroup1(), static_cast<std::size_t>(entries.tagGroup1Length())), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
+    EXPECT_EQ(entries.TagGroup1Length(), TAG_GROUP_1_IDX_0_LENGTH);
+    EXPECT_EQ(std::string(entries.TagGroup1(), static_cast<std::size_t>(entries.TagGroup1Length())), std::string(TAG_GROUP_1_IDX_0, TAG_GROUP_1_IDX_0_LENGTH));
 
-    TestMessage3Groups::EntriesGroups::NestedEntries &nestedEntries0 = entries.nestedEntries();
+    TestMessage3Groups::EntriesGroups::NestedEntries &nestedEntries0 = entries.NestedEntries();
     EXPECT_EQ(nestedEntries0.count(), NESTED_ENTRIES_COUNT);
 
     ASSERT_TRUE(nestedEntries0.hasNext());
     nestedEntries0.next();
 
-    EXPECT_EQ(nestedEntries0.tagGroup2(), TAG_GROUP_2_IDX_0);
+    EXPECT_EQ(nestedEntries0.TagGroup2(), TAG_GROUP_2_IDX_0);
     EXPECT_EQ(nestedEntries0.varDataFieldNestedLength(), VAR_DATA_FIELD_NESTED_IDX_0_LENGTH);
     EXPECT_EQ(std::string(nestedEntries0.varDataFieldNested(), VAR_DATA_FIELD_NESTED_IDX_0_LENGTH), VAR_DATA_FIELD_NESTED_IDX_0);
 
     ASSERT_TRUE(nestedEntries0.hasNext());
     nestedEntries0.next();
 
-    EXPECT_EQ(nestedEntries0.tagGroup2(), TAG_GROUP_2_IDX_1);
+    EXPECT_EQ(nestedEntries0.TagGroup2(), TAG_GROUP_2_IDX_1);
     EXPECT_EQ(nestedEntries0.varDataFieldNestedLength(), VAR_DATA_FIELD_NESTED_IDX_1_LENGTH);
     EXPECT_EQ(std::string(nestedEntries0.varDataFieldNested(), VAR_DATA_FIELD_NESTED_IDX_1_LENGTH), VAR_DATA_FIELD_NESTED_IDX_1);
 
     ASSERT_TRUE(nestedEntries0.hasNext());
     nestedEntries0.next();
 
-    EXPECT_EQ(nestedEntries0.tagGroup2(), TAG_GROUP_2_IDX_2);
+    EXPECT_EQ(nestedEntries0.TagGroup2(), TAG_GROUP_2_IDX_2);
     EXPECT_EQ(nestedEntries0.varDataFieldNestedLength(), VAR_DATA_FIELD_NESTED_IDX_2_LENGTH);
     EXPECT_EQ(std::string(nestedEntries0.varDataFieldNested(), VAR_DATA_FIELD_NESTED_IDX_2_LENGTH), VAR_DATA_FIELD_NESTED_IDX_2);
 
@@ -505,27 +505,27 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage3Correctly)
     ASSERT_TRUE(entries.hasNext());
     entries.next();
 
-    TestMessage3Groups::EntriesGroups::NestedEntries &nestedEntries1 = entries.nestedEntries();
+    TestMessage3Groups::EntriesGroups::NestedEntries &nestedEntries1 = entries.NestedEntries();
     EXPECT_EQ(nestedEntries1.count(), NESTED_ENTRIES_COUNT);
 
     ASSERT_TRUE(nestedEntries1.hasNext());
     nestedEntries1.next();
 
-    EXPECT_EQ(nestedEntries1.tagGroup2(), TAG_GROUP_2_IDX_3);
+    EXPECT_EQ(nestedEntries1.TagGroup2(), TAG_GROUP_2_IDX_3);
     EXPECT_EQ(nestedEntries1.varDataFieldNestedLength(), VAR_DATA_FIELD_NESTED_IDX_3_LENGTH);
     EXPECT_EQ(std::string(nestedEntries1.varDataFieldNested(), VAR_DATA_FIELD_NESTED_IDX_3_LENGTH), VAR_DATA_FIELD_NESTED_IDX_3);
 
     ASSERT_TRUE(nestedEntries1.hasNext());
     nestedEntries1.next();
 
-    EXPECT_EQ(nestedEntries1.tagGroup2(), TAG_GROUP_2_IDX_4);
+    EXPECT_EQ(nestedEntries1.TagGroup2(), TAG_GROUP_2_IDX_4);
     EXPECT_EQ(nestedEntries1.varDataFieldNestedLength(), VAR_DATA_FIELD_NESTED_IDX_4_LENGTH);
     EXPECT_EQ(std::string(nestedEntries1.varDataFieldNested(), VAR_DATA_FIELD_NESTED_IDX_4_LENGTH), VAR_DATA_FIELD_NESTED_IDX_4);
 
     ASSERT_TRUE(nestedEntries1.hasNext());
     nestedEntries1.next();
 
-    EXPECT_EQ(nestedEntries1.tagGroup2(), TAG_GROUP_2_IDX_5);
+    EXPECT_EQ(nestedEntries1.TagGroup2(), TAG_GROUP_2_IDX_5);
     EXPECT_EQ(nestedEntries1.varDataFieldNestedLength(), VAR_DATA_FIELD_NESTED_IDX_5_LENGTH);
     EXPECT_EQ(std::string(nestedEntries1.varDataFieldNested(), VAR_DATA_FIELD_NESTED_IDX_5_LENGTH), VAR_DATA_FIELD_NESTED_IDX_5);
 
@@ -582,9 +582,9 @@ TEST_F(GroupWithDataTest, shouldBeAbleToEncodeAndDecodeTestMessage4Correctly)
 
     TestMessage4 msg4Decoder(buffer, sizeof(buffer), TestMessage4::sbeBlockLength(), TestMessage4::sbeSchemaVersion());
 
-    EXPECT_EQ(msg4Decoder.tag1(), TAG_1);
+    EXPECT_EQ(msg4Decoder.Tag1(), TAG_1);
 
-    TestMessage4Groups::Entries &entries = msg4Decoder.entries();
+    TestMessage4Groups::Entries &entries = msg4Decoder.Entries();
     EXPECT_EQ(entries.count(), ENTRIES_COUNT);
 
     ASSERT_TRUE(entries.hasNext());
