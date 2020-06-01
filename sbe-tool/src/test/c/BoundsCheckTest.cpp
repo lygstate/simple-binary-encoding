@@ -82,11 +82,11 @@ protected:
         CGT(car_set_modelYear)(&m_car, MODEL_YEAR);
         CGT(car_set_available)(&m_car, AVAILABLE);
         CGT(car_set_code)(&m_car, CODE);
-        CGT(car_put_vehicleCode)(&m_car, VEHICLE_CODE);
+        CGT(car_vehicleCode)(&m_car).set_buffer(VEHICLE_CODE);
 
         for (uint64_t i = 0; i < CGT(car_someNumbers_length)(); i++)
         {
-            CGT(car_set_someNumbers_unsafe)(&m_car, i, (int32_t)(i));
+            CGT(car_someNumbers)(&m_car).set_unsafe((size_t)i, (int32_t)(i));
         }
 
         CGT(optionalExtras) extras;
@@ -106,7 +106,7 @@ protected:
         }
         CGT(engine_set_capacity)(&engine, 2000);
         CGT(engine_set_numCylinders)(&engine, (short)4);
-        CGT(engine_put_manufacturerCode)(&engine, MANUFACTURER_CODE);
+        CGT(engine_manufacturerCode)(&engine).set_buffer(MANUFACTURER_CODE);
 
         CGT(boosterT) booster;
         if (!CGT(engine_booster)(&engine, &booster))
@@ -133,7 +133,7 @@ protected:
         }
         CGT(car_fuelFigures_set_speed)(&fuelFigures, 30);
         CGT(car_fuelFigures_set_mpg)(&fuelFigures, 35.9f);
-        if (!CGT(car_fuelFigures_put_usageDescription)(&fuelFigures, "Urban Cycle", 11))
+        if (!CGT(car_fuelFigures_usageDescription_set)(&fuelFigures, "Urban Cycle", 11))
         {
             throw std::runtime_error(sbe_strerror(errno));
         }
@@ -144,7 +144,7 @@ protected:
         }
         CGT(car_fuelFigures_set_speed)(&fuelFigures, 55);
         CGT(car_fuelFigures_set_mpg)(&fuelFigures, 49.0f);
-        if (!CGT(car_fuelFigures_put_usageDescription)(&fuelFigures, "Combined Cycle", 14))
+        if (!CGT(car_fuelFigures_usageDescription_set_str)(&fuelFigures, "Combined Cycle"))
         {
             throw std::runtime_error(sbe_strerror(errno));
         }
@@ -155,7 +155,7 @@ protected:
         }
         CGT(car_fuelFigures_set_speed)(&fuelFigures, 75);
         CGT(car_fuelFigures_set_mpg)(&fuelFigures, 40.0f);
-        if (!CGT(car_fuelFigures_put_usageDescription)(&fuelFigures, "Highway Cycle", 13))
+        if (!CGT(car_fuelFigures_usageDescription_set)(&fuelFigures, "Highway Cycle", 13))
         {
             throw std::runtime_error(sbe_strerror(errno));
         }
@@ -234,15 +234,15 @@ protected:
 
     std::uint64_t encodeCarManufacturerModelAndActivationCode()
     {
-        if (!CGT(car_put_manufacturer)(&m_car, MANUFACTURER, static_cast<std::uint16_t>(strlen(MANUFACTURER))))
+        if (!CGT(car_manufacturer_set)(&m_car, MANUFACTURER, static_cast<std::uint16_t>(strlen(MANUFACTURER))))
         {
             throw std::runtime_error(sbe_strerror(errno));
         }
-        if (!CGT(car_put_model)(&m_car, MODEL, static_cast<std::uint16_t>(strlen(MODEL))))
+        if (!CGT(car_model_set)(&m_car, MODEL, static_cast<std::uint16_t>(strlen(MODEL))))
         {
             throw std::runtime_error(sbe_strerror(errno));
         }
-        if (!CGT(car_put_activationCode)(&m_car, ACTIVATION_CODE, static_cast<std::uint16_t>(strlen(ACTIVATION_CODE))))
+        if (!CGT(car_activationCode_set)(&m_car, ACTIVATION_CODE, static_cast<std::uint16_t>(strlen(ACTIVATION_CODE))))
         {
             throw std::runtime_error(sbe_strerror(errno));
         }
@@ -278,11 +278,11 @@ protected:
         EXPECT_EQ(CGT(car_someNumbers_length)(), 5u);
         for (std::uint64_t i = 0; i < 5; i++)
         {
-            EXPECT_EQ(CGT(car_someNumbers_unsafe)(&m_carDecoder, i), (int32_t)(i));
+            EXPECT_EQ(CGT(car_someNumbers)(&m_carDecoder).get_unsafe((size_t)i), (int32_t)(i));
         }
 
         EXPECT_EQ(CGT(car_vehicleCode_length)(), 6u);
-        EXPECT_EQ(std::string(CGT(car_vehicleCode_buffer)(&m_carDecoder), 6), std::string(VEHICLE_CODE, 6));
+        EXPECT_EQ(CGT(car_vehicleCode)(&m_carDecoder).str(), std::string(VEHICLE_CODE, 6));
         CGT(optionalExtras) extras;
         if (!CGT(car_extras)(&m_carDecoder, &extras))
         {
@@ -301,9 +301,9 @@ protected:
         EXPECT_EQ(CGT(engine_numCylinders)(&engine), 4);
         EXPECT_EQ(CGT(engine_maxRpm)(), 9000);
         EXPECT_EQ(CGT(engine_manufacturerCode_length)(), 3u);
-        EXPECT_EQ(std::string(CGT(engine_manufacturerCode_buffer)(&engine), 3), std::string(MANUFACTURER_CODE, 3));
+        EXPECT_EQ(CGT(engine_manufacturerCode)(&engine).str(), std::string(MANUFACTURER_CODE, 3));
         EXPECT_EQ(CGT(engine_fuel_length)(), 6u);
-        EXPECT_EQ(std::string(CGT(engine_fuel)(), 6), "Petrol");
+        EXPECT_EQ(CGT(engine_fuel)().str(), "Petrol");
         CGT(boosterT) booster;
         if (!CGT(engine_booster)(&engine, &booster))
         {
@@ -320,6 +320,7 @@ protected:
     std::uint64_t decodeCarFuelFigures()
     {
         char tmp[256];
+        sbe_string_view view;
         CGT(car_fuelFigures) fuelFigures;
         if (!CGT(car_get_fuelFigures)(&m_carDecoder, &fuelFigures))
         {
@@ -335,13 +336,13 @@ protected:
 
         EXPECT_EQ(CGT(car_fuelFigures_speed)(&fuelFigures), 30);
         EXPECT_EQ(CGT(car_fuelFigures_mpg)(&fuelFigures), 35.9f);
-        std::uint64_t bytesToCopy =
-            CGT(car_fuelFigures_get_usageDescription)(&fuelFigures, tmp, sizeof(tmp));
-        if (!bytesToCopy)
+        view = CGT(car_fuelFigures_usageDescription)(&fuelFigures);
+        if (!view.length)
         {
             throw std::runtime_error(sbe_strerror(errno));
         }
-        EXPECT_EQ(bytesToCopy, 11u);
+        EXPECT_EQ(view.length, 11u);
+        sbe_string_view_get(view, tmp, sizeof(tmp));
         EXPECT_EQ(std::string(tmp, 11), "Urban Cycle");
 
         EXPECT_TRUE(CGT(car_fuelFigures_has_next)(&fuelFigures));
@@ -351,13 +352,13 @@ protected:
         }
         EXPECT_EQ(CGT(car_fuelFigures_speed)(&fuelFigures), 55);
         EXPECT_EQ(CGT(car_fuelFigures_mpg)(&fuelFigures), 49.0f);
-        bytesToCopy = CGT(car_fuelFigures_get_usageDescription)(&fuelFigures, tmp, sizeof(tmp));
-        if (!bytesToCopy)
+        view = CGT(car_fuelFigures_usageDescription(&fuelFigures));
+        if (!view.length)
         {
             throw std::runtime_error(sbe_strerror(errno));
         }
-        EXPECT_EQ(bytesToCopy, 14u);
-        EXPECT_EQ(std::string(tmp, 14), "Combined Cycle");
+        EXPECT_EQ(view.length, 14u);
+        EXPECT_EQ(std::string(view.data, 14), "Combined Cycle");
 
         EXPECT_TRUE(CGT(car_fuelFigures_has_next)(&fuelFigures));
         if (!CGT(car_fuelFigures_next)(&fuelFigures))
@@ -366,13 +367,13 @@ protected:
         }
         EXPECT_EQ(CGT(car_fuelFigures_speed)(&fuelFigures), 75);
         EXPECT_EQ(CGT(car_fuelFigures_mpg)(&fuelFigures), 40.0f);
-        bytesToCopy = CGT(car_fuelFigures_get_usageDescription)(&fuelFigures, tmp, sizeof(tmp));
-        if (!bytesToCopy)
+        view = CGT(car_fuelFigures_usageDescription)(&fuelFigures);
+        if (!view.length)
         {
             throw std::runtime_error(sbe_strerror(errno));
         }
-        EXPECT_EQ(bytesToCopy, 13u);
-        EXPECT_EQ(std::string(tmp, 13), "Highway Cycle");
+        EXPECT_EQ(view.length, 13u);
+        EXPECT_EQ(std::string(view.data, 13), "Highway Cycle");
 
         return CGT(car_encoded_length)(&m_carDecoder);
     }
@@ -464,30 +465,30 @@ protected:
 
     std::uint64_t decodeCarManufacturerModelAndActivationCode()
     {
-        char tmp[256];
-        std::uint64_t lengthOfField = CGT(car_get_manufacturer)(&m_carDecoder, tmp, sizeof(tmp));
-        if (!lengthOfField)
+        sbe_string_view view;
+        view = CGT(car_manufacturer)(&m_carDecoder);
+        if (!view.length)
         {
             throw std::runtime_error(sbe_strerror(errno));
         }
-        EXPECT_EQ(lengthOfField, 5u);
-        EXPECT_EQ(std::string(tmp, 5), "Honda");
+        EXPECT_EQ(view.length, 5u);
+        EXPECT_EQ(std::string(view.data, view.length), "Honda");
 
-        lengthOfField = CGT(car_get_model)(&m_carDecoder, tmp, sizeof(tmp));
-        if (!lengthOfField)
+        view = CGT(car_model)(&m_carDecoder);
+        if (!view.length)
         {
             throw std::runtime_error(sbe_strerror(errno));
         }
-        EXPECT_EQ(lengthOfField, 9u);
-        EXPECT_EQ(std::string(tmp, 9), "Civic VTi");
+        EXPECT_EQ(view.length, 9u);
+        EXPECT_EQ(std::string(view.data, view.length), "Civic VTi");
 
-        lengthOfField = CGT(car_get_activationCode)(&m_carDecoder, tmp, sizeof(tmp));
-        if (!lengthOfField)
+        view = CGT(car_activationCode)(&m_carDecoder);
+        if (!view.length)
         {
             throw std::runtime_error(sbe_strerror(errno));
         }
-        EXPECT_EQ(lengthOfField, 8u);
-        EXPECT_EQ(std::string(tmp, 8), "deadbeef");
+        EXPECT_EQ(view.length, 8u);
+        EXPECT_EQ(std::string(view.data, view.length), "deadbeef");
 
         EXPECT_EQ(CGT(car_encoded_length)(&m_carDecoder), encodedCarSz);
 
