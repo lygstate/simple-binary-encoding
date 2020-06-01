@@ -22,7 +22,6 @@ buildscript {
 plugins {
     id 'java-library'
     id 'idea'
-    id 'io.freefair.javadoc-links' version '5.1.0' apply false
     id 'com.github.johnrengelman.shadow' version '5.2.0' apply false
     id "com.github.ben-manes.versions" version "0.28.0"
 }
@@ -132,7 +131,6 @@ subprojects {
     apply plugin: 'java-library'
     apply plugin: 'checkstyle'
     apply plugin: 'eclipse'
-    apply plugin: 'io.freefair.javadoc-links'
 
     group = sbeGroup
     version = sbeVersion
@@ -157,17 +155,6 @@ subprojects {
         }
         options.encoding = 'UTF-8'
         options.deprecation = true
-    }
-
-    javadoc {
-        title = '<h1>Simple Binary Encoding (SBE)</h1>'
-        options.bottom = '<i>Copyright &#169; 2013-2020 Real Logic Limited. All Rights Reserved.</i>'
-        options.encoding = 'UTF-8'
-        options.docEncoding = 'UTF-8'
-        options.charSet = 'UTF-8'
-        if (JavaVersion.current().isJava10Compatible()) {
-            options.addBooleanOption 'html5', true
-        }
     }
 
     test {
@@ -313,21 +300,11 @@ project(':sbe-all') {
         }
     }
 
-    javadoc {
-        source += project(':sbe-tool').sourceSets.main.allJava
-    }
-
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        archiveClassifier.set('javadoc')
-        from javadoc.destinationDir
-    }
-
     publishing {
         publications {
             sbeAll(MavenPublication) {
                 artifact shadowJar
                 artifact sourcesJar
-                artifact javadocJar
                 pom(projectPom)
             }
         }
@@ -423,10 +400,6 @@ project(':sbe-samples') {
         archiveClassifier.set('sources')
         from sourceSets.main.allSource
         from sourceSets.generated.allSource
-    }
-
-    javadoc {
-        source += sourceSets.generated.allJava
     }
 
     java {

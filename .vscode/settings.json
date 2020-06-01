@@ -1,0 +1,17 @@
+{
+    "java.format.enabled": false,
+    "files.exclude": {
+        "**/.classpath": true,
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.factorypath": true
+    },
+    "C_Cpp.autoAddFileAssociations": false,
+    "cmake.generator": "Ninja",
+    "cmake.buildDirectory": "${workspaceFolder}/build-cmake",
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "omnisharp.defaultLaunchSolution": "${workspaceFolder}/csharp/csharp.sln",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "git.ignoreLimitWarning": true,
+    // "http.proxy": "http://127.0.0.1:8118"
+}
