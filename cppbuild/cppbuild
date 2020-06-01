@@ -2,7 +2,7 @@
 
 SOURCE_DIR="`pwd`"
 BUILD_DIR="`pwd`/cppbuild/Release"
-
+export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
 ncpus=1
 case "`uname`" in
   Darwin* )
@@ -17,9 +17,9 @@ echo "Will make with \"-j $ncpus\"."
 
 if [ -d "$BUILD_DIR" ] ; then
     echo "Build directory ($BUILD_DIR) exists, removing."
-    rm -rf $BUILD_DIR
+    # rm -rf $BUILD_DIR
 fi
 
 mkdir -p $BUILD_DIR
 
-(cd $BUILD_DIR && cmake -G "Unix Makefiles" $SOURCE_DIR && make clean && make -j "$ncpus" all && ctest -C Release --output-on-failure)
+(cd $BUILD_DIR && cmake -G "Ninja" $SOURCE_DIR && ninja -j10 && ctest -C Release --output-on-failure)
