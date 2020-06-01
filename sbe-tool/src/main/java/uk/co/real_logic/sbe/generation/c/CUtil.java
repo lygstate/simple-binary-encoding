@@ -27,7 +27,6 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import static uk.co.real_logic.sbe.generation.Generators.toLowerFirstChar;
 import static uk.co.real_logic.sbe.ir.GenerationUtil.*;
 
 /**
@@ -77,7 +76,7 @@ public class CUtil
      */
     public static String formatPropertyName(final String value)
     {
-        final String formattedValue = toLowerFirstChar(value);
+        final String formattedValue = value;
         return ValidationUtil.tryFixInvalidName(formattedValue);
     }
 
@@ -89,7 +88,7 @@ public class CUtil
      */
     public static String formatName(final String value)
     {
-        return toLowerFirstChar(value);
+        return value;
     }
 
     /**
