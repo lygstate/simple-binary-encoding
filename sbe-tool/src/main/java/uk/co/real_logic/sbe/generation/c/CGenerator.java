@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static uk.co.real_logic.sbe.generation.Generators.toLowerFirstChar;
-import static uk.co.real_logic.sbe.generation.Generators.toUpperFirstChar;
 import static uk.co.real_logic.sbe.generation.c.CUtil.*;
 import static uk.co.real_logic.sbe.ir.GenerationUtil.*;
 
@@ -412,6 +411,7 @@ public class CGenerator implements CodeGenerator
             final Token varDataToken = Generators.findFirst("varData", tokens, i);
             final String characterEncoding = varDataToken.encoding().characterEncoding();
             final int lengthOfLengthField = lengthToken.encodedLength();
+            final String lengthFieldMaxValue = lengthToken.encoding().applicableMaxValue().toString();
             final String lengthCType = cTypeName(lengthToken.encoding().primitiveType());
             final String lengthByteOrderStr = formatByteOrderEncoding(
                 lengthToken.encoding().byteOrder(), lengthToken.encoding().primitiveType());
@@ -423,61 +423,7 @@ public class CGenerator implements CodeGenerator
                 lengthOfLengthField, lengthCType, structName);
 
             sb.append(String.format("\n" +
-                "SBE_ONE_DEF const char *%6$s_%1$s(\n" +
-                "    %6$s *const codec)\n" +
-                "{\n" +
-                "%2$s" +
-                "    %4$s length_field_value;\n" +
-                "    memcpy(&length_field_value, codec->buffer + %6$s_sbe_position(codec), sizeof(%4$s));\n" +
-                "    const char *field_ptr = (codec->buffer + %6$s_sbe_position(codec) + %3$d);\n\n" +
-                "    if (!%6$s_set_sbe_position(\n" +
-                "        codec, %6$s_sbe_position(codec) + %3$d + %5$s(length_field_value)))\n" +
-                "    {\n" +
-                "        return NULL;\n" +
-                "    }\n\n" +
-                "    return field_ptr;\n" +
-                "}\n",
-                propertyName,
-                generateFieldNotPresentCondition(token.version(), "NULL"),
-                lengthOfLengthField,
-                lengthCType,
-                lengthByteOrderStr,
-                structName));
-
-            sb.append(String.format("\n" +
-                "SBE_ONE_DEF uint64_t %6$s_get_%1$s(\n" +
-                "    %6$s *const codec,\n" +
-                "    char *dst,\n" +
-                "    const uint64_t length)\n" +
-                "{\n" +
-                "%2$s" +
-                "    uint64_t length_of_length_field = %3$d;\n" +
-                "    uint64_t length_position = %6$s_sbe_position(codec);\n" +
-                "    if (!%6$s_set_sbe_position(codec, length_position + length_of_length_field))\n" +
-                "    {\n" +
-                "        return 0;\n" +
-                "    }\n\n" +
-                "    %5$s length_field_value;\n" +
-                "    memcpy(&length_field_value, codec->buffer + length_position, sizeof(%5$s));\n" +
-                "    uint64_t data_length = %4$s(length_field_value);\n" +
-                "    uint64_t bytes_to_copy = length < data_length ? length : data_length;\n" +
-                "    uint64_t pos = %6$s_sbe_position(codec);\n\n" +
-                "    if (!%6$s_set_sbe_position(codec, pos + data_length))\n" +
-                "    {\n" +
-                "        return 0;\n" +
-                "    }\n\n" +
-                "    memcpy(dst, codec->buffer + pos, (size_t)bytes_to_copy);\n\n" +
-                "    return bytes_to_copy;\n" +
-                "}\n",
-                propertyName,
-                generateFieldNotPresentCondition(token.version(), "0"),
-                lengthOfLengthField,
-                lengthByteOrderStr,
-                lengthCType,
-                structName));
-
-            sb.append(String.format("\n" +
-                "SBE_ONE_DEF sbe_string_view %5$s_get_%1$s_as_string_view(\n" +
+                "SBE_ONE_DEF sbe_string_view %5$s_%1$s(\n" +
                 "    %5$s *const codec)\n" +
                 "{\n" +
                 "    sbe_string_view ret = {NULL, 0};\n" +
@@ -500,32 +446,49 @@ public class CGenerator implements CodeGenerator
                 outermostStruct));
 
             sb.append(String.format("\n" +
-                "SBE_ONE_DEF %5$s *%5$s_put_%1$s(\n" +
+                "SBE_ONE_DEF %5$s *%5$s_%1$s_set(\n" +
                 "    %5$s *const codec,\n" +
                 "    const char *src,\n" +
                 "    const uint64_t length)\n" +
                 "{\n" +
+                "    if (length > %6$s)\n" +
+                "    {\n" +
+                "        return NULL;\n" +
+                "    }\n" +
+                identBlock(
                 "    uint64_t length_of_length_field = %2$d;\n" +
                 "    uint64_t length_position = %5$s_sbe_position(codec);\n" +
                 "    %3$s length_field_value = %4$s((%3$s)length);\n" +
-                "    if (!%5$s_set_sbe_position(codec, length_position + length_of_length_field))\n" +
+                "    if (%5$s_set_sbe_position(codec, length_position + length_of_length_field + length))\n" +
                 "    {\n" +
-                "        return NULL;\n" +
-                "    }\n\n" +
-                "    memcpy(codec->buffer + length_position, &length_field_value, sizeof(%3$s));\n" +
-                "    uint64_t pos = %5$s_sbe_position(codec);\n\n" +
-                "    if (!%5$s_set_sbe_position(codec, pos + length))\n" +
-                "    {\n" +
-                "        return NULL;\n" +
-                "    }\n\n" +
-                "    memcpy(codec->buffer + pos, src, (size_t)length);\n\n" +
-                "    return codec;\n" +
+                "        memcpy(codec->buffer + length_position, &length_field_value, sizeof(%3$s));\n" +
+                "        memcpy(codec->buffer + length_position + length_of_length_field, src, (size_t)length);\n\n" +
+                "        return codec;\n" +
+                "    }\n") +
+                "    return NULL;\n" +
+                "}\n\n" +
+
+                "SBE_ONE_DEF %5$s *%5$s_%1$s_set_str(\n" +
+                "    %5$s *const codec,\n" +
+                "    const char *src)\n" +
+                "{\n" +
+                "    size_t length = strlen(src);\n" +
+                "    return %5$s_%1$s_set(codec, src, length);\n" +
+                "}\n\n" +
+
+                "SBE_ONE_DEF %5$s *%5$s_%1$s_set_view(\n" +
+                "    %5$s *const codec,\n" +
+                "    const sbe_string_view view)\n" +
+                "{\n" +
+                "    return %5$s_%1$s_set(codec, view.data, view.length);\n" +
                 "}\n",
                 propertyName,
                 lengthOfLengthField,
                 lengthCType,
                 lengthByteOrderStr,
-                structName));
+                structName,
+                generateLiteral(lengthToken.encoding().primitiveType(), lengthFieldMaxValue)
+            ));
 
             i += token.componentTokenCount();
         }
@@ -1134,15 +1097,6 @@ public class CGenerator implements CodeGenerator
         return generateLoadValue(outermostStruct, primitiveType, offsetStr, byteOrder, "return");
     }
 
-    private CharSequence generateLoadValueUnsafe(
-        final String outermostStruct,
-        final PrimitiveType primitiveType,
-        final String offsetStr,
-        final ByteOrder byteOrder)
-    {
-        return generateLoadValue(outermostStruct, primitiveType, offsetStr, byteOrder, "*out =");
-    }
-
     private CharSequence generateStoreValue(
         final String outermostStruct,
         final PrimitiveType primitiveType,
@@ -1233,9 +1187,9 @@ public class CGenerator implements CodeGenerator
         final String containingStructName, final String outermostStruct, final String propertyName, final Token token)
     {
         final PrimitiveType primitiveType = token.encoding().primitiveType();
-        final String cTypeName = cTypeName(primitiveType);
-        final int offset = token.offset();
-
+        final CharSequence offset = generateLiteral(PrimitiveType.get("uint64"), "" + token.offset());
+        final String viewTypeName = generateViewName(primitiveType,
+            token.encoding().byteOrder() == ByteOrder.BIG_ENDIAN);
         final StringBuilder sb = new StringBuilder();
 
         sb.append(String.format("\n" +
@@ -1247,146 +1201,24 @@ public class CGenerator implements CodeGenerator
             propertyName,
             token.arrayLength()));
 
-        sb.append(String.format("\n" +
-            "SBE_ONE_DEF const char *%1$s_%2$s_buffer(\n" +
-            "    const %1$s *const codec)\n" +
-            "{\n" +
-            "%3$s" +
-            "    return codec->buffer + codec->offset + %4$d;\n" +
-            "}\n",
-            containingStructName,
-            propertyName,
-            generateFieldNotPresentCondition(token.version(), "NULL"),
-            offset));
-
-        final CharSequence loadValue = generateLoadValue(
-            outermostStruct,
-            primitiveType,
-            String.format("%d + (index * %d)", offset, primitiveType.size()),
-            token.encoding().byteOrder());
-
-        final CharSequence nullReturn = generateLiteral(primitiveType,
-            token.encoding().applicableNullValue().toString());
-        sb.append(String.format("\n" +
-            "SBE_ONE_DEF %2$s %1$s_%3$s_unsafe(\n" +
-            "    const %1$s *const codec,\n" +
-            "    const uint64_t index)\n" +
-            "{\n" +
-            "%4$s" +
-            "%5$s\n" +
-            "}\n",
-            containingStructName,
-            cTypeName,
-            propertyName,
-            generateFieldNotPresentCondition(token.version(), nullReturn),
-            loadValue));
-
-        final CharSequence loadValueUnsafe = generateLoadValueUnsafe(
-            outermostStruct,
-            primitiveType,
-            String.format("%d + (index * %d)", offset, primitiveType.size()),
-            token.encoding().byteOrder());
 
         sb.append(String.format("\n" +
-            "SBE_ONE_DEF bool %1$s_%3$s(\n" +
-            "    const %1$s *const codec,\n" +
-            "    const uint64_t index,\n" +
-            "    %2$s *const out)\n" +
+            "SBE_ONE_DEF %1$s %2$s_%3$s(\n" +
+            "    const %2$s *const codec)\n" +
             "{\n" +
-            "    if (index >= %4$d)\n" +
-            "    {\n" +
-            "        errno = E104;\n" +
-            "        return false;\n" +
-            "    }\n\n" +
-
+            "    %1$s ret = {NULL, 0};\n" +
             "%5$s" +
-            "%6$s\n" +
-            "    return true;\n" +
+            "    ret.data = codec->buffer + codec->offset + %6$s;\n" +
+            "    ret.length = (size_t)(%4$d);\n" +
+            "    return ret;\n" +
             "}\n",
-            containingStructName,
-            cTypeName,
-            propertyName,
-            token.arrayLength(),
-            generateFieldNotPresentCondition(token.version(), "false"),
-            loadValueUnsafe));
-
-        final CharSequence storeValue = generateStoreValue(
-            outermostStruct,
-            primitiveType,
-            String.format("%d + (index * %d)", offset, primitiveType.size()),
-            token.encoding().byteOrder());
-
-        sb.append(String.format("\n" +
-            "SBE_ONE_DEF %1$s *%1$s_set_%2$s_unsafe(\n" +
-            "    %1$s *const codec,\n" +
-            "    const uint64_t index,\n" +
-            "    const %3$s value)\n" +
-            "{\n" +
-            "%4$s\n" +
-            "    return codec;\n" +
-            "}\n",
-            containingStructName,
-            propertyName,
-            cTypeName,
-            storeValue));
-
-        sb.append(String.format("\n" +
-            "SBE_ONE_DEF %1$s *%1$s_set_%2$s(\n" +
-            "    %1$s *const codec,\n" +
-            "    const uint64_t index,\n" +
-            "    const %3$s value)\n" +
-            "{\n" +
-            "    if (index >= %4$d)\n" +
-            "    {\n" +
-            "        errno = E105;\n" +
-            "        return NULL;\n" +
-            "    }\n\n" +
-
-            "%5$s\n" +
-            "    return codec;\n" +
-            "}\n",
-            containingStructName,
-            propertyName,
-            cTypeName,
-            token.arrayLength(),
-            storeValue));
-
-        sb.append(String.format("\n" +
-            "SBE_ONE_DEF char *%1$s_get_%2$s(\n" +
-            "    const %1$s *const codec,\n" +
-            "    char *dst,\n" +
-            "    const uint64_t length)\n" +
-            "{\n" +
-            "    if (length > %3$d)\n" +
-            "    {\n" +
-            "        errno = E106;\n" +
-            "        return NULL;\n" +
-            "    }\n\n" +
-
-            "%4$s" +
-            "    memcpy(dst, codec->buffer + codec->offset + %5$d, sizeof(%6$s) * (size_t)length);\n\n" +
-            "    return dst;\n" +
-            "}\n",
+            viewTypeName,
             containingStructName,
             propertyName,
             token.arrayLength(),
-            generateFieldNotPresentCondition(token.version(), "NULL"),
-            offset,
-            cTypeName));
-
-        sb.append(String.format("\n" +
-            "SBE_ONE_DEF %1$s *%1$s_put_%2$s(\n" +
-            "    %1$s *const codec,\n" +
-            "    const char *src)\n" +
-            "{\n" +
-            "    memcpy(codec->buffer + codec->offset + %3$d, src, sizeof(%4$s) * %5$d);\n\n" +
-            "    return codec;\n" +
-            "}\n",
-            containingStructName,
-            propertyName,
-            offset,
-            cTypeName,
-            token.arrayLength()));
+            generateFieldNotPresentCondition(token.version(), "ret"),
+            offset
+        ));
 
         return sb;
     }
@@ -1439,35 +1271,6 @@ public class CGenerator implements CodeGenerator
 
             "    return (const char *)%1$s_values;\n" +
             "}\n",
-            propertyName,
-            values,
-            containingStructName));
-
-        sb.append(String.format("\n" +
-            "SBE_ONE_DEF %1$s %4$s_%2$s_index(const uint64_t index)\n" +
-            "{\n" +
-            "    static uint8_t %2$s_values[] = {%3$s};\n\n" +
-
-            "    return %2$s_values[index];\n" +
-            "}\n",
-            cTypeName,
-            propertyName,
-            values,
-            containingStructName));
-
-        sb.append(String.format("\n" +
-            "SBE_ONE_DEF uint64_t %4$s_get_%1$s(\n" +
-            "    const %4$s *const codec,\n" +
-            "    char *dst,\n" +
-            "    const uint64_t length)\n" +
-            "{\n" +
-            "    static uint8_t %2$s_values[] = {%3$s};\n" +
-            "    uint64_t bytes_to_copy = length < sizeof(%2$s_values) ? length : sizeof(%2$s_values);\n\n" +
-
-            "    memcpy(dst, %2$s_values, (size_t)bytes_to_copy);\n\n" +
-            "    return bytes_to_copy;\n" +
-            "}\n",
-            toUpperFirstChar(propertyName),
             propertyName,
             values,
             containingStructName));
