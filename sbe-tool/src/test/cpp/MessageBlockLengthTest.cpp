@@ -37,7 +37,7 @@ public:
 
     std::uint64_t encodeHdrAndMsg()
     {
-        MessageHeader hdr;
+        messageHeader hdr;
         MsgName msg;
 
         hdr.wrap(m_buffer, 0, 0, sizeof(m_buffer))
@@ -52,7 +52,7 @@ public:
         msg.field2().clear()
             .choice1(true);
 
-        MsgNameGroups::GrName &grp = msg.grNameCount(2);
+        MsgNameGroups::grName &grp = msg.grNameCount(2);
 
         grp.next()
            .grField1(10)
@@ -178,7 +178,7 @@ TEST_F(MessageBlockLengthIrTest, shouldHandleAllEventsCorrectlyInOrder)
 
     OtfHeaderDecoder headerDecoder(headerTokens);
 
-    EXPECT_EQ(headerDecoder.encodedLength(), MessageHeader::encodedLength());
+    EXPECT_EQ(headerDecoder.encodedLength(), messageHeader::encodedLength());
     const char *messageBuffer = m_buffer + headerDecoder.encodedLength();
     std::size_t length = 54 - headerDecoder.encodedLength();
     std::uint64_t actingVersion = headerDecoder.getSchemaVersion(m_buffer);
@@ -186,7 +186,7 @@ TEST_F(MessageBlockLengthIrTest, shouldHandleAllEventsCorrectlyInOrder)
 
     const std::size_t result = OtfMessageDecoder::decode(
         messageBuffer, length, actingVersion, static_cast<std::size_t>(blockLength), messageTokens, *this);
-    EXPECT_EQ(result, static_cast<std::size_t>(54 - MessageHeader::encodedLength()));
+    EXPECT_EQ(result, static_cast<std::size_t>(54 - messageHeader::encodedLength()));
 
     EXPECT_EQ(m_eventNumber, 7);
 }

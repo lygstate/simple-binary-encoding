@@ -39,32 +39,32 @@ public:
     {
         m_msg.wrapForEncode(buffer, offset, bufferLength);
 
-        TestMessage1Groups::Entries &entries = m_msg.entriesCount(2);
+        TestMessage1Groups::Entries &entries = m_msg.EntriesCount(2);
 
         entries.next()
-            .tagGroup1(10)
-            .tagGroup2(20);
+            .TagGroup1(10)
+            .TagGroup2(20);
 
         entries.next()
-            .tagGroup1(30)
-            .tagGroup2(40);
+            .TagGroup1(30)
+            .TagGroup2(40);
 
         return m_msg.encodedLength();
     }
 
-    MessageHeader m_hdr;
-    MessageHeader m_hdrDecoder;
+    messageHeader m_hdr;
+    messageHeader m_hdrDecoder;
     TestMessage1 m_msg;
     TestMessage1 m_msgDecoder;
 };
 
 TEST_F(CompositeOffsetsCodeGenTest, shouldReturnCorrectValuesForMessageHeaderStaticFields)
 {
-    EXPECT_EQ(MessageHeader::encodedLength(), 12u);
+    EXPECT_EQ(messageHeader::encodedLength(), 12u);
     // only checking the block length field
-    EXPECT_EQ(MessageHeader::blockLengthNullValue(), 65535);
-    EXPECT_EQ(MessageHeader::blockLengthMinValue(), 0);
-    EXPECT_EQ(MessageHeader::blockLengthMaxValue(), 65534);
+    EXPECT_EQ(messageHeader::blockLengthNullValue(), 65535);
+    EXPECT_EQ(messageHeader::blockLengthMinValue(), 0);
+    EXPECT_EQ(messageHeader::blockLengthMaxValue(), 65534);
 }
 
 TEST_F(CompositeOffsetsCodeGenTest, shouldReturnCorrectValuesForTestMessage1StaticFields)
@@ -139,18 +139,18 @@ TEST_F(CompositeOffsetsCodeGenTest, shouldBeAbleToDecodeHeaderAndMsgCorrectly)
 
     m_msgDecoder.wrapForDecode(buffer, hdrSz, TestMessage1::sbeBlockLength(), TestMessage1::sbeSchemaVersion(), hdrSz + sz);
 
-    TestMessage1Groups::Entries entries = m_msgDecoder.entries();
+    TestMessage1Groups::Entries entries = m_msgDecoder.Entries();
     EXPECT_EQ(entries.count(), 2u);
 
     ASSERT_TRUE(entries.hasNext());
     entries.next();
-    EXPECT_EQ(entries.tagGroup1(), 10u);
-    EXPECT_EQ(entries.tagGroup2(), 20u);
+    EXPECT_EQ(entries.TagGroup1(), 10u);
+    EXPECT_EQ(entries.TagGroup2(), 20u);
 
     ASSERT_TRUE(entries.hasNext());
     entries.next();
-    EXPECT_EQ(entries.tagGroup1(), 30u);
-    EXPECT_EQ(entries.tagGroup2(), 40u);
+    EXPECT_EQ(entries.TagGroup1(), 30u);
+    EXPECT_EQ(entries.TagGroup2(), 40u);
 
     EXPECT_EQ(m_msgDecoder.encodedLength(), 40u);
 }
