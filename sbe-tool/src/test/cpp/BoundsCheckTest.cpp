@@ -73,7 +73,7 @@ public:
             .modelYear(MODEL_YEAR)
             .available(AVAILABLE)
             .code(CODE)
-            .putVehicleCode(VEHICLE_CODE);
+            .vehicleCodeSet(VEHICLE_CODE);
 
         for (std::uint64_t i = 0; i < Car::someNumbersLength(); i++)
         {
@@ -88,34 +88,34 @@ public:
         m_car.engine()
             .capacity(2000)
             .numCylinders((short)4)
-            .putManufacturerCode(MANUFACTURER_CODE)
-            .booster().boostType(BoostType::NITROUS).horsePower(200);
+            .manufacturerCodeSet(MANUFACTURER_CODE)
+            .booster().BoostType(BoostType::NITROUS).horsePower(200);
 
         return m_car.encodedLength();
     }
 
     std::uint64_t encodeCarFuelFigures()
     {
-        CarGroups::FuelFigures& fuelFigures = m_car.fuelFiguresCount(3);
+        CarGroups::fuelFigures& fuelFigures = m_car.fuelFiguresCount(3);
 
         fuelFigures
             .next().speed(30).mpg(35.9f);
-        fuelFigures.putUsageDescription("Urban Cycle", 11);
+        fuelFigures.usageDescriptionSet("Urban Cycle", 11);
 
         fuelFigures
             .next().speed(55).mpg(49.0f);
-        fuelFigures.putUsageDescription("Combined Cycle", 14);
+        fuelFigures.usageDescriptionSet("Combined Cycle", 14);
 
         fuelFigures
             .next().speed(75).mpg(40.0f);
-        fuelFigures.putUsageDescription("Highway Cycle", 13);
+        fuelFigures.usageDescriptionSet("Highway Cycle", 13);
 
         return m_car.encodedLength();
     }
 
     std::uint64_t encodeCarPerformanceFigures()
     {
-        CarGroups::PerformanceFigures &perfFigs = m_car.performanceFiguresCount(2);
+        CarGroups::performanceFigures &perfFigs = m_car.performanceFiguresCount(2);
 
         perfFigs.next()
             .octaneRating((short)95)
@@ -136,9 +136,9 @@ public:
 
     std::uint64_t encodeCarManufacturerModelAndActivationCode()
     {
-        m_car.putManufacturer(MANUFACTURER, static_cast<std::uint16_t>(strlen(MANUFACTURER)));
-        m_car.putModel(MODEL, static_cast<std::uint16_t>(strlen(MODEL)));
-        m_car.putActivationCode(ACTIVATION_CODE, static_cast<std::uint16_t>(strlen(ACTIVATION_CODE)));
+        m_car.manufacturerSet(MANUFACTURER, static_cast<std::uint16_t>(strlen(MANUFACTURER)));
+        m_car.modelSet(MODEL, static_cast<std::uint16_t>(strlen(MODEL)));
+        m_car.activationCodeSet(ACTIVATION_CODE, static_cast<std::uint16_t>(strlen(ACTIVATION_CODE)));
 
         return m_car.encodedLength();
     }
@@ -171,7 +171,7 @@ public:
         EXPECT_EQ(std::string(engine.manufacturerCode(), 3), std::string(MANUFACTURER_CODE, 3));
         EXPECT_EQ(engine.fuelLength(), 6u);
         EXPECT_EQ(std::string(engine.fuel(), 6), std::string("Petrol"));
-        EXPECT_EQ(engine.booster().boostType(), BoostType::NITROUS);
+        EXPECT_EQ(engine.booster().BoostType(), BoostType::NITROUS);
         EXPECT_EQ(engine.booster().horsePower(), 200);
 
         return m_carDecoder.encodedLength();
@@ -180,28 +180,28 @@ public:
     std::uint64_t decodeCarFuelFigures()
     {
         char tmp[256];
-        CarGroups::FuelFigures &fuelFigures = m_carDecoder.fuelFigures();
+        CarGroups::fuelFigures &fuelFigures = m_carDecoder.fuelFigures();
         EXPECT_EQ(fuelFigures.count(), 3u);
 
         EXPECT_TRUE(fuelFigures.hasNext());
         fuelFigures.next();
         EXPECT_EQ(fuelFigures.speed(), 30);
         EXPECT_EQ(fuelFigures.mpg(), 35.9f);
-        EXPECT_EQ(fuelFigures.getUsageDescription(tmp, sizeof(tmp)), 11u);
+        EXPECT_EQ(fuelFigures.usageDescriptionGet(tmp, sizeof(tmp)), 11u);
         EXPECT_EQ(std::string(tmp, 11), "Urban Cycle");
 
         EXPECT_TRUE(fuelFigures.hasNext());
         fuelFigures.next();
         EXPECT_EQ(fuelFigures.speed(), 55);
         EXPECT_EQ(fuelFigures.mpg(), 49.0f);
-        EXPECT_EQ(fuelFigures.getUsageDescription(tmp, sizeof(tmp)), 14u);
+        EXPECT_EQ(fuelFigures.usageDescriptionGet(tmp, sizeof(tmp)), 14u);
         EXPECT_EQ(std::string(tmp, 14), "Combined Cycle");
 
         EXPECT_TRUE(fuelFigures.hasNext());
         fuelFigures.next();
         EXPECT_EQ(fuelFigures.speed(), 75);
         EXPECT_EQ(fuelFigures.mpg(), 40.0f);
-        EXPECT_EQ(fuelFigures.getUsageDescription(tmp, sizeof(tmp)), 13u);
+        EXPECT_EQ(fuelFigures.usageDescriptionGet(tmp, sizeof(tmp)), 13u);
         EXPECT_EQ(std::string(tmp, 13), "Highway Cycle");
 
         return m_carDecoder.encodedLength();
@@ -209,14 +209,14 @@ public:
 
     std::uint64_t decodeCarPerformanceFigures()
     {
-        CarGroups::PerformanceFigures &performanceFigures = m_carDecoder.performanceFigures();
+        CarGroups::performanceFigures &performanceFigures = m_carDecoder.performanceFigures();
         EXPECT_EQ(performanceFigures.count(), 2u);
 
         EXPECT_TRUE(performanceFigures.hasNext());
         performanceFigures.next();
         EXPECT_EQ(performanceFigures.octaneRating(), 95);
 
-        CarGroups::PerformanceFiguresGroups::Acceleration &acceleration = performanceFigures.acceleration();
+        CarGroups::performanceFiguresGroups::acceleration &acceleration = performanceFigures.acceleration();
         EXPECT_EQ(acceleration.count(), 3u);
         EXPECT_TRUE(acceleration.hasNext());
         acceleration.next();
@@ -261,13 +261,13 @@ public:
     {
         char tmp[256];
 
-        EXPECT_EQ(m_carDecoder.getManufacturer(tmp, sizeof(tmp)), 5u);
+        EXPECT_EQ(m_carDecoder.manufacturerGet(tmp, sizeof(tmp)), 5u);
         EXPECT_EQ(std::string(tmp, 5), "Honda");
 
-        EXPECT_EQ(m_carDecoder.getModel(tmp, sizeof(tmp)), 9u);
+        EXPECT_EQ(m_carDecoder.modelGet(tmp, sizeof(tmp)), 9u);
         EXPECT_EQ(std::string(tmp, 9), "Civic VTi");
 
-        EXPECT_EQ(m_carDecoder.getActivationCode(tmp, sizeof(tmp)), 8u);
+        EXPECT_EQ(m_carDecoder.activationCodeGet(tmp, sizeof(tmp)), 8u);
         EXPECT_EQ(std::string(tmp, 8), "deadbeef");
 
         EXPECT_EQ(m_carDecoder.encodedLength(), encodedCarSz);
@@ -275,8 +275,8 @@ public:
         return m_carDecoder.encodedLength();
     }
 
-    MessageHeader m_hdr;
-    MessageHeader m_hdrDecoder;
+    messageHeader m_hdr;
+    messageHeader m_hdrDecoder;
     Car m_car;
     Car m_carDecoder;
 };

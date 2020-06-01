@@ -39,7 +39,7 @@ public:
 
     std::uint64_t encodeHdrAndMsg()
     {
-        MessageHeader hdr;
+        messageHeader hdr;
         TestMessage1 msg;
 
         hdr.wrap(m_buffer, 0, 0, sizeof(m_buffer))
@@ -50,15 +50,15 @@ public:
 
         msg.wrapForEncode(m_buffer, hdr.encodedLength(), sizeof(m_buffer));
 
-        TestMessage1Groups::Entries &entries = msg.entriesCount(2);
+        TestMessage1Groups::Entries &entries = msg.EntriesCount(2);
 
         entries.next()
-            .tagGroup1(10)
-            .tagGroup2(20);
+            .TagGroup1(10)
+            .TagGroup2(20);
 
         entries.next()
-            .tagGroup1(30)
-            .tagGroup2(40);
+            .TagGroup1(30)
+            .TagGroup2(40);
 
         return hdr.encodedLength() + msg.encodedLength();
     }
@@ -128,7 +128,7 @@ TEST_F(CompositeOffsetsIrTest, shouldHandleDecodingOfMessageHeaderCorrectly)
 
     OtfHeaderDecoder headerDecoder(headerTokens);
 
-    EXPECT_EQ(headerDecoder.encodedLength(), MessageHeader::encodedLength());
+    EXPECT_EQ(headerDecoder.encodedLength(), messageHeader::encodedLength());
     EXPECT_EQ(headerDecoder.getTemplateId(m_buffer), TestMessage1::sbeTemplateId());
     EXPECT_EQ(headerDecoder.getBlockLength(m_buffer), TestMessage1::sbeBlockLength());
     EXPECT_EQ(headerDecoder.getSchemaId(m_buffer), TestMessage1::sbeSchemaId());
@@ -150,7 +150,7 @@ TEST_F(CompositeOffsetsIrTest, shouldHandleAllEventsCorrectlyInOrder)
 
     OtfHeaderDecoder headerDecoder(headerTokens);
 
-    EXPECT_EQ(headerDecoder.encodedLength(), MessageHeader::encodedLength());
+    EXPECT_EQ(headerDecoder.encodedLength(), messageHeader::encodedLength());
     const char *messageBuffer = m_buffer + headerDecoder.encodedLength();
     std::size_t length = 52 - headerDecoder.encodedLength();
     std::uint64_t actingVersion = headerDecoder.getSchemaVersion(m_buffer);
@@ -158,7 +158,7 @@ TEST_F(CompositeOffsetsIrTest, shouldHandleAllEventsCorrectlyInOrder)
 
     const std::size_t result =
         OtfMessageDecoder::decode(messageBuffer, length, actingVersion, static_cast<std::size_t>(blockLength), messageTokens, *this);
-    EXPECT_EQ(result, static_cast<std::size_t>(52 - MessageHeader::encodedLength()));
+    EXPECT_EQ(result, static_cast<std::size_t>(52 - messageHeader::encodedLength()));
 
     EXPECT_EQ(m_eventNumber, 5);
 }

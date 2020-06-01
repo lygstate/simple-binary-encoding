@@ -126,7 +126,7 @@ enum EventNumber
     EN_engine_manufacturerCode,
     EN_engine_fuel,
     EN_beginBooster,
-    EN_engine_booster_boostType,
+    EN_engine_booster_BoostType,
     EN_engine_booster_horsePower,
     EN_endBooster,
     EN_endEngine,
@@ -210,7 +210,7 @@ public:
 
     std::uint64_t encodeHdrAndCar()
     {
-        MessageHeader hdr;
+        messageHeader hdr;
         Car car;
 
         hdr.wrap(m_buffer, 0, 0, sizeof(m_buffer))
@@ -224,7 +224,7 @@ public:
             .modelYear(MODEL_YEAR)
             .available(AVAILABLE)
             .code(CODE)
-            .putVehicleCode(VEHICLE_CODE);
+            .vehicleCodeSet(VEHICLE_CODE);
 
         for (std::uint64_t i = 0; i < Car::someNumbersLength(); i++)
         {
@@ -239,28 +239,28 @@ public:
         car.engine()
             .capacity(engineCapacity)
             .numCylinders(engineNumCylinders)
-            .putManufacturerCode(MANUFACTURER_CODE)
-            .booster().boostType(BoostType::NITROUS).horsePower(200);
+            .manufacturerCodeSet(MANUFACTURER_CODE)
+            .booster().BoostType(BoostType::NITROUS).horsePower(200);
 
-        CarGroups::FuelFigures& fuelFigures = car.fuelFiguresCount(FUEL_FIGURES_COUNT);
+        CarGroups::fuelFigures& fuelFigures = car.fuelFiguresCount(FUEL_FIGURES_COUNT);
 
         fuelFigures
             .next().speed(fuel1Speed).mpg(fuel1Mpg);
 
-        fuelFigures.putUsageDescription(
+        fuelFigures.usageDescriptionSet(
             FUEL_FIGURES_1_USAGE_DESCRIPTION, static_cast<std::uint16_t>(strlen(FUEL_FIGURES_1_USAGE_DESCRIPTION)));
 
         fuelFigures
             .next().speed(fuel2Speed).mpg(fuel2Mpg);
-        fuelFigures.putUsageDescription(
+        fuelFigures.usageDescriptionSet(
             FUEL_FIGURES_2_USAGE_DESCRIPTION, static_cast<std::uint16_t>(strlen(FUEL_FIGURES_2_USAGE_DESCRIPTION)));
 
         fuelFigures
             .next().speed(fuel3Speed).mpg(fuel3Mpg);
-        fuelFigures.putUsageDescription(
+        fuelFigures.usageDescriptionSet(
             FUEL_FIGURES_3_USAGE_DESCRIPTION, static_cast<std::uint16_t>(strlen(FUEL_FIGURES_3_USAGE_DESCRIPTION)));
 
-        CarGroups::PerformanceFigures &perfFigs = car.performanceFiguresCount(PERFORMANCE_FIGURES_COUNT);
+        CarGroups::performanceFigures &perfFigs = car.performanceFiguresCount(PERFORMANCE_FIGURES_COUNT);
 
         perfFigs.next()
             .octaneRating(perf1Octane)
@@ -276,10 +276,10 @@ public:
             .next().mph(perf2bMph).seconds(perf2bSeconds)
             .next().mph(perf2cMph).seconds(perf2cSeconds);
 
-        car.putManufacturer(MANUFACTURER, static_cast<std::uint16_t>(strlen(MANUFACTURER)));
-        car.putModel(MODEL, static_cast<std::uint16_t>(strlen(MODEL)));
-        car.putActivationCode(ACTIVATION_CODE, static_cast<std::uint16_t>(strlen(ACTIVATION_CODE)));
-        car.putColor(COLOR, static_cast<std::uint32_t>(strlen(COLOR)));
+        car.manufacturerSet(MANUFACTURER, static_cast<std::uint16_t>(strlen(MANUFACTURER)));
+        car.modelSet(MODEL, static_cast<std::uint16_t>(strlen(MODEL)));
+        car.activationCodeSet(ACTIVATION_CODE, static_cast<std::uint16_t>(strlen(ACTIVATION_CODE)));
+        car.colorSet(COLOR, static_cast<std::uint32_t>(strlen(COLOR)));
 
         return hdr.encodedLength() + car.encodedLength();
     }
@@ -646,7 +646,7 @@ public:
                 break;
             }
 
-            case EN_engine_booster_boostType:
+            case EN_engine_booster_BoostType:
             {
                 EXPECT_EQ(encoding.primitiveType(), PrimitiveType::CHAR);
 
@@ -1130,7 +1130,7 @@ TEST_F(Rc3OtfFullIrTest, shouldHandleDecodingOfMessageHeaderCorrectly)
 
     OtfHeaderDecoder headerDecoder(headerTokens);
 
-    EXPECT_EQ(headerDecoder.encodedLength(), MessageHeader::encodedLength());
+    EXPECT_EQ(headerDecoder.encodedLength(), messageHeader::encodedLength());
     EXPECT_EQ(headerDecoder.getTemplateId(m_buffer), Car::sbeTemplateId());
     EXPECT_EQ(headerDecoder.getBlockLength(m_buffer), Car::sbeBlockLength());
     EXPECT_EQ(headerDecoder.getSchemaId(m_buffer), Car::sbeSchemaId());
@@ -1152,7 +1152,7 @@ TEST_F(Rc3OtfFullIrTest, shouldHandleAllEventsCorrectlyAndInOrder)
 
     OtfHeaderDecoder headerDecoder(headerTokens);
 
-    EXPECT_EQ(headerDecoder.encodedLength(), MessageHeader::encodedLength());
+    EXPECT_EQ(headerDecoder.encodedLength(), messageHeader::encodedLength());
     const char *messageBuffer = m_buffer + headerDecoder.encodedLength();
     std::size_t length = static_cast<std::size_t>(encodedCarAndHdrLength - headerDecoder.encodedLength());
     std::uint64_t actingVersion = headerDecoder.getSchemaVersion(m_buffer);
@@ -1160,7 +1160,7 @@ TEST_F(Rc3OtfFullIrTest, shouldHandleAllEventsCorrectlyAndInOrder)
 
     const std::size_t result = OtfMessageDecoder::decode(
         messageBuffer, length, actingVersion, static_cast<std::size_t>(blockLength), messageTokens, *this);
-    EXPECT_EQ(result, static_cast<std::size_t>(encodedCarAndHdrLength - MessageHeader::encodedLength()));
+    EXPECT_EQ(result, static_cast<std::size_t>(encodedCarAndHdrLength - messageHeader::encodedLength()));
 }
 
 TEST_P(Rc3OtfFullIrLengthTest, shouldExceptionIfLengthTooShort)
@@ -1178,7 +1178,7 @@ TEST_P(Rc3OtfFullIrLengthTest, shouldExceptionIfLengthTooShort)
 
     OtfHeaderDecoder headerDecoder(headerTokens);
 
-    EXPECT_EQ(headerDecoder.encodedLength(), MessageHeader::encodedLength());
+    EXPECT_EQ(headerDecoder.encodedLength(), messageHeader::encodedLength());
     std::size_t length = static_cast<std::size_t>(GetParam());
     std::uint64_t actingVersion = headerDecoder.getSchemaVersion(m_buffer);
     std::uint64_t blockLength = headerDecoder.getBlockLength(m_buffer);
@@ -1197,4 +1197,4 @@ TEST_P(Rc3OtfFullIrLengthTest, shouldExceptionIfLengthTooShort)
 INSTANTIATE_TEST_CASE_P(
     LengthUpToHdrAndCar,
     Rc3OtfFullIrLengthTest,
-    ::testing::Range(0, static_cast<int>(encodedCarAndHdrLength - MessageHeader::encodedLength()), 1),);
+    ::testing::Range(0, static_cast<int>(encodedCarAndHdrLength - messageHeader::encodedLength()), 1),);
