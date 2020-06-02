@@ -18,7 +18,6 @@ package uk.co.real_logic.sbe.generation.cpp;
 import uk.co.real_logic.sbe.PrimitiveType;
 import uk.co.real_logic.sbe.util.ValidationUtil;
 
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
@@ -80,31 +79,6 @@ public class CppUtil
     public static String formatClassName(final String value)
     {
         return toUpperFirstChar(value);
-    }
-
-    /**
-     * Return the Cpp98 formatted byte order encoding string to use for a given byte order and primitiveType
-     *
-     * @param byteOrder     of the {@link uk.co.real_logic.sbe.ir.Token}
-     * @param primitiveType of the {@link uk.co.real_logic.sbe.ir.Token}
-     * @return the string formatted as the byte ordering encoding
-     */
-    public static String formatByteOrderEncoding(final ByteOrder byteOrder, final PrimitiveType primitiveType)
-    {
-        switch (primitiveType.size())
-        {
-            case 2:
-                return "SBE_" + byteOrder + "_ENCODE_16";
-
-            case 4:
-                return "SBE_" + byteOrder + "_ENCODE_32";
-
-            case 8:
-                return "SBE_" + byteOrder + "_ENCODE_64";
-
-            default:
-                return "";
-        }
     }
 
     public static String openingBraces(final ArrayList<String> namespaces)
