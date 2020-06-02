@@ -21,6 +21,7 @@ import org.agrona.generation.OutputManager;
 import uk.co.real_logic.sbe.PrimitiveType;
 import uk.co.real_logic.sbe.generation.CodeGenerator;
 import uk.co.real_logic.sbe.generation.Generators;
+import uk.co.real_logic.sbe.generation.c.CUtil;
 import uk.co.real_logic.sbe.ir.Encoding;
 import uk.co.real_logic.sbe.ir.GenerationUtil;
 import uk.co.real_logic.sbe.ir.Ir;
@@ -36,7 +37,11 @@ import java.util.List;
 import static uk.co.real_logic.sbe.generation.Generators.toLowerFirstChar;
 import static uk.co.real_logic.sbe.generation.Generators.toUpperFirstChar;
 import static uk.co.real_logic.sbe.generation.cpp.CppUtil.*;
+import static uk.co.real_logic.sbe.generation.c.CUtil.identBlockWith;
+import static uk.co.real_logic.sbe.generation.c.CUtil.generateGetBits;
+import static uk.co.real_logic.sbe.generation.c.CUtil.generateSetBits;
 import static uk.co.real_logic.sbe.generation.c.CUtil.generateSbecHeader;
+import static uk.co.real_logic.sbe.generation.c.CUtil.formatByteOrderEncoding;
 import static uk.co.real_logic.sbe.ir.GenerationUtil.*;
 
 /**
@@ -192,6 +197,11 @@ public class CppGenerator implements CodeGenerator
         sb.append(sbClassType);
 
         sb.append(CppUtil.closingBraces(generateMessageItemNamespace(messageItem).size()));
+    }
+
+    private String fullClassNameForType(final String name)
+    {
+        return String.join("::", ir.namespaces()) + "::" + name;
     }
 
     private static String messageItemClassName(final MessageItem messageItem)
@@ -758,7 +768,7 @@ public class CppGenerator implements CodeGenerator
                 bitSetName,
                 cppTypeName(tokens.get(0).encoding().primitiveType()));
 
-            out.append(generateChoices(bitSetName, tokens.subList(1, tokens.size() - 1)));
+            out.append(generateChoices(bitSetName, tokens.get(0), tokens.subList(1, tokens.size() - 1)));
             out.append(generateChoicesDisplay(bitSetName, tokens.subList(1, tokens.size() - 1)));
             out.append("};\n\n");
         }
@@ -799,7 +809,9 @@ public class CppGenerator implements CodeGenerator
         }
     }
 
-    private static CharSequence generateChoiceNotPresentCondition(final int sinceVersion)
+    private static CharSequence generateChoiceNotPresentCondition(
+        final int sinceVersion,
+        final CharSequence nullReturn)
     {
         if (0 == sinceVersion)
         {
@@ -809,12 +821,13 @@ public class CppGenerator implements CodeGenerator
         return String.format(
             "        if (m_actingVersion < %1$d)\n" +
             "        {\n" +
-            "            return false;\n" +
+            "            return %2$s;\n" +
             "        }\n\n",
-            sinceVersion);
+            sinceVersion, nullReturn);
     }
 
-    private CharSequence generateChoices(final String bitsetClassName, final List<Token> tokens)
+    private CharSequence generateChoices(
+        final String bitsetClassName, final Token bitsetToken, final List<Token> tokens)
     {
         final StringBuilder sb = new StringBuilder();
 
@@ -824,60 +837,100 @@ public class CppGenerator implements CodeGenerator
             .forEach((token) ->
             {
                 final String choiceName = formatPropertyName(token.name());
-                final String typeName = cppTypeName(token.encoding().primitiveType());
-                final String choiceBitPosition = token.encoding().constValue().toString();
                 final String byteOrderStr = formatByteOrderEncoding(
-                    token.encoding().byteOrder(), token.encoding().primitiveType());
+                    bitsetToken.encoding().byteOrder(), bitsetToken.encoding().primitiveType());
 
-                new Formatter(sb).format("\n" +
-                    "    static bool %1$s(const %2$s bits)\n" +
-                    "    {\n" +
-                    "        return (bits & (1u << %3$su)) != 0;\n" +
-                    "    }\n",
-                    choiceName,
-                    typeName,
-                    choiceBitPosition);
+                final String bitsetTypeName = cppTypeName(bitsetToken.encoding().primitiveType());
 
-                new Formatter(sb).format("\n" +
-                    "    static %2$s %1$s(const %2$s bits, const bool value)\n" +
-                    "    {\n" +
-                    "        return value ?" +
-                    " static_cast<%2$s>(bits | (1u << %3$su)) : static_cast<%2$s>(bits & ~(1u << %3$su));\n" +
-                    "    }\n",
-                    choiceName,
-                    typeName,
-                    choiceBitPosition);
+                final Encoding encoding = token.encoding();
 
-                new Formatter(sb).format("\n" +
-                    "    SBE_NODISCARD bool %1$s() const\n" +
-                    "    {\n" +
-                    "%2$s" +
-                    "        %4$s val;\n" +
-                    "        std::memcpy(&val, m_buffer + m_offset, sizeof(%4$s));\n" +
-                    "        return (%3$s(val) & (1u << %5$su)) != 0;\n" +
-                    "    }\n",
-                    choiceName,
-                    generateChoiceNotPresentCondition(token.version()),
-                    byteOrderStr,
-                    typeName,
-                    choiceBitPosition);
+                final long lsb = encoding.isChoice() ?
+                    encoding.constValue().longValue() : encoding.lsbValue().longValue();
+                final long msb = encoding.isChoice() ?
+                    encoding.constValue().longValue() : encoding.msbValue().longValue();
+                final PrimitiveType bitsetPrimitiveType = bitsetToken.encoding().primitiveType();
 
-                new Formatter(sb).format("\n" +
-                    "    %1$s &%2$s(const bool value)\n" +
-                    "    {\n" +
-                    "        %3$s bits;\n" +
-                    "        std::memcpy(&bits, m_buffer + m_offset, sizeof(%3$s));\n" +
-                    "        bits = %4$s(value ?" +
-                    " static_cast<%3$s>(%4$s(bits) | (1u << %5$su)) " +
-                    ": static_cast<%3$s>(%4$s(bits) & ~(1u << %5$su)));\n" +
-                    "        std::memcpy(m_buffer + m_offset, &bits, sizeof(%3$s));\n" +
-                    "        return *this;\n" +
-                    "    }\n",
+                final CUtil.GenerateLiteralFunction genBitsLiteral =
+                    (PrimitiveType a, String b) -> generateLiteral(a, b);
+                CharSequence bitsGetNormal = generateGetBits(
+                    lsb, msb, bitsetPrimitiveType, "bitset", "", genBitsLiteral);
+                CharSequence bitsGetByteOrder = generateGetBits(
+                    lsb, msb, bitsetPrimitiveType, "bitset", byteOrderStr, genBitsLiteral);
+                final CharSequence bitsSetNormal = generateSetBits(
+                    lsb, msb, bitsetPrimitiveType, "bits", "bitset", "", genBitsLiteral);
+                final CharSequence bitsSetByteOrder = generateSetBits(
+                    lsb, msb, bitsetPrimitiveType, "bits", "bitset", byteOrderStr, genBitsLiteral);
+
+                final CharSequence nullReturn;
+                final String choiceTypeName;
+                if (encoding.isChoice())
+                {
+                    nullReturn = "false";
+                    choiceTypeName = "bool";
+                }
+                else
+                {
+                    if (token.referencedName() != null)
+                    {
+                        final String enumName = fullClassNameForType(token.applicableTypeName());
+                        nullReturn = enumName + "_NULL_VALUE";
+                        choiceTypeName = enumName + "::Value";
+                    }
+                    else
+                    {
+                        nullReturn = generateLiteral(encoding.primitiveType(),
+                            encoding.applicableNullValue().toString());
+                        choiceTypeName = cppTypeName(encoding.primitiveType());
+                    }
+                }
+                bitsGetNormal = String.format("(%1$s)(%2$s)", choiceTypeName, bitsGetNormal);
+                bitsGetByteOrder = String.format("(%1$s)(%2$s)", choiceTypeName, bitsGetByteOrder);
+                final CharSequence notPresent = generateChoiceNotPresentCondition(token.version(), nullReturn);
+
+                formatter(sb).format("\n" +
+                    identBlockWith(
+                    "static %5$s %2$s(\n" +
+                    "    const %3$s bitset)\n" +
+                    "{\n" +
+                    "    return %6$s;\n" +
+                    "}\n\n" +
+
+                    "static %3$s %2$s(\n" +
+                    "    const %3$s bitset,\n" +
+                    "    const %5$s bits)\n" +
+                    "{\n" +
+                    "    return %7$s;\n" +
+                    "}\n\n" +
+
+                    "%5$s %2$s() const\n" +
+                    "{\n" +
+                    "    %3$s bitset;\n" +
+                    "%4$s" +
+                    "    memcpy(&bitset, m_buffer + m_offset, sizeof(%3$s));\n\n" +
+
+                    "    return %8$s;\n" +
+                    "}\n\n" +
+
+                    "%1$s& %2$s(\n" +
+                    "    const %5$s bits)\n" +
+                    "{\n" +
+                    "    %3$s bitset;\n" +
+                    "    memcpy(&bitset, m_buffer + m_offset, sizeof(%3$s));\n" +
+                    "    bitset = %9$s;\n" +
+                    "    memcpy(m_buffer + m_offset, &bitset, sizeof(%3$s));\n\n" +
+
+                    "    return *this;\n" +
+                    "}\n", "\n", "", "\n"),
                     bitsetClassName,
                     choiceName,
-                    typeName,
-                    byteOrderStr,
-                    choiceBitPosition);
+                    bitsetTypeName,
+                    notPresent,
+                    choiceTypeName,
+                    bitsGetNormal,
+                    bitsSetNormal,
+                    bitsGetByteOrder,
+                    bitsSetByteOrder
+                );
             });
 
         return sb;
