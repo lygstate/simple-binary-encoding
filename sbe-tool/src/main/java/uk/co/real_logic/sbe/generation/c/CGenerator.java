@@ -1701,7 +1701,7 @@ public class CGenerator implements CodeGenerator
             propertyName,
             constantValue.length,
             containingStructName));
-
+        /* TODO: Add constant string view for returning this */
         sb.append(String.format("\n" +
             "SBE_ONE_DEF const char *%3$s_%1$s(void)\n" +
             "{\n" +
