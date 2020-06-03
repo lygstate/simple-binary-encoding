@@ -432,12 +432,12 @@ public class CGenerator implements CodeGenerator
                 "    uint64_t ret = 0;\n" +
                 "%2$s" +
                 "    {\n" +
-                "        %4$s length_value;\n" +
+                "        %4$s length_value_raw;\n" +
                 "        uint64_t length_position = %5$s_sbe_position(codec);\n" +
-                "        memcpy(&length_value, codec->buffer + length_position, sizeof(length_value));\n" +
-                "        length_value = %3$s(length_value);\n" +
+                "        memcpy(&length_value_raw, codec->buffer + length_position, sizeof(length_value_raw));\n" +
+                "        %4$s length_value = %3$s(length_value_raw);\n" +
                 "        if (%5$s_set_sbe_position(\n" +
-                "            codec, length_position + sizeof(length_value) + length_value))\n" +
+                "            codec, length_position + sizeof(length_value_raw) + length_value))\n" +
                 "        {\n" +
                 "            return length_value;\n" +
                 "        }\n" +
@@ -451,13 +451,13 @@ public class CGenerator implements CodeGenerator
                 "    sbe_string_view ret = {NULL, 0};\n" +
                 "%2$s" +
                 identBlock(
-                "    %4$s length_value;\n" +
+                "    %4$s length_value_raw;\n" +
                 "    uint64_t length_position = %5$s_sbe_position(codec);\n" +
-                "    memcpy(&length_value, codec->buffer + length_position, sizeof(length_value));\n" +
-                "    length_value = %3$s(length_value);\n" +
-                "    if (%5$s_set_sbe_position(codec, length_position + sizeof(length_value) + length_value))\n" +
+                "    memcpy(&length_value_raw, codec->buffer + length_position, sizeof(length_value_raw));\n" +
+                "    %4$s length_value = %3$s(length_value_raw);\n" +
+                "    if (%5$s_set_sbe_position(codec, length_position + sizeof(length_value_raw) + length_value))\n" +
                 "    {\n" +
-                "        ret.data = codec->buffer + length_position + sizeof(length_value);\n" +
+                "        ret.data = codec->buffer + length_position + sizeof(length_value_raw);\n" +
                 "        ret.length = length_value;\n" +
                 "    }\n") +
                 "    return ret;\n" +
