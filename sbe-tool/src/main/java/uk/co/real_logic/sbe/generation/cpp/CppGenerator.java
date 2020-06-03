@@ -504,22 +504,20 @@ public class CppGenerator implements CodeGenerator
                 sb, token, propertyName, characterEncoding, lengthToken, lengthOfLengthField, lengthCppType, indent);
 
             new Formatter(sb).format("\n" +
-                indent + "    std::uint64_t skip%1$s()\n" +
+                indent + "    std::uint64_t %1$sSkip()\n" +
                 indent + "    {\n" +
                 "%2$s" +
-                indent + "        std::uint64_t lengthOfLengthField = %3$d;\n" +
                 indent + "        std::uint64_t lengthPosition = sbePosition();\n" +
-                indent + "        %5$s lengthFieldValue;\n" +
-                indent + "        std::memcpy(&lengthFieldValue, m_buffer + lengthPosition, sizeof(%5$s));\n" +
-                indent + "        std::uint64_t dataLength = %4$s(lengthFieldValue);\n" +
-                indent + "        sbePosition(lengthPosition + lengthOfLengthField + dataLength);\n" +
+                indent + "        %3$s lengthValue;\n" +
+                indent + "        std::memcpy(&lengthValue, m_buffer + lengthPosition, sizeof(lengthValue));\n" +
+                indent + "        std::uint64_t dataLength = %4$s(lengthValue);\n" +
+                indent + "        sbePosition(lengthPosition + sizeof(lengthValue) + dataLength);\n" +
                 indent + "        return dataLength;\n" +
                 indent + "    }\n",
                 propertyName,
                 generateArrayFieldNotPresentCondition(token.version(), indent),
-                lengthOfLengthField,
-                lengthByteOrderStr,
-                lengthCppType);
+                lengthCppType,
+                lengthByteOrderStr);
 
             new Formatter(sb).format("\n" +
                 indent + "    SBE_NODISCARD const char *%1$s()\n" +
@@ -2890,7 +2888,7 @@ public class CppGenerator implements CodeGenerator
                 lengthToken.encoding().applicableMaxValue().longValue());
 
             new Formatter(sbSkip).format(
-                indent + "    skip%1$s();\n",
+                indent + "    %1$sSkip();\n",
                 propertyName);
 
             i += varDataToken.componentTokenCount();
